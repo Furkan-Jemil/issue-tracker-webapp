@@ -1,0 +1,195 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+enum Role {
+  USER
+  TESTER
+  ADMIN
+}
+
+enum IssueStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum Severity {
+  MINOR
+  MAJOR
+  CRITICAL
+}
+
+enum IssueType {
+  BUG
+  IMPROVEMENT
+}
+
+enum HistoryEvent {
+  CREATED
+  STATUS_CHANGED
+  UPDATED
+  COMMENTED
+}
+
+// =============================================================================
+// MODELS
+// =============================================================================
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sessions       Session[]
+  issues         Issue[]         @relation("IssueCreator")
+  comments       Comment[]
+  notifications  Notification[]
+  historyActions IssueHistory[]  @relation("HistoryActor")
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Issue {
+  id          String      @id @default(uuid())
+  title       String      @db.VarChar(255)
+  description String      @db.Text
+  type        IssueType
+  priority    Priority
+  severity    Severity
+  url         String?
+  status      IssueStatus @default(OPEN)
+  createdBy   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  creator       User           @relation("IssueCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  screenshots   Screenshot[]
+  comments      Comment[]
+  history       IssueHistory[]
+  notifications Notification[]
+
+  @@index([createdBy])
+  @@index([status])
+  @@index([priority])
+  @@index([severity])
+  @@index([type])
+  @@index([createdAt])
+  @@index([status, priority])
+  @@index([createdBy, status])
+  @@map("issues")
+}
+
+model Screenshot {
+  id        String   @id @default(uuid())
+  issueId   String
+  url       String
+  filename  String
+  mimeType  String
+  sizeBytes Int
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  // Relations
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+  @@index([issueId, order])
+  @@map("screenshots")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  issueId   String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  // Relations
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([issueId])
+  @@index([issueId, createdAt])
+  @@map("comments")
+}
+
+model IssueHistory {
+  id          String       @id @default(uuid())
+  issueId     String
+  actorId     String
+  eventType   HistoryEvent
+  description String       @db.Text
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+
+  // Relations
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  actor User  @relation("HistoryActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([issueId])
+  @@index([issueId, createdAt])
+  @@index([actorId])
+  @@index([eventType])
+  @@map("issue_history")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  issueId   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([issueId])
+  @@map("notifications")
+}
