@@ -32,6 +32,15 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# local QA and E2E artifacts
+.tmp-*
+test-results/
+playwright-report/
+/MANUAL_QA_CHECKLIST.md
+/PHASE13_CLOSEOUT.md
+/PHASE14_CLOSEOUT.md
+/PHASE7_CLOSEOUT.md
+
 # env files (can opt-in for committing if needed)
 .env*
 
