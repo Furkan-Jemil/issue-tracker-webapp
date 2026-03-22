@@ -1,10 +1,12 @@
+import prisma from "@/lib/prisma";
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
+import { getAppSession } from "@/lib/auth/session";
+import ExportDataButton from "./ExportDataButton";
 
-const prisma = new PrismaClient();
+
 
 export default async function AdminSettingsPage() {
-  const session = await getServerSession();
+  const session = await getAppSession();
   if (!session?.user || session.user.role !== "ADMIN") {
     return <div className="p-8">Admin access required.</div>;
   }
@@ -15,8 +17,11 @@ export default async function AdminSettingsPage() {
       <h1 className="text-2xl font-bold mb-6">System Settings</h1>
       <form className="space-y-6">
         <div>
-          <label className="block font-semibold mb-1">System Name</label>
+          <label htmlFor="system-name" className="block font-semibold mb-1">
+            System Name
+          </label>
           <input
+            id="system-name"
             type="text"
             className="border rounded px-3 py-1 w-full"
             placeholder="Issue Tracker"
@@ -24,18 +29,24 @@ export default async function AdminSettingsPage() {
           />
         </div>
         <div>
-          <label className="block font-semibold mb-1">Logo URL</label>
+          <label htmlFor="logo-url" className="block font-semibold mb-1">
+            Logo URL
+          </label>
           <input
+            id="logo-url"
             type="text"
             className="border rounded px-3 py-1 w-full"
             placeholder="https://..."
           />
         </div>
         <div>
-          <label className="block font-semibold mb-1">
+          <label
+            htmlFor="registration-domains"
+            className="block font-semibold mb-1">
             Allowed Registration Domains
           </label>
           <input
+            id="registration-domains"
             type="text"
             className="border rounded px-3 py-1 w-full"
             placeholder="example.com, company.org"
@@ -45,33 +56,19 @@ export default async function AdminSettingsPage() {
           </div>
         </div>
         <div>
-          <label className="block font-semibold mb-1">
+          <label
+            htmlFor="allow-registration"
+            className="block font-semibold mb-1">
             Allow New User Registration
           </label>
-          <select className="border rounded px-2 py-1">
+          <select id="allow-registration" className="border rounded px-2 py-1">
             <option value="true">Yes</option>
             <option value="false">No</option>
           </select>
         </div>
         <div>
           <label className="block font-semibold mb-1">Export Data</label>
-          <button
-            type="button"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            onClick={() => {
-              fetch("/api/admin/export")
-                .then((res) => res.blob())
-                .then((blob) => {
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = "issue-tracker-export.json";
-                  a.click();
-                  URL.revokeObjectURL(url);
-                });
-            }}>
-            Export All Data (JSON)
-          </button>
+          <ExportDataButton />
         </div>
         <button
           type="submit"
