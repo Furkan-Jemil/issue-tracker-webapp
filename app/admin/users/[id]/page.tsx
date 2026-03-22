@@ -1,15 +1,14 @@
+import prisma from "@/lib/prisma";
 import { PrismaClient, Role } from "@prisma/client";
-import { getServerSession } from "next-auth";
+import { getAppSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-
-const prisma = new PrismaClient();
 
 export default async function EditUserPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const session = await getServerSession();
+  const session = await getAppSession();
   if (!session?.user || session.user.role !== "ADMIN") {
     return <div className="p-8">Admin access required.</div>;
   }
@@ -32,16 +31,23 @@ export default async function EditUserPage({
       <h1 className="text-2xl font-bold mb-4">Edit User</h1>
       <form action={updateRole} className="space-y-4">
         <div>
-          <label className="block mb-1 font-semibold">Name</label>
+          <label htmlFor="user-name" className="block mb-1 font-semibold">
+            Name
+          </label>
           <div className="p-2 border rounded bg-gray-100">{user.name}</div>
         </div>
         <div>
-          <label className="block mb-1 font-semibold">Email</label>
+          <label htmlFor="user-email" className="block mb-1 font-semibold">
+            Email
+          </label>
           <div className="p-2 border rounded bg-gray-100">{user.email}</div>
         </div>
         <div>
-          <label className="block mb-1 font-semibold">Role</label>
+          <label htmlFor="role" className="block mb-1 font-semibold">
+            Role
+          </label>
           <select
+            id="role"
             name="role"
             defaultValue={user.role}
             className="border rounded px-2 py-1">
