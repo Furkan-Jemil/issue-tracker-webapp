@@ -1,10 +1,11 @@
+import prisma from "@/lib/prisma";
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
+import { getAppSession } from "@/lib/auth/session";
 
-const prisma = new PrismaClient();
+
 
 export default async function AdminAuditLogPage() {
-  const session = await getServerSession();
+  const session = await getAppSession();
   if (!session?.user || session.user.role !== "ADMIN") {
     return <div className="p-8">Admin access required.</div>;
   }
@@ -20,13 +21,14 @@ export default async function AdminAuditLogPage() {
     <div className="max-w-4xl mx-auto p-8">
       <h1 className="text-2xl font-bold mb-6">Audit Log</h1>
       <table className="w-full border">
+        <caption className="sr-only">Recent issue history events</caption>
         <thead>
           <tr className="bg-gray-100">
-            <th className="p-2">Time</th>
-            <th className="p-2">User</th>
-            <th className="p-2">Event</th>
-            <th className="p-2">Description</th>
-            <th className="p-2">Issue</th>
+            <th scope="col" className="p-2">Time</th>
+            <th scope="col" className="p-2">User</th>
+            <th scope="col" className="p-2">Event</th>
+            <th scope="col" className="p-2">Description</th>
+            <th scope="col" className="p-2">Issue</th>
           </tr>
         </thead>
         <tbody>
