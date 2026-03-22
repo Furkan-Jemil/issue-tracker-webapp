@@ -5,14 +5,32 @@ import Link from "next/link";
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 20;
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkRole, setBulkRole] = useState("");
 
   useEffect(() => {
-    fetch(`/api/admin/users?search=${encodeURIComponent(search)}`)
-      .then((res) => res.json())
-      .then((data) => setUsers(data.users || []));
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, [search]);
+
+  useEffect(() => {
+    fetch(
+      `/api/admin/users?search=${encodeURIComponent(debouncedSearch)}&page=${page}&pageSize=${pageSize}`,
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setUsers(data.users || []);
+        setTotal(data.total || 0);
+      });
+  }, [debouncedSearch, page]);
 
   function toggleSelect(id: string) {
     setSelected((prev) =>
@@ -32,14 +50,20 @@ export default function AdminUsersPage() {
     // Refresh
     fetch(`/api/admin/users?search=${encodeURIComponent(search)}`)
       .then((res) => res.json())
-      .then((data) => setUsers(data.users || []));
+      .then((data) => {
+        setUsers(data.users || []);
+        setTotal(data.total || 0);
+      });
   }
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <div className="max-w-3xl mx-auto p-8">
       <h1 className="text-2xl font-bold mb-6">User Management</h1>
       <div className="flex gap-4 mb-4">
         <input
+          aria-label="Search users"
           type="text"
           placeholder="Search by name or email..."
           value={search}
@@ -47,6 +71,7 @@ export default function AdminUsersPage() {
           className="border rounded px-3 py-1 w-full"
         />
         <button
+          type="button"
           onClick={() => setSearch("")}
           className="px-2 py-1 bg-gray-200 rounded">
           Clear
@@ -54,6 +79,7 @@ export default function AdminUsersPage() {
       </div>
       <div className="flex gap-2 mb-4 items-center">
         <select
+          aria-label="Select role for bulk update"
           value={bulkRole}
           onChange={(e) => setBulkRole(e.target.value)}
           className="border rounded px-2 py-1">
@@ -73,10 +99,14 @@ export default function AdminUsersPage() {
         </span>
       </div>
       <table className="w-full border mb-8">
+        <caption className="sr-only">
+          Admin users table with bulk selection
+        </caption>
         <thead>
           <tr className="bg-gray-100">
             <th className="p-2">
               <input
+                aria-label="Select all users on page"
                 type="checkbox"
                 checked={selected.length === users.length && users.length > 0}
                 onChange={(e) =>
@@ -84,11 +114,21 @@ export default function AdminUsersPage() {
                 }
               />
             </th>
-            <th className="p-2">Name</th>
-            <th className="p-2">Email</th>
-            <th className="p-2">Role</th>
-            <th className="p-2">Created</th>
-            <th className="p-2">Actions</th>
+            <th scope="col" className="p-2">
+              Name
+            </th>
+            <th scope="col" className="p-2">
+              Email
+            </th>
+            <th scope="col" className="p-2">
+              Role
+            </th>
+            <th scope="col" className="p-2">
+              Created
+            </th>
+            <th scope="col" className="p-2">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -96,6 +136,7 @@ export default function AdminUsersPage() {
             <tr key={user.id} className="border-t">
               <td className="p-2">
                 <input
+                  aria-label={`Select user ${user.email}`}
                   type="checkbox"
                   checked={selected.includes(user.id)}
                   onChange={() => toggleSelect(user.id)}
@@ -118,6 +159,27 @@ export default function AdminUsersPage() {
           ))}
         </tbody>
       </table>
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-500">
+          Page {page} of {totalPages}
+        </span>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            className="rounded border px-3 py-1 text-sm disabled:opacity-50">
+            Previous
+          </button>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+            className="rounded border px-3 py-1 text-sm disabled:opacity-50">
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
