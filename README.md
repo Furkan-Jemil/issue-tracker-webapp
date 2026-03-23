@@ -20,6 +20,11 @@ This project is built with Next.js (App Router), TypeScript, Prisma, and Postgre
 - Run `npm run qa:phases` to generate an automated phase report at `.tmp-phase-qa-report.json`.
 - Run `npm run test:e2e` to execute authenticated browser tests (Playwright).
 
+Current snapshot (2026-03-23):
+
+- Phase QA gate: Pass
+- Authenticated browser E2E: Pass (including admin export, admin bulk role update, and notification mark-one/mark-all flows)
+
 ## Structure
 
 - `/app` - Main application routes and pages
@@ -37,6 +42,11 @@ For project requirements and data model details, see:
 
 - `SRS_Issue_Tracking_System.md`
 - `database-schema.md`
+
+Schema source of truth:
+
+- Runtime schema: `prisma/schema.prisma`
+- Design reference: `database-schema.md`
 - `PHASE7_CLOSEOUT.md`
 - `PHASE13_CLOSEOUT.md`
 - `PHASE14_CLOSEOUT.md`
