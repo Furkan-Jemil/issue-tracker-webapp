@@ -1,21 +1,33 @@
 import Link from "next/link";
-import dynamic from "next/dynamic";
+import DashboardCharts from "@/components/dashboard/DashboardCharts";
+import { getAppSession } from "@/lib/auth/session";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const DashboardCharts = dynamic(
-  () => import("@/components/dashboard/DashboardCharts"),
-  { ssr: false },
-);
+export default async function DashboardPage() {
+  const session = await getAppSession();
+  if (!session?.user || session.user.role !== "ADMIN") {
+    return <div className="p-8">Admin access required.</div>;
+  }
 
-export default function DashboardPage() {
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      <div className="mb-4">
-        <Link href="/issues" className="text-blue-600 hover:underline">
-          View All Issues
-        </Link>
+    <div className="mx-auto w-full max-w-7xl px-3 py-4 md:px-6 md:py-8">
+      <Card className="mb-4">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Dashboard</CardTitle>
+          <Button asChild variant="outline">
+            <Link href="/issues">View All Issues</Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Monitor issue health, trends, and recent activity in one place.
+          </p>
+        </CardContent>
+      </Card>
+      <div>
+        <DashboardCharts />
       </div>
-      <DashboardCharts />
     </div>
   );
 }
