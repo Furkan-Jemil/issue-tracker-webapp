@@ -1,8 +1,16 @@
 import prisma from "@/lib/prisma";
 import { PrismaClient } from "@prisma/client";
 import { getAppSession } from "@/lib/auth/session";
-
-
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default async function AdminAuditLogPage() {
   const session = await getAppSession();
@@ -17,36 +25,54 @@ export default async function AdminAuditLogPage() {
       issue: { select: { title: true } },
     },
   });
+
+  function eventVariant(eventType: string) {
+    if (eventType === "CREATED") return "secondary" as const;
+    if (eventType === "STATUS_CHANGED") return "warning" as const;
+    if (eventType === "COMMENTED") return "success" as const;
+    return "outline" as const;
+  }
+
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">Audit Log</h1>
-      <table className="w-full border">
-        <caption className="sr-only">Recent issue history events</caption>
-        <thead>
-          <tr className="bg-gray-100">
-            <th scope="col" className="p-2">Time</th>
-            <th scope="col" className="p-2">User</th>
-            <th scope="col" className="p-2">Event</th>
-            <th scope="col" className="p-2">Description</th>
-            <th scope="col" className="p-2">Issue</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.map((log) => (
-            <tr key={log.id} className="border-t">
-              <td className="p-2">
-                {new Date(log.createdAt).toLocaleString()}
-              </td>
-              <td className="p-2">
-                {log.actor?.name} ({log.actor?.email})
-              </td>
-              <td className="p-2">{log.eventType}</td>
-              <td className="p-2">{log.description}</td>
-              <td className="p-2">{log.issue?.title}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="mx-auto w-full max-w-7xl px-3 py-4 md:px-6 md:py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Audit Log</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <caption className="sr-only">Recent issue history events</caption>
+            <TableHeader>
+              <TableRow>
+                <TableHead scope="col">Time</TableHead>
+                <TableHead scope="col">User</TableHead>
+                <TableHead scope="col">Event</TableHead>
+                <TableHead scope="col">Description</TableHead>
+                <TableHead scope="col">Issue</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {logs.map((log) => (
+                <TableRow key={log.id}>
+                  <TableCell>
+                    {new Date(log.createdAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    {log.actor?.name} ({log.actor?.email})
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={eventVariant(log.eventType)}>
+                      {log.eventType}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{log.description}</TableCell>
+                  <TableCell>{log.issue?.title}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
