@@ -1,27 +1,17 @@
-import { Button } from "@/components/ui/button";
+import prisma from "@/lib/prisma";
 import { IssueType, PrismaClient, Priority, Severity } from "@prisma/client";
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
+import { getAppSession } from "@/lib/auth/session";
 import { defineAbilitiesFor } from "@/lib/casl";
-import { ScreenshotUpload } from "@/components/issue/ScreenshotUpload";
-import React, { useState } from "react";
+import { NewIssueForm } from "@/components/issue/NewIssueForm";
 
-const prisma = new PrismaClient();
-
-async function uploadScreenshots(files: File[]) {
-  const formData = new FormData();
-  files.forEach((file) => formData.append("screenshots", file));
-  const res = await fetch("/api/upload", {
-    method: "POST",
-    body: formData,
-  });
-  const data = await res.json();
-  return data.files;
+function formatRole(role: string): string {
+  return role.charAt(0) + role.slice(1).toLowerCase();
 }
 
 async function createIssue(formData: FormData) {
   "use server";
-  const session = await getServerSession();
+  const session = await getAppSession();
   if (!session?.user) {
     redirect("/login");
   }
@@ -67,77 +57,36 @@ async function createIssue(formData: FormData) {
     },
     include: { screenshots: true },
   });
+
+  await prisma.issueHistory.create({
+    data: {
+      issueId: issue.id,
+      actorId: session.user.id,
+      eventType: "CREATED",
+      description: `Issue created by ${session.user.name || "Unknown"} (${formatRole(session.user.role)})`,
+      metadata: {
+        title: issue.title,
+        type: issue.type,
+        priority: issue.priority,
+        severity: issue.severity,
+        screenshotCount: issue.screenshots.length,
+      },
+    },
+  });
+
   redirect("/issues");
 }
 
-export default function NewIssuePage() {
-  const [screenshots, setScreenshots] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
-  const [screenshotsMeta, setScreenshotsMeta] = useState<any[]>([]);
+export default async function NewIssuePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
+  const errorMessage =
+    params?.error === "missing-required-fields"
+      ? "All required fields must be filled."
+      : "";
 
-  async function handleScreenshotChange(files: File[], previews: string[]) {
-    setScreenshots(files);
-    setPreviews(previews);
-    if (files.length > 0) {
-      const uploaded = await uploadScreenshots(files);
-      setScreenshotsMeta(uploaded);
-    } else {
-      setScreenshotsMeta([]);
-    }
-  }
-
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <form
-        action={createIssue}
-        method="post"
-        className="space-y-4 bg-white p-8 rounded shadow w-full max-w-lg"
-        encType="multipart/form-data">
-        <h1 className="text-2xl font-bold mb-4">Report New Issue</h1>
-        <input
-          name="title"
-          type="text"
-          placeholder="Title"
-          required
-          className="w-full border p-2 rounded"
-          maxLength={255}
-        />
-        <textarea
-          name="description"
-          placeholder="Description"
-          required
-          className="w-full border p-2 rounded"
-        />
-        <select name="type" required className="w-full border p-2 rounded">
-          <option value="BUG">Bug</option>
-          <option value="IMPROVEMENT">Improvement</option>
-        </select>
-        <select name="priority" required className="w-full border p-2 rounded">
-          <option value="LOW">Low</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HIGH">High</option>
-        </select>
-        <select name="severity" required className="w-full border p-2 rounded">
-          <option value="MINOR">Minor</option>
-          <option value="MAJOR">Major</option>
-          <option value="CRITICAL">Critical</option>
-        </select>
-        <input
-          name="url"
-          type="url"
-          placeholder="URL (optional)"
-          className="w-full border p-2 rounded"
-        />
-        <input
-          type="hidden"
-          name="screenshotsMeta"
-          value={JSON.stringify(screenshotsMeta)}
-        />
-        <ScreenshotUpload onChange={handleScreenshotChange} />
-        <Button type="submit" className="w-full">
-          Submit Issue
-        </Button>
-      </form>
-    </div>
-  );
+  return <NewIssueForm action={createIssue} errorMessage={errorMessage} />;
 }
