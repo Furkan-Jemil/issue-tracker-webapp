@@ -1,17 +1,27 @@
+import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getAppSession } from "@/lib/auth/session";
 
-const prisma = new PrismaClient();
 
-// GET /api/notifications/unread?userId=xxx
+
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get("userId");
-  if (!userId) {
-    return NextResponse.json({ count: 0 });
+  try {
+    const session = await getAppSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const count = await prisma.notification.count({
+      where: { userId: session.user.id, isRead: false },
+    });
+
+    return NextResponse.json({ count });
+  } catch (error) {
+    console.error("Failed to get unread notifications count", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-  const count = await prisma.notification.count({
-    where: { userId, isRead: false },
-  });
-  return NextResponse.json({ count });
 }
