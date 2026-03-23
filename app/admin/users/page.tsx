@@ -1,6 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -59,127 +72,124 @@ export default function AdminUsersPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="max-w-3xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">User Management</h1>
-      <div className="flex gap-4 mb-4">
-        <input
-          aria-label="Search users"
-          type="text"
-          placeholder="Search by name or email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-3 py-1 w-full"
-        />
-        <button
-          type="button"
-          onClick={() => setSearch("")}
-          className="px-2 py-1 bg-gray-200 rounded">
-          Clear
-        </button>
-      </div>
-      <div className="flex gap-2 mb-4 items-center">
-        <select
-          aria-label="Select role for bulk update"
-          value={bulkRole}
-          onChange={(e) => setBulkRole(e.target.value)}
-          className="border rounded px-2 py-1">
-          <option value="">Bulk set role...</option>
-          <option value="USER">User</option>
-          <option value="TESTER">Tester</option>
-          <option value="ADMIN">Admin</option>
-        </select>
-        <button
-          onClick={handleBulkRole}
-          className="bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-50"
-          disabled={!bulkRole || selected.length === 0}>
-          Apply
-        </button>
-        <span className="text-sm text-gray-500">
-          {selected.length} selected
-        </span>
-      </div>
-      <table className="w-full border mb-8">
-        <caption className="sr-only">
-          Admin users table with bulk selection
-        </caption>
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2">
-              <input
-                aria-label="Select all users on page"
-                type="checkbox"
-                checked={selected.length === users.length && users.length > 0}
-                onChange={(e) =>
-                  setSelected(e.target.checked ? users.map((u) => u.id) : [])
-                }
-              />
-            </th>
-            <th scope="col" className="p-2">
-              Name
-            </th>
-            <th scope="col" className="p-2">
-              Email
-            </th>
-            <th scope="col" className="p-2">
-              Role
-            </th>
-            <th scope="col" className="p-2">
-              Created
-            </th>
-            <th scope="col" className="p-2">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id} className="border-t">
-              <td className="p-2">
-                <input
-                  aria-label={`Select user ${user.email}`}
-                  type="checkbox"
-                  checked={selected.includes(user.id)}
-                  onChange={() => toggleSelect(user.id)}
-                />
-              </td>
-              <td className="p-2">{user.name}</td>
-              <td className="p-2">{user.email}</td>
-              <td className="p-2">{user.role}</td>
-              <td className="p-2">
-                {new Date(user.createdAt).toLocaleString()}
-              </td>
-              <td className="p-2">
-                <Link
-                  href={`/admin/users/${user.id}`}
-                  className="text-blue-600 hover:underline">
-                  Edit
-                </Link>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">
-          Page {page} of {totalPages}
-        </span>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1}
-            className="rounded border px-3 py-1 text-sm disabled:opacity-50">
-            Previous
-          </button>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page >= totalPages}
-            className="rounded border px-3 py-1 text-sm disabled:opacity-50">
-            Next
-          </button>
-        </div>
-      </div>
+    <div className="mx-auto w-full max-w-6xl px-3 py-4 md:px-6 md:py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>User Management</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-3">
+            <Input
+              aria-label="Search users"
+              type="text"
+              placeholder="Search by name or email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="min-w-64 flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSearch("")}>
+              Clear
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Select
+              aria-label="Select role for bulk update"
+              value={bulkRole}
+              onChange={(e) => setBulkRole(e.target.value)}
+              className="max-w-52">
+              <option value="">Bulk set role...</option>
+              <option value="USER">User</option>
+              <option value="TESTER">Tester</option>
+              <option value="ADMIN">Admin</option>
+            </Select>
+            <Button
+              onClick={handleBulkRole}
+              disabled={!bulkRole || selected.length === 0}>
+              Apply
+            </Button>
+            <Badge variant="secondary">{selected.length} selected</Badge>
+          </div>
+          <Table>
+            <caption className="sr-only">
+              Admin users table with bulk selection
+            </caption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <input
+                    aria-label="Select all users on page"
+                    type="checkbox"
+                    checked={
+                      selected.length === users.length && users.length > 0
+                    }
+                    onChange={(e) =>
+                      setSelected(
+                        e.target.checked ? users.map((u) => u.id) : [],
+                      )
+                    }
+                  />
+                </TableHead>
+                <TableHead scope="col">Name</TableHead>
+                <TableHead scope="col">Email</TableHead>
+                <TableHead scope="col">Role</TableHead>
+                <TableHead scope="col">Created</TableHead>
+                <TableHead scope="col">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <input
+                      aria-label={`Select user ${user.email}`}
+                      type="checkbox"
+                      checked={selected.includes(user.id)}
+                      onChange={() => toggleSelect(user.id)}
+                    />
+                  </TableCell>
+                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                  <TableCell>
+                    {new Date(user.createdAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/admin/users/${user.id}`}
+                      className="text-primary hover:underline">
+                      Edit
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="text-sm text-muted-foreground">
+              Page {page} of {totalPages}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}>
+                Previous
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}>
+                Next
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
