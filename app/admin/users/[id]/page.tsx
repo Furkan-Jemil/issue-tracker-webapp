@@ -2,17 +2,23 @@ import prisma from "@/lib/prisma";
 import { PrismaClient, Role } from "@prisma/client";
 import { getAppSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 
 export default async function EditUserPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const routeParams = await params;
   const session = await getAppSession();
   if (!session?.user || session.user.role !== "ADMIN") {
     return <div className="p-8">Admin access required.</div>;
   }
-  const user = await prisma.user.findUnique({ where: { id: params.id } });
+  const user = await prisma.user.findUnique({ where: { id: routeParams.id } });
   if (!user) return <div className="p-8">User not found.</div>;
   const userId = user.id;
 
@@ -27,41 +33,33 @@ export default async function EditUserPage({
   }
 
   return (
-    <div className="max-w-md mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-4">Edit User</h1>
-      <form action={updateRole} className="space-y-4">
-        <div>
-          <label htmlFor="user-name" className="block mb-1 font-semibold">
-            Name
-          </label>
-          <div className="p-2 border rounded bg-gray-100">{user.name}</div>
-        </div>
-        <div>
-          <label htmlFor="user-email" className="block mb-1 font-semibold">
-            Email
-          </label>
-          <div className="p-2 border rounded bg-gray-100">{user.email}</div>
-        </div>
-        <div>
-          <label htmlFor="role" className="block mb-1 font-semibold">
-            Role
-          </label>
-          <select
-            id="role"
-            name="role"
-            defaultValue={user.role}
-            className="border rounded px-2 py-1">
-            <option value="USER">User</option>
-            <option value="TESTER">Tester</option>
-            <option value="ADMIN">Admin</option>
-          </select>
-        </div>
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Update Role
-        </button>
-      </form>
+    <div className="mx-auto w-full max-w-xl px-3 py-4 md:px-6 md:py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit User</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form action={updateRole} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="user-name">Name</Label>
+              <Input id="user-name" value={user.name} readOnly />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="user-email">Email</Label>
+              <Input id="user-email" value={user.email} readOnly />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="role">Role</Label>
+              <Select id="role" name="role" defaultValue={user.role}>
+                <option value="USER">User</option>
+                <option value="TESTER">Tester</option>
+                <option value="ADMIN">Admin</option>
+              </Select>
+            </div>
+            <Button type="submit">Update Role</Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
