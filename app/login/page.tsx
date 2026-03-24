@@ -1,3 +1,4 @@
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,10 +10,73 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import bcrypt from "bcryptjs";
-import { randomUUID } from "node:crypto";
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import bcrypt from "bcryptjs";
+import { randomBytes, scryptSync } from "node:crypto";
+
+function hashForBetterAuth(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const key = scryptSync(password.normalize("NFKC"), salt, 64, {
+    N: 16384,
+    r: 16,
+    p: 1,
+    maxmem: 128 * 16384 * 16 * 2,
+  });
+  return `${salt}:${key.toString("hex")}`;
+}
+
+async function migrateLegacyBcryptHash(
+  email: string,
+  password: string,
+): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  if (!user) {
+    return false;
+  }
+
+  const account = await prisma.account.findFirst({
+    where: {
+      providerId: "credential",
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      userId: true,
+      password: true,
+    },
+  });
+
+  if (!account?.password || !account.password.startsWith("$2")) {
+    return false;
+  }
+
+  const matches = await bcrypt.compare(password, account.password);
+  if (!matches) {
+    return false;
+  }
+
+  const migratedHash = hashForBetterAuth(password);
+
+  await prisma.$transaction([
+    prisma.account.update({
+      where: { id: account.id },
+      data: { password: migratedHash },
+    }),
+    prisma.user.update({
+      where: { id: account.userId },
+      data: { password: migratedHash },
+    }),
+  ]);
+
+  return true;
+}
 
 async function signInWithPassword(formData: FormData) {
   "use server";
@@ -26,41 +90,45 @@ async function signInWithPassword(formData: FormData) {
     redirect("/login?error=invalid-credentials");
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, password: true },
-  });
+  try {
+    let response = await auth.api.signInEmail({
+      body: {
+        email,
+        password,
+        rememberMe: true,
+      },
+      headers: await headers(),
+      asResponse: true,
+    });
 
-  if (!user?.password) {
+    if (!response.ok) {
+      redirect("/login?error=invalid-credentials");
+    }
+
+    redirect("/issues");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("Invalid password hash")) {
+      const migrated = await migrateLegacyBcryptHash(email, password);
+      if (migrated) {
+        const retryResponse = await auth.api.signInEmail({
+          body: {
+            email,
+            password,
+            rememberMe: true,
+          },
+          headers: await headers(),
+          asResponse: true,
+        });
+
+        if (retryResponse.ok) {
+          redirect("/issues");
+        }
+      }
+    }
+
     redirect("/login?error=invalid-credentials");
   }
-
-  const isValid = await bcrypt.compare(password, user.password);
-  if (!isValid) {
-    redirect("/login?error=invalid-credentials");
-  }
-
-  const token = randomUUID();
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
-
-  await prisma.session.create({
-    data: {
-      userId: user.id,
-      token,
-      expiresAt,
-    },
-  });
-
-  const cookieStore = await cookies();
-  cookieStore.set("better-auth.session_token", token, {
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    expires: expiresAt,
-  });
-
-  redirect("/issues");
 }
 
 export default async function LoginPage({
@@ -118,6 +186,15 @@ export default async function LoginPage({
             <Button type="submit" className="w-full">
               Sign In
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              New here?{" "}
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
+                Create an account
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>
