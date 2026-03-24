@@ -1,11 +1,8 @@
 import prisma from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
 import { getAppSession } from "@/lib/auth/session";
 
-
-
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await getAppSession();
     if (!session?.user) {

@@ -17,6 +17,8 @@ This project is built with Next.js (App Router), TypeScript, Prisma, and Postgre
 
 ## Quality Gate
 
+- Run `npm run qa:phase0` to capture Phase 0 baseline checks at `.tmp-phase0-baseline.json`.
+- Run `npm run qa:phase0:e2e` to include Playwright E2E in the baseline capture.
 - Run `npm run qa:phases` to generate an automated phase report at `.tmp-phase-qa-report.json`.
 - Run `npm run test:e2e` to execute authenticated browser tests (Playwright).
 

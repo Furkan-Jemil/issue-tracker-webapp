@@ -1,7 +1,17 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getAppSession } from "@/lib/auth/session";
-import { PrismaClient, Role } from "@prisma/client";
+import { Role } from "@prisma/client";
+import { parseEnumValue } from "@/lib/issueValidation";
+import { applyRateLimit } from "@/lib/rateLimit";
+
+const MAX_BULK_ROLE_IDS = 500;
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,28 +20,92 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { ids, role } = await req.json();
-    if (
-      !Array.isArray(ids) ||
-      !role ||
-      !["USER", "TESTER", "ADMIN"].includes(role)
-    ) {
+    const rateLimited = applyRateLimit(req, {
+      keyPrefix: "admin-users-bulk-role:post",
+      identifier: session.user.id,
+      max: 10,
+      windowMs: 60_000,
+    });
+    if (rateLimited) {
+      return rateLimited;
+    }
+
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
+
+    const ids = "ids" in body ? body.ids : null;
+    const parsedRole = parseEnumValue(
+      "role" in body ? body.role : null,
+      Object.values(Role),
+    );
+    if (!Array.isArray(ids) || !parsedRole) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
     const uniqueIds = Array.from(new Set(ids)).filter(
-      (id): id is string => typeof id === "string" && id.trim().length > 0,
+      (id): id is string =>
+        typeof id === "string" && id.trim().length > 0 && isUuid(id.trim()),
     );
-    if (uniqueIds.length === 0 || uniqueIds.length > 500) {
+    if (uniqueIds.length === 0 || uniqueIds.length > MAX_BULK_ROLE_IDS) {
       return NextResponse.json({ error: "Invalid ids list" }, { status: 400 });
     }
 
-    await prisma.user.updateMany({
+    const targetUsers = await prisma.user.findMany({
       where: { id: { in: uniqueIds } },
-      data: { role: role as Role },
+      select: { id: true, role: true },
     });
 
-    return NextResponse.json({ success: true });
+    if (targetUsers.length !== uniqueIds.length) {
+      return NextResponse.json(
+        { error: "One or more user IDs do not exist" },
+        { status: 400 },
+      );
+    }
+
+    if (uniqueIds.includes(session.user.id) && parsedRole !== Role.ADMIN) {
+      return NextResponse.json(
+        { error: "Cannot remove your own admin role in bulk update" },
+        { status: 400 },
+      );
+    }
+
+    if (parsedRole !== Role.ADMIN) {
+      const adminsToDemote = targetUsers.filter(
+        (user) => user.role === Role.ADMIN,
+      ).length;
+
+      if (adminsToDemote > 0) {
+        const totalAdmins = await prisma.user.count({
+          where: { role: Role.ADMIN },
+        });
+
+        if (totalAdmins - adminsToDemote < 1) {
+          return NextResponse.json(
+            { error: "At least one admin must remain" },
+            { status: 400 },
+          );
+        }
+      }
+    }
+
+    const updateResult = await prisma.user.updateMany({
+      where: { id: { in: uniqueIds } },
+      data: { role: parsedRole },
+    });
+
+    if (updateResult.count !== uniqueIds.length) {
+      return NextResponse.json(
+        { error: "Bulk update did not apply to all requested users" },
+        { status: 409 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      updatedCount: updateResult.count,
+    });
   } catch (error) {
     console.error("Bulk role update failed", error);
     return NextResponse.json(

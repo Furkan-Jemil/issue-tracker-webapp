@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getAppSession } from "@/lib/auth/session";
-import { PrismaClient } from "@prisma/client";
+import { applyRateLimit } from "@/lib/rateLimit";
 
 // GET: List notifications for current user
 export async function GET(req: NextRequest) {
@@ -41,12 +41,25 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await prisma.notification.updateMany({
+    const rateLimited = applyRateLimit(req, {
+      keyPrefix: "notifications:patch-all",
+      identifier: session.user.id,
+      max: 30,
+      windowMs: 60_000,
+    });
+    if (rateLimited) {
+      return rateLimited;
+    }
+
+    const updateResult = await prisma.notification.updateMany({
       where: { userId: session.user.id, isRead: false },
       data: { isRead: true },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      updatedCount: updateResult.count,
+    });
   } catch (error) {
     console.error("Failed to update notifications", error);
     return NextResponse.json(

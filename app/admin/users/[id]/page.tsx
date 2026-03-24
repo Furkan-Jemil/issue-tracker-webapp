@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { PrismaClient, Role } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { getAppSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { parseEnumValue } from "@/lib/issueValidation";
 
 export default async function EditUserPage({
   params,
@@ -24,10 +25,23 @@ export default async function EditUserPage({
 
   async function updateRole(formData: FormData) {
     "use server";
-    const newRole = formData.get("role") as Role;
+
+    const actionSession = await getAppSession();
+    if (!actionSession?.user || actionSession.user.role !== "ADMIN") {
+      redirect("/login");
+    }
+
+    const parsedRole = parseEnumValue(
+      formData.get("role"),
+      Object.values(Role),
+    );
+    if (!parsedRole) {
+      redirect(`/admin/users/${userId}`);
+    }
+
     await prisma.user.update({
       where: { id: userId },
-      data: { role: newRole },
+      data: { role: parsedRole },
     });
     redirect("/admin/users");
   }
