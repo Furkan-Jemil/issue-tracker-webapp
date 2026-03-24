@@ -2,6 +2,8 @@ import "../styles/tailwind.css";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { getAppSession } from "@/lib/auth/session";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 import Link from "next/link";
 
 export default async function RootLayout({
@@ -10,6 +12,15 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await getAppSession();
+  const profileName = session?.user?.name?.trim() || "Signed-in User";
+  const profileEmail = session?.user?.email?.trim() || "No email";
+  const profileInitials =
+    profileName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || "U";
 
   const navLinkClass =
     "rounded-full px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent/55 hover:text-accent-foreground";
@@ -47,14 +58,13 @@ export default async function RootLayout({
                 <nav
                   aria-label="Primary"
                   className="flex flex-wrap items-center gap-1">
-                  <Link href="/dashboard" className={navLinkClass}>
-                    Dashboard
-                  </Link>
+                  {session?.user?.role === "ADMIN" && (
+                    <Link href="/dashboard" className={navLinkClass}>
+                      Dashboard
+                    </Link>
+                  )}
                   <Link href="/issues" className={navLinkClass}>
                     Issues
-                  </Link>
-                  <Link href="/issues/search" className={navLinkClass}>
-                    Search
                   </Link>
                   {session?.user?.role === "ADMIN" && (
                     <>
@@ -70,7 +80,44 @@ export default async function RootLayout({
                     </>
                   )}
                 </nav>
-                <div>{session?.user && <NotificationBell />}</div>
+                <div className="flex items-center gap-2">
+                  {session?.user && (
+                    <div className="group relative">
+                      <button
+                        type="button"
+                        aria-label={`Profile: ${profileName}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/70 text-xs font-semibold text-primary transition-colors hover:bg-accent/60">
+                        {profileInitials}
+                      </button>
+                      <div className="pointer-events-none absolute right-0 top-11 z-40 min-w-[180px] rounded-lg border border-border/70 bg-background/95 px-3 py-2 opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                        <p className="truncate text-xs font-semibold leading-tight text-foreground">
+                          {profileName}
+                        </p>
+                        <p className="truncate text-[11px] leading-tight text-muted-foreground">
+                          {profileEmail}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {session?.user && <NotificationBell />}
+                  {session?.user && (
+                    <div className="group relative">
+                      <Button
+                        asChild
+                        size="icon"
+                        variant="outline"
+                        aria-label="Logout">
+                        <Link href="/logout">
+                          <span className="sr-only">Logout</span>
+                          <LogOut className="h-4 w-4" aria-hidden="true" />
+                        </Link>
+                      </Button>
+                      <div className="pointer-events-none absolute right-0 top-11 z-40 rounded-md border border-border/70 bg-background/95 px-2 py-1 text-xs font-medium text-foreground opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                        Logout
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </header>
