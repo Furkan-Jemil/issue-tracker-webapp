@@ -6,6 +6,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+
+async function signOut() {
+  "use server";
+
+  const response = await auth.api.signOut({
+    headers: await headers(),
+    asResponse: true,
+  });
+
+  if (!response.ok) {
+    redirect("/login");
+  }
+
+  redirect("/login");
+}
 
 export default function LogoutPage() {
   return (
@@ -18,8 +36,7 @@ export default function LogoutPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action="/api/auth/sign-out" method="post" className="space-y-4">
-            <input type="hidden" name="callbackURL" value="/login" />
+          <form action={signOut} className="space-y-4">
             <Button type="submit" className="w-full">
               Sign Out
             </Button>
