@@ -21,6 +21,15 @@ export async function GET(req: NextRequest) {
       where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
       take: limit,
+      include: {
+        issue: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json({ notifications });
