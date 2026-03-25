@@ -1,6 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export function CommentThread({
   issueId,
@@ -35,30 +38,47 @@ export function CommentThread({
   }
 
   return (
-    <div>
-      <h2 className="font-semibold mb-2">Comments</h2>
-      <ul className="mb-4">
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold">Comments</h2>
+      <ul
+        className="space-y-2"
+        aria-live="polite"
+        aria-relevant="additions text">
         {localComments.map((c, idx) => (
-          <li key={c.id || idx} className="mb-2 p-2 border rounded">
-            <div className="text-sm text-gray-700">
-              {c.user?.name || "Unknown"}{" "}
-              <span className="text-xs text-gray-400">
-                [{new Date(c.createdAt).toLocaleString()}]
-              </span>
-            </div>
-            <div>{c.content}</div>
+          <li key={c.id || idx}>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-sm text-muted-foreground">
+                  {c.user?.name || "Unknown"}{" "}
+                  <span className="text-xs">
+                    [{new Date(c.createdAt).toLocaleString()}]
+                  </span>
+                </div>
+                <div className="pt-1 text-sm">{c.content}</div>
+              </CardContent>
+            </Card>
           </li>
         ))}
       </ul>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        <textarea
+      <form onSubmit={handleSubmit} className="space-y-2">
+        <Label htmlFor="comment-content">Add a comment</Label>
+        <Textarea
+          id="comment-content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Add a comment..."
-          className="border p-2 rounded"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "comment-error" : undefined}
           required
         />
-        {error && <div className="text-red-600 text-sm">{error}</div>}
+        {error && (
+          <div
+            id="comment-error"
+            role="alert"
+            className="text-sm text-destructive">
+            {error}
+          </div>
+        )}
         <Button type="submit">Post Comment</Button>
       </form>
     </div>
