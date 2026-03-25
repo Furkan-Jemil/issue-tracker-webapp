@@ -1,12 +1,26 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+type NotificationItem = {
+  id: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  issueId: string;
+  issue?: {
+    id: string;
+    title: string;
+    status: string;
+  } | null;
+};
+
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -16,7 +30,7 @@ export default function NotificationsPage() {
       setError("");
       const res = await fetch("/api/notifications?limit=50");
       const data = await res.json();
-      setNotifications(data.notifications || []);
+      setNotifications((data.notifications || []) as NotificationItem[]);
     } catch {
       setError("Failed to load notifications.");
       setNotifications([]);
@@ -72,27 +86,38 @@ export default function NotificationsPage() {
         <ul aria-live="polite" aria-busy={loading} className="space-y-2">
           {notifications.map((n) => (
             <li key={n.id}>
-              <Card className={n.isRead ? "opacity-85" : "border-primary/30"}>
-                <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
-                  <CardTitle className="text-base">{n.message}</CardTitle>
-                  <Badge variant={n.isRead ? "outline" : "secondary"}>
-                    {n.isRead ? "Read" : "Unread"}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-0">
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(n.createdAt).toLocaleString()}
-                  </div>
-                  {!n.isRead && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => markOneAsRead(n.id)}>
-                      Mark as read
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+              <Link
+                href={`/notifications/${n.id}`}
+                onClick={() => {
+                  if (!n.isRead) {
+                    void markOneAsRead(n.id);
+                  }
+                }}>
+                <Card className={n.isRead ? "opacity-85" : "border-primary/30"}>
+                  <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
+                    <CardTitle className="text-base">{n.message}</CardTitle>
+                    <Badge variant={n.isRead ? "outline" : "secondary"}>
+                      {n.isRead ? "Read" : "Unread"}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-0">
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(n.createdAt).toLocaleString()}
+                    </div>
+                    {!n.isRead && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          void markOneAsRead(n.id);
+                        }}>
+                        Mark as read
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
             </li>
           ))}
         </ul>
