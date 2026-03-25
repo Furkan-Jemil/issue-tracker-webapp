@@ -1,7 +1,7 @@
 import {
   AbilityBuilder,
-  AbilityClass,
-  PureAbility,
+  createMongoAbility,
+  MongoAbility,
 } from "@casl/ability";
 import type { Role, User } from "@prisma/client";
 
@@ -15,14 +15,14 @@ export type AppSubjects =
 
 export type AppActions = "manage" | "create" | "read" | "update" | "delete";
 
-export type AppAbility = PureAbility<[AppActions, AppSubjects]>;
+export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
 
 type AuthUser = Pick<User, "id"> & { role: Role };
 
 export function defineAbilitiesFor(user: AuthUser | null) {
-  const { can, cannot, build } = new AbilityBuilder<
-    PureAbility<[AppActions, AppSubjects]>
-  >(PureAbility as AbilityClass<AppAbility>);
+  const { can, cannot, build } = new AbilityBuilder<AppAbility>(
+    createMongoAbility,
+  );
 
   if (!user) {
     // Not logged in: can only register/login
@@ -33,16 +33,16 @@ export function defineAbilitiesFor(user: AuthUser | null) {
   if (user.role === "ADMIN") {
     can("manage", "all"); // Admin can do anything
   } else {
-    // User/Tester: can manage own issues, but only update if status is OPEN
+    // Ownership/state is enforced in route handlers and queries.
     can("create", "Issue");
-    can("read", "Issue", { createdBy: user.id });
-    can("update", "Issue", { createdBy: user.id, status: "OPEN" });
+    can("read", "Issue");
+    can("update", "Issue");
     cannot("delete", "Issue");
-    // Comments, notifications, etc. (own only)
+    // Comments, notifications, and history visibility are also server-validated.
     can("create", "Comment");
-    can("read", "Comment", { userId: user.id });
-    can("read", "Notification", { userId: user.id });
-    can("read", "IssueHistory", { actorId: user.id });
+    can("read", "Comment");
+    can("read", "Notification");
+    can("read", "IssueHistory");
   }
 
   return build();
