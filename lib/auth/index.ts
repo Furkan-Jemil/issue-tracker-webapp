@@ -1,28 +1,32 @@
-import { BetterAuth } from "better-auth";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
 
-const prisma = new PrismaClient();
+const defaultTrustedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://localhost:3100",
+  "http://127.0.0.1:3100",
+];
 
-export const auth = BetterAuth({
-  adapter: "prisma",
-  prisma,
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+const trustedOrigins = (
+  process.env.BETTER_AUTH_TRUSTED_ORIGINS
+    ? process.env.BETTER_AUTH_TRUSTED_ORIGINS.split(",").map((origin) =>
+        origin.trim(),
+      )
+    : defaultTrustedOrigins
+).filter(Boolean);
+
+export const auth = betterAuth({
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
+  emailAndPassword: {
+    enabled: true,
   },
-  pages: {
-    signIn: "/login",
-    signOut: "/logout",
-    error: "/login",
-  },
-  callbacks: {
-    async session({ session, user }) {
-      // Attach user role to session for RBAC
-      if (user) {
-        session.user.role = user.role;
-        session.user.id = user.id;
-      }
-      return session;
-    },
-  },
+  baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXTAUTH_URL,
+  secret: process.env.AUTH_SECRET,
+  trustedOrigins,
+  plugins: [nextCookies()],
 });
