@@ -1,5 +1,7 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 export function ScreenshotUpload({
   onChange,
@@ -8,12 +10,22 @@ export function ScreenshotUpload({
 }) {
   const [previews, setPreviews] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
+  const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    return () => {
+      previews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [previews]);
 
   function handleFiles(selected: FileList | null) {
     if (!selected) return;
+    setError("");
+
     const valid: File[] = [];
     const previewUrls: string[] = [];
+    let rejectedCount = 0;
     Array.from(selected).forEach((file) => {
       if (
         /image\/(jpeg|png|gif|webp)/.test(file.type) &&
@@ -21,8 +33,16 @@ export function ScreenshotUpload({
       ) {
         valid.push(file);
         previewUrls.push(URL.createObjectURL(file));
+      } else {
+        rejectedCount += 1;
       }
     });
+    if (rejectedCount > 0) {
+      setError(
+        `${rejectedCount} file(s) were skipped. Only JPEG/PNG/GIF/WebP up to 5MB are allowed.`,
+      );
+    }
+
     setFiles(valid);
     setPreviews(previewUrls);
     onChange(valid, previewUrls);
@@ -39,8 +59,9 @@ export function ScreenshotUpload({
   }
 
   return (
-    <div>
+    <div className="space-y-2.5 rounded-lg border border-dashed border-input bg-secondary/25 p-3 md:p-4">
       <input
+        id="screenshots"
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/gif,image/webp"
@@ -48,28 +69,42 @@ export function ScreenshotUpload({
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />
-      <button
+      <Label htmlFor="screenshots">Screenshots</Label>
+      <Button
         type="button"
-        className="mb-2 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+        variant="outline"
+        className="mb-1"
         onClick={() => inputRef.current?.click()}>
         Add Screenshots
-      </button>
-      <div className="flex flex-wrap gap-2">
+      </Button>
+      {error && (
+        <div role="alert" className="mb-2 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      <div
+        className="flex flex-wrap gap-2"
+        role="list"
+        aria-label="Selected screenshots">
         {previews.map((src, idx) => (
           <div
             key={idx}
-            className="relative w-24 h-24 border rounded overflow-hidden">
+            role="listitem"
+            className="relative h-24 w-24 overflow-hidden rounded-md border bg-background">
             <img
               src={src}
-              alt="preview"
+              alt={`Screenshot preview ${idx + 1}`}
               className="object-cover w-full h-full"
             />
-            <button
+            <Button
               type="button"
-              className="absolute top-0 right-0 bg-red-500 text-white rounded-bl px-1 text-xs"
+              size="sm"
+              variant="destructive"
+              aria-label={`Remove screenshot ${idx + 1}`}
+              className="absolute right-0 top-0 h-6 rounded-none rounded-bl-md px-2 text-[10px]"
               onClick={() => removeFile(idx)}>
               ×
-            </button>
+            </Button>
           </div>
         ))}
       </div>
