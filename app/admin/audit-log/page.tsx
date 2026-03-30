@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+const auditLogInclude = {
+  actor: { select: { name: true, email: true } as const },
+  issue: { select: { title: true } as const },
+} satisfies Prisma.IssueHistoryInclude;
+
+type AuditLogEntry = Prisma.IssueHistoryGetPayload<{
+  include: typeof auditLogInclude;
+}>;
+
 function formatDate(d: Date | string): string {
   const date = new Date(d);
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -22,13 +32,10 @@ export default async function AdminAuditLogPage() {
   if (!session?.user || session.user.role !== "ADMIN") {
     return <div className="p-8">Admin access required.</div>;
   }
-  const logs = await prisma.issueHistory.findMany({
+  const logs: AuditLogEntry[] = await prisma.issueHistory.findMany({
     orderBy: { createdAt: "desc" },
     take: 100,
-    include: {
-      actor: { select: { name: true, email: true } },
-      issue: { select: { title: true } },
-    },
+    include: auditLogInclude,
   });
 
   function eventVariant(eventType: string) {
