@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import { Badge } from "@/components/ui/badge";
@@ -12,14 +11,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const auditLogInclude = {
-  actor: { select: { name: true, email: true } as const },
-  issue: { select: { title: true } as const },
-} satisfies Prisma.IssueHistoryInclude;
+/** Matches `findMany` + include shape; avoids `Prisma.*` (not present until `prisma generate`). */
+type AuditLogEntry = {
+  id: string;
+  createdAt: Date;
+  eventType: string;
+  description: string;
+  actor: { name: string; email: string } | null;
+  issue: { title: string } | null;
+};
 
-type AuditLogEntry = Prisma.IssueHistoryGetPayload<{
-  include: typeof auditLogInclude;
-}>;
+const auditLogInclude = {
+  actor: { select: { name: true, email: true } },
+  issue: { select: { title: true } },
+};
 
 function formatDate(d: Date | string): string {
   const date = new Date(d);

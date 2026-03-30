@@ -29,8 +29,9 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "create-admin": "tsx scripts/create-admin-user.ts"
   },
