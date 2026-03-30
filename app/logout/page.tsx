@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { PendingSubmitButton } from "@/components/auth/PendingSubmitButton";
 import {
   Card,
   CardContent,
@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
+import { applyAuthResponseCookies } from "@/lib/auth/apply-response-cookies";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -18,10 +19,7 @@ async function signOut() {
     asResponse: true,
   });
 
-  if (!response.ok) {
-    redirect("/login");
-  }
-
+  await applyAuthResponseCookies(response);
   redirect("/login");
 }
 
@@ -37,9 +35,9 @@ export default function LogoutPage() {
         </CardHeader>
         <CardContent>
           <form action={signOut} className="space-y-4">
-            <Button type="submit" className="w-full">
-              Sign Out
-            </Button>
+            <PendingSubmitButton className="w-full" pendingLabel="Signing out…">
+              Sign out
+            </PendingSubmitButton>
           </form>
         </CardContent>
       </Card>

@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -52,23 +47,25 @@ enum HistoryEvent {
 }
 
 // =============================================================================
-// MODELS
+// AUTH MODELS (Better Auth compatible)
 // =============================================================================
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  password      String?
+  role          Role     @default(USER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  // Relations
   sessions       Session[]
-  issues         Issue[]         @relation("IssueCreator")
+  accounts       Account[]
+  issues         Issue[]        @relation("IssueCreator")
   comments       Comment[]
   notifications  Notification[]
-  historyActions IssueHistory[]  @relation("HistoryActor")
+  historyActions IssueHistory[] @relation("HistoryActor")
 
   @@index([email])
   @@index([role])
@@ -78,12 +75,13 @@ model User {
 model Session {
   id        String   @id @default(uuid())
   userId    String
+  token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   ipAddress String?
   userAgent String?
 
-  // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -91,6 +89,41 @@ model Session {
   @@map("sessions")
 }
 
+model Account {
+  id                    String    @id @default(uuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
+}
+
+// =============================================================================
+// DOMAIN MODELS
+// =============================================================================
 model Issue {
   id          String      @id @default(uuid())
   title       String      @db.VarChar(255)
@@ -104,7 +137,6 @@ model Issue {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  // Relations
   creator       User           @relation("IssueCreator", fields: [createdBy], references: [id], onDelete: Restrict)
   screenshots   Screenshot[]
   comments      Comment[]
@@ -132,7 +164,6 @@ model Screenshot {
   order     Int      @default(0)
   createdAt DateTime @default(now())
 
-  // Relations
   issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
   @@index([issueId])
@@ -147,7 +178,6 @@ model Comment {
   content   String   @db.Text
   createdAt DateTime @default(now())
 
-  // Relations
   issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Restrict)
 
@@ -165,7 +195,6 @@ model IssueHistory {
   metadata    Json?
   createdAt   DateTime     @default(now())
 
-  // Relations
   issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
   actor User  @relation("HistoryActor", fields: [actorId], references: [id], onDelete: Restrict)
 
@@ -184,7 +213,6 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  // Relations
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
 

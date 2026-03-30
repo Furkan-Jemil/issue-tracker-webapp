@@ -1,6 +1,4 @@
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,70 +11,13 @@ import { Label } from "@/components/ui/label";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import bcrypt from "bcryptjs";
-import { randomBytes, scryptSync } from "node:crypto";
-
-function hashForBetterAuth(password: string): string {
-  const salt = randomBytes(16).toString("hex");
-  const key = scryptSync(password.normalize("NFKC"), salt, 64, {
-    N: 16384,
-    r: 16,
-    p: 1,
-    maxmem: 128 * 16384 * 16 * 2,
-  });
-  return `${salt}:${key.toString("hex")}`;
-}
-
-async function migrateLegacyBcryptHash(
-  email: string,
-  password: string,
-): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true },
-  });
-
-  if (!user) {
-    return false;
-  }
-
-  const account = await prisma.account.findFirst({
-    where: {
-      providerId: "credential",
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      userId: true,
-      password: true,
-    },
-  });
-
-  if (!account?.password || !account.password.startsWith("$2")) {
-    return false;
-  }
-
-  const matches = await bcrypt.compare(password, account.password);
-  if (!matches) {
-    return false;
-  }
-
-  const migratedHash = hashForBetterAuth(password);
-
-  await prisma.$transaction([
-    prisma.account.update({
-      where: { id: account.id },
-      data: { password: migratedHash },
-    }),
-    prisma.user.update({
-      where: { id: account.userId },
-      data: { password: migratedHash },
-    }),
-  ]);
-
-  return true;
-}
+import { ArrowRight, LogIn } from "lucide-react";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { PendingSubmitButton } from "@/components/auth/PendingSubmitButton";
+import { applyAuthResponseCookies } from "@/lib/auth/apply-response-cookies";
+import { getPostLoginPath } from "@/lib/auth/post-login-redirect";
+import { getAppSession } from "@/lib/auth/session";
+import prisma from "@/lib/prisma";
 
 async function signInWithPassword(formData: FormData) {
   "use server";
@@ -90,8 +31,9 @@ async function signInWithPassword(formData: FormData) {
     redirect("/login?error=invalid-credentials");
   }
 
+  let response: Response;
   try {
-    let response = await auth.api.signInEmail({
+    response = await auth.api.signInEmail({
       body: {
         email,
         password,
@@ -100,62 +42,69 @@ async function signInWithPassword(formData: FormData) {
       headers: await headers(),
       asResponse: true,
     });
-
-    if (!response.ok) {
-      redirect("/login?error=invalid-credentials");
-    }
-
-    redirect("/issues");
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (message.includes("Invalid password hash")) {
-      const migrated = await migrateLegacyBcryptHash(email, password);
-      if (migrated) {
-        const retryResponse = await auth.api.signInEmail({
-          body: {
-            email,
-            password,
-            rememberMe: true,
-          },
-          headers: await headers(),
-          asResponse: true,
-        });
-
-        if (retryResponse.ok) {
-          redirect("/issues");
-        }
-      }
-    }
-
+  } catch {
     redirect("/login?error=invalid-credentials");
   }
+
+  if (!response.ok) {
+    redirect("/login?error=invalid-credentials");
+  }
+
+  await applyAuthResponseCookies(response);
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { role: true },
+  });
+  if (!user) {
+    redirect("/login?error=invalid-credentials");
+  }
+  redirect(getPostLoginPath(user.role));
 }
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<{ error?: string; registered?: string }>;
 }) {
+  const session = await getAppSession();
+  if (session?.user) {
+    redirect(getPostLoginPath(session.user.role));
+  }
+
   const params = await searchParams;
   const errorMessage =
     params?.error === "invalid-credentials" ? "Invalid email or password." : "";
+  const registered = params?.registered === "1";
 
   return (
-    <div className="mx-auto flex w-full max-w-md items-center justify-center px-4 py-8 md:py-14">
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Sign In</CardTitle>
-          <CardDescription>
-            Continue to the issue tracker using your existing account.
+    <AuthShell>
+      <Card className="w-full max-w-md border-border/80 shadow-lg shadow-black/5">
+        <CardHeader className="space-y-1">
+          <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <LogIn className="h-5 w-5" aria-hidden />
+          </div>
+          <CardTitle className="text-2xl font-semibold tracking-tight">
+            Sign in
+          </CardTitle>
+          <CardDescription className="text-base">
+            Continue with your workspace account.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={signInWithPassword} className="space-y-4">
+            {registered && (
+              <div
+                role="status"
+                className="rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5 text-sm text-primary">
+                Account created successfully. Please sign in.
+              </div>
+            )}
             {errorMessage && (
               <div
                 id="login-error"
                 role="alert"
-                className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
                 {errorMessage}
               </div>
             )}
@@ -183,9 +132,9 @@ export default async function LoginPage({
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              Sign In
-            </Button>
+            <PendingSubmitButton className="w-full" pendingLabel="Signing in…">
+              Sign in
+            </PendingSubmitButton>
             <p className="text-center text-sm text-muted-foreground">
               New here?{" "}
               <Link
@@ -198,6 +147,6 @@ export default async function LoginPage({
           </form>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }

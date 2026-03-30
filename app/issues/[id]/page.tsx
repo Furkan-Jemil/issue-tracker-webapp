@@ -1,5 +1,4 @@
 import prisma from "@/lib/prisma";
-import { PrismaClient } from "@prisma/client";
 import { getAppSession } from "@/lib/auth/session";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -8,6 +7,12 @@ import { IssueActions } from "@/components/issue/IssueActions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+function formatDate(d: Date | string): string {
+  const date = new Date(d);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()}, ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
+}
 
 function statusVariant(status: string) {
   if (status === "OPEN") return "warning" as const;
@@ -75,7 +80,7 @@ export default async function IssueDetailPage({
             </p>
             <p>
               <span className="font-semibold text-foreground">Created:</span>{" "}
-              {new Date(issue.createdAt).toLocaleString()}
+              {formatDate(issue.createdAt)}
             </p>
           </div>
           {issue.url && (
@@ -163,7 +168,7 @@ export default async function IssueDetailPage({
                 <li
                   key={h.id}
                   className="rounded-md border bg-background px-3 py-2">
-                  [{new Date(h.createdAt).toLocaleString()}] {h.eventType}:{" "}
+                  [{formatDate(h.createdAt)}] {h.eventType}:{" "}
                   {h.description} by {h.actor?.name || "Unknown"}
                 </li>
               ))}

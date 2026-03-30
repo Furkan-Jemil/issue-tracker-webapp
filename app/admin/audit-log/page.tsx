@@ -1,5 +1,4 @@
 import prisma from "@/lib/prisma";
-import { PrismaClient } from "@prisma/client";
 import { getAppSession } from "@/lib/auth/session";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+function formatDate(d: Date | string): string {
+  const date = new Date(d);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()}, ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
+}
 
 export default async function AdminAuditLogPage() {
   const session = await getAppSession();
@@ -55,7 +60,7 @@ export default async function AdminAuditLogPage() {
               {logs.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell>
-                    {new Date(log.createdAt).toLocaleString()}
+                    {formatDate(log.createdAt)}
                   </TableCell>
                   <TableCell>
                     {log.actor?.name} ({log.actor?.email})

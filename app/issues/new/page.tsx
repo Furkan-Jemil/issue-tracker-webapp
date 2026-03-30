@@ -1,5 +1,4 @@
 import prisma from "@/lib/prisma";
-import { PrismaClient } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { getAppSession } from "@/lib/auth/session";
 import { defineAbilitiesFor } from "@/lib/casl";

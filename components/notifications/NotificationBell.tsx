@@ -3,19 +3,34 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+
+const POLL_MS = 45_000;
 
 export default function NotificationBell() {
   const [unread, setUnread] = useState(0);
-  const pathname = usePathname();
 
   useEffect(() => {
-    fetch(`/api/notifications/unread`)
-      .then((res) => res.json())
-      .then((data) => setUnread(data.count || 0))
-      .catch(() => setUnread(0));
-  }, [pathname]);
+    let cancelled = false;
+
+    function load() {
+      fetch(`/api/notifications/unread`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (!cancelled) setUnread(data.count || 0);
+        })
+        .catch(() => {
+          if (!cancelled) setUnread(0);
+        });
+    }
+
+    load();
+    const id = setInterval(load, POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
 
   return (
     <Link

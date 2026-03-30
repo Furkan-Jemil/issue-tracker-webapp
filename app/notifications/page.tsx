@@ -87,7 +87,7 @@ export default function NotificationsPage() {
           {notifications.map((n) => (
             <li key={n.id}>
               <Link
-                href={`/notifications/${n.id}`}
+                href={n.issue ? `/issues/${n.issue.id}` : "#"}
                 onClick={() => {
                   if (!n.isRead) {
                     void markOneAsRead(n.id);

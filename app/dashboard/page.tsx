@@ -40,18 +40,27 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-3 py-4 md:px-6 md:py-8">
-      <Card className="mb-4">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Dashboard</CardTitle>
-          <Button asChild variant="outline">
-            <Link href="/issues">View All Issues</Link>
+      <div className="mb-6 space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+          Dashboard
+        </h1>
+        <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+          Monitor volume, status mix, and recent activity across the workspace.
+        </p>
+      </div>
+      <Card className="mb-6 border-border/80 shadow-sm">
+        <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/25 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold">Overview</CardTitle>
+            <CardDescription>
+              High-level metrics for the last 30 days. Open the full queue
+              anytime.
+            </CardDescription>
+          </div>
+          <Button asChild variant="outline" className="shrink-0">
+            <Link href="/issues">View all issues</Link>
           </Button>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Monitor issue health, trends, and recent activity in one place.
-          </p>
-        </CardContent>
       </Card>
       <div>
         <DashboardCharts />

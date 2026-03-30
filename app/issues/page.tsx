@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { ListChecks, Search } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -33,6 +33,12 @@ function statusVariant(status: string) {
   if (status === "IN_PROGRESS") return "secondary" as const;
   if (status === "RESOLVED") return "success" as const;
   return "outline" as const;
+}
+
+function formatDate(d: Date | string): string {
+  const date = new Date(d);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()}, ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
 }
 
 export default async function IssuesListPage({
@@ -151,10 +157,24 @@ export default async function IssuesListPage({
 
   return (
     <div className="mx-auto w-full max-w-6xl px-3 py-4 md:px-6 md:py-8">
+      <div className="mb-6 flex gap-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
+          <ListChecks className="h-5 w-5" strokeWidth={2} aria-hidden />
+        </div>
+        <div className="min-w-0 space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+            {isAdmin ? "All issues" : "My issues"}
+          </h1>
+          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
+            Search, filter, and triage reports in one place. Adjust density for
+            quick scans or comfortable reading.
+          </p>
+        </div>
+      </div>
       <Card>
-        <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/30 pb-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <CardTitle>{isAdmin ? "All Issues" : "My Issues"}</CardTitle>
+            <CardTitle className="text-lg font-semibold">Queue</CardTitle>
             <CardDescription>{issuesTableCaption}</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -342,7 +362,7 @@ export default async function IssuesListPage({
                     </TableCell>
                   )}
                   <TableCell className={cellPaddingClass}>
-                    {new Date(issue.createdAt).toLocaleString()}
+                    {formatDate(issue.createdAt)}
                   </TableCell>
                 </TableRow>
               ))}

@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/auth";
 import {
   Card,
   CardContent,
@@ -10,27 +10,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { Role } from "@prisma/client";
+import type { Role } from "@prisma/client";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { randomBytes, scryptSync } from "node:crypto";
-
-function hashForBetterAuth(password: string): string {
-  const salt = randomBytes(16).toString("hex");
-  const key = scryptSync(password.normalize("NFKC"), salt, 64, {
-    N: 16384,
-    r: 16,
-    p: 1,
-    maxmem: 128 * 16384 * 16 * 2,
-  });
-  return `${salt}:${key.toString("hex")}`;
-}
+import { ArrowLeft, UserPlus } from "lucide-react";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { PendingSubmitButton } from "@/components/auth/PendingSubmitButton";
+import { getPostLoginPath } from "@/lib/auth/post-login-redirect";
+import { getAppSession } from "@/lib/auth/session";
 
 async function registerUser(formData: FormData) {
   "use server";
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
+  const name = (formData.get("name") as string)?.trim();
+  const email = (formData.get("email") as string)?.trim().toLowerCase();
   const password = formData.get("password") as string;
   const role = formData.get("role") as string;
 
@@ -38,41 +30,38 @@ async function registerUser(formData: FormData) {
     redirect("/register?error=missing-fields");
   }
 
-  const normalizedEmail = email.trim().toLowerCase();
-  const normalizedRole = String(role).toUpperCase();
+  if (password.length < 8) {
+    redirect("/register?error=password-too-short");
+  }
 
+  const normalizedRole = role.toUpperCase();
   if (normalizedRole !== "USER" && normalizedRole !== "TESTER") {
     redirect("/register?error=invalid-role");
   }
 
   const existing = await prisma.user.findUnique({
-    where: { email: normalizedEmail },
+    where: { email },
   });
   if (existing) {
     redirect("/register?error=email-exists");
   }
 
-  const passwordHash = hashForBetterAuth(password);
-
   try {
-    await prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
-        data: {
-          name,
-          email: normalizedEmail,
-          role: normalizedRole as Role,
-          password: passwordHash,
-        },
-      });
+    const res = await auth.api.signUpEmail({
+      body: {
+        name,
+        email,
+        password,
+      },
+    });
 
-      await tx.account.create({
-        data: {
-          providerId: "credential",
-          accountId: user.id,
-          userId: user.id,
-          password: passwordHash,
-        },
-      });
+    if (!res?.user?.id) {
+      redirect("/register?error=register-failed");
+    }
+
+    await prisma.user.update({
+      where: { id: res.user.id },
+      data: { role: normalizedRole as Role },
     });
   } catch {
     redirect("/register?error=register-failed");
@@ -84,8 +73,13 @@ async function registerUser(formData: FormData) {
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ error?: string; registered?: string }>;
+  searchParams?: Promise<{ error?: string }>;
 }) {
+  const session = await getAppSession();
+  if (session?.user) {
+    redirect(getPostLoginPath(session.user.role));
+  }
+
   const params = await searchParams;
 
   const errorMessage =
@@ -95,17 +89,24 @@ export default async function RegisterPage({
         ? "Email already registered."
         : params?.error === "invalid-role"
           ? "Invalid role selection."
-        : params?.error === "register-failed"
-          ? "Registration failed. Please try again."
-          : "";
+          : params?.error === "password-too-short"
+            ? "Password must be at least 8 characters."
+            : params?.error === "register-failed"
+              ? "Registration failed. Please try again."
+              : "";
 
   return (
-    <div className="mx-auto flex w-full max-w-md items-center justify-center px-4 py-8 md:py-14">
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Register</CardTitle>
-          <CardDescription>
-            Create an account to report and track issues.
+    <AuthShell>
+      <Card className="w-full max-w-md border-border/80 shadow-lg shadow-black/5">
+        <CardHeader className="space-y-1">
+          <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <UserPlus className="h-5 w-5" aria-hidden />
+          </div>
+          <CardTitle className="text-2xl font-semibold tracking-tight">
+            Create account
+          </CardTitle>
+          <CardDescription className="text-base">
+            Join to report issues and collaborate with your team.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -114,7 +115,7 @@ export default async function RegisterPage({
               <div
                 id="register-error"
                 role="alert"
-                className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
                 {errorMessage}
               </div>
             )}
@@ -126,7 +127,6 @@ export default async function RegisterPage({
                 type="text"
                 placeholder="Full Name"
                 autoComplete="name"
-                aria-describedby={errorMessage ? "register-error" : undefined}
                 required
               />
             </div>
@@ -138,7 +138,6 @@ export default async function RegisterPage({
                 type="email"
                 placeholder="Email"
                 autoComplete="email"
-                aria-describedby={errorMessage ? "register-error" : undefined}
                 required
               />
             </div>
@@ -148,9 +147,9 @@ export default async function RegisterPage({
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Password"
+                placeholder="Password (min 8 characters)"
                 autoComplete="new-password"
-                aria-describedby={errorMessage ? "register-error" : undefined}
+                minLength={8}
                 required
               />
             </div>
@@ -161,9 +160,9 @@ export default async function RegisterPage({
                 <option value="TESTER">Tester</option>
               </Select>
             </div>
-            <Button type="submit" className="w-full">
+            <PendingSubmitButton className="w-full" pendingLabel="Creating account…">
               Register
-            </Button>
+            </PendingSubmitButton>
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link
@@ -176,6 +175,6 @@ export default async function RegisterPage({
           </form>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }

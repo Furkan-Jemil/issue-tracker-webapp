@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 export function ScreenshotUpload({
   onChange,
 }: {
-  onChange: (files: File[], previews: string[]) => void;
+  onChange: (files: File[]) => void;
 }) {
   const [previews, setPreviews] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -45,7 +45,7 @@ export function ScreenshotUpload({
 
     setFiles(valid);
     setPreviews(previewUrls);
-    onChange(valid, previewUrls);
+    onChange(valid);
   }
 
   function removeFile(idx: number) {
@@ -55,7 +55,7 @@ export function ScreenshotUpload({
     newPreviews.splice(idx, 1);
     setFiles(newFiles);
     setPreviews(newPreviews);
-    onChange(newFiles, newPreviews);
+    onChange(newFiles);
   }
 
   return (
