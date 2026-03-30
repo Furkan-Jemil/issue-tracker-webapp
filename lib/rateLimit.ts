@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 type RateLimitOptions = {
   keyPrefix: string;
@@ -17,7 +17,7 @@ function bucketKey(prefix: string, id: string): string {
 }
 
 export function applyRateLimit(
-  req: NextRequest,
+  req: Pick<Request, "headers">,
   options: RateLimitOptions,
 ): NextResponse | null {
   const forwarded = req.headers.get("x-forwarded-for");

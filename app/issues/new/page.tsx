@@ -49,7 +49,7 @@ async function createIssue(formData: FormData) {
     redirect("/issues/new?error=invalid-screenshots-meta");
   }
 
-  const screenshots = screenshotsParseResult.data;
+  const screenshots = screenshotsParseResult.data ?? [];
 
   const issue = await prisma.issue.create({
     data: {
