@@ -40,6 +40,6 @@
     "@types/pg": "^8.20.0",
     "@types/react-dom": "^19.2.3",
     "tsx": "^4.21.0",
-    "typescript": "6.0.2"
+    "typescript": "^5.9.3"
   }
 }
