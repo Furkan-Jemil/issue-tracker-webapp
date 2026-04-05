@@ -29,11 +29,15 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "scripts": {
-    "postinstall": "npx prisma generate",
+    "postinstall": "prisma generate",
     "dev": "next dev",
-    "build": "npx prisma generate && npx next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "create-admin": "tsx scripts/create-admin-user.ts"
+  },
+  "engines": {
+    "node": "22.x",
+    "npm": "10.x"
   },
   "devDependencies": {
     "@types/node": "25.5.0",
