@@ -1,0 +1,39 @@
+
+> build
+> npx prisma generate && npx next build
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+
+✔ Generated Prisma Client (v7.6.0) to .\node_modules\@prisma\client in 2.83s
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\fur\inEthioTelecom\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * C:\fur\inEthioTelecom\issue-tracker-webapp\package-lock.json
+
+   ▲ Next.js 15.5.6
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 67s
+   Linting and checking validity of types ...
+Failed to compile.
+
+./app/admin/users/[id]/page.tsx:2:22
+Type error: Could not find a declaration file for module '@prisma/client'. 'C:/fur/inEthioTelecom/issue-tracker-webapp/node_modules/@prisma/client/default.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/prisma__client` if it exists or add a new declaration (.d.ts) file containing `declare module '@prisma/client';`
+
+[0m [90m 1 |[39m [36mimport[39m prisma [36mfrom[39m [32m"@/lib/prisma"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mimport[39m { [33mRole[39m } [36mfrom[39m [32m"@prisma/client"[39m[33m;[39m
+ [90m   |[39m                      [31m[1m^[22m[39m
+ [90m 3 |[39m [36mimport[39m { getAppSession } [36mfrom[39m [32m"@/lib/auth/session"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { redirect } [36mfrom[39m [32m"next/navigation"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { [33mButton[39m } [36mfrom[39m [32m"@/components/ui/button"[39m[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: null
