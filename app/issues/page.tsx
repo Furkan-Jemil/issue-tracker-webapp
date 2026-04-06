@@ -95,7 +95,16 @@ export default async function IssuesListPage({
       orderBy: { createdAt: "desc" },
       skip,
       take: PAGE_SIZE,
-      include: { creator: { select: { name: true, email: true } } },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        priority: true,
+        severity: true,
+        status: true,
+        createdAt: true,
+        createdBy: true,
+      },
     }),
     prisma.issue.count({ where }),
     isAdmin
@@ -105,6 +114,10 @@ export default async function IssuesListPage({
         })
       : Promise.resolve([]),
   ]);
+
+  const reporterById = new Map(
+    reporters.map((user) => [user.id, user.name || user.email]),
+  );
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -358,7 +371,7 @@ export default async function IssuesListPage({
                   </TableCell>
                   {isAdmin && (
                     <TableCell className={cellPaddingClass}>
-                      {issue.creator.name || issue.creator.email}
+                      {reporterById.get(issue.createdBy) || "Unknown reporter"}
                     </TableCell>
                   )}
                   <TableCell className={cellPaddingClass}>
