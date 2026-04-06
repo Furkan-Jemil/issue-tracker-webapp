@@ -53,3 +53,4 @@ next-env.d.ts
 
 /generated/prisma
 /tmp/
+/jira-clickup-uiux-analysis.md
