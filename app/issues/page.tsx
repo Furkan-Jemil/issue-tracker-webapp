@@ -52,6 +52,7 @@ export default async function IssuesListPage({
     priority?: string;
     severity?: string;
     reporter?: string;
+    assignee?: string;
     notice?: string;
   }>;
 }) {
@@ -73,12 +74,17 @@ export default async function IssuesListPage({
     isAdmin && typeof params?.reporter === "string"
       ? params.reporter.trim()
       : "";
+  const assignee =
+    isAdmin && typeof params?.assignee === "string"
+      ? params.assignee.trim()
+      : "";
   const notice = params?.notice || "";
   const skip = (currentPage - 1) * PAGE_SIZE;
 
   const where = {
     ...(isAdmin ? {} : { createdBy: session.user.id }),
     ...(isAdmin && reporter ? { createdBy: reporter } : {}),
+    ...(isAdmin && assignee ? { assigneeId: assignee } : {}),
     ...(query
       ? {
           title: { contains: query, mode: "insensitive" as const },
@@ -103,7 +109,9 @@ export default async function IssuesListPage({
         severity: true,
         status: true,
         createdAt: true,
+        reportedAt: true,
         createdBy: true,
+        assigneeId: true,
       },
     }),
     prisma.issue.count({ where }),
@@ -125,7 +133,7 @@ export default async function IssuesListPage({
   const hasNext = currentPage < totalPages;
 
   const hasActiveFilters = Boolean(
-    query || status || priority || severity || reporter,
+    query || status || priority || severity || reporter || assignee,
   );
   const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${total} total issues), ${density} density`;
   const cellPaddingClass = density === "compact" ? "py-1.5" : "py-3";
@@ -137,6 +145,7 @@ export default async function IssuesListPage({
     if (priority) nextParams.set("priority", priority);
     if (severity) nextParams.set("severity", severity);
     if (reporter) nextParams.set("reporter", reporter);
+    if (assignee) nextParams.set("assignee", assignee);
   }
 
   function buildIssuesHref(page: number) {
@@ -305,6 +314,22 @@ export default async function IssuesListPage({
                     </option>
                   ))}
                 </select>
+
+                <label htmlFor="issues-assignee-filter" className="sr-only">
+                  Filter by assignee
+                </label>
+                <select
+                  id="issues-assignee-filter"
+                  name="assignee"
+                  defaultValue={assignee}
+                  className="h-10 min-w-52 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  <option value="">All Assignees</option>
+                  {reporters.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name || user.email}
+                    </option>
+                  ))}
+                </select>
               </>
             )}
             <Button type="submit" size="sm">
@@ -337,9 +362,17 @@ export default async function IssuesListPage({
                 </TableHead>
                 {isAdmin && (
                   <TableHead scope="col" className={headPaddingClass}>
+                    Assignee
+                  </TableHead>
+                )}
+                {isAdmin && (
+                  <TableHead scope="col" className={headPaddingClass}>
                     Reporter
                   </TableHead>
                 )}
+                <TableHead scope="col" className={headPaddingClass}>
+                  Reported
+                </TableHead>
                 <TableHead scope="col" className={headPaddingClass}>
                   Created
                 </TableHead>
@@ -371,9 +404,19 @@ export default async function IssuesListPage({
                   </TableCell>
                   {isAdmin && (
                     <TableCell className={cellPaddingClass}>
+                      {issue.assigneeId
+                        ? reporterById.get(issue.assigneeId) || "Unknown assignee"
+                        : "Unassigned"}
+                    </TableCell>
+                  )}
+                  {isAdmin && (
+                    <TableCell className={cellPaddingClass}>
                       {reporterById.get(issue.createdBy) || "Unknown reporter"}
                     </TableCell>
                   )}
+                  <TableCell className={cellPaddingClass}>
+                    {issue.reportedAt ? formatDate(issue.reportedAt) : "-"}
+                  </TableCell>
                   <TableCell className={cellPaddingClass}>
                     {formatDate(issue.createdAt)}
                   </TableCell>
