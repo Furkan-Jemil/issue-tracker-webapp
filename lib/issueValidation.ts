@@ -184,3 +184,17 @@ export function parseAttachmentMetadata(
 
   return { data: out };
 }
+
+export function parseReportedAtDate(
+  value: FormDataEntryValue | null,
+): Date | null {
+  const text = normalizeField(value);
+  if (!text) return null;
+
+  // Expect yyyy-mm-dd from date input.
+  const date = new Date(`${text}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return date;
+}
