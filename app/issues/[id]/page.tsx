@@ -31,9 +31,17 @@ export default async function IssueDetailPage({
   if (!session?.user) {
     return <div className="p-8">You must be logged in to view this issue.</div>;
   }
-  const issue = await prisma.issue.findUnique({
+  const isAdmin = session.user.role === "ADMIN";
+
+  const [issue, assignableUsers] = await Promise.all([
+    prisma.issue.findUnique({
     where: { id: routeParams.id },
     include: {
+      assignee: { select: { id: true, name: true, email: true } },
+      attachments: {
+        orderBy: { order: "asc" },
+        include: { uploader: { select: { name: true, email: true } } },
+      },
       screenshots: true,
       comments: {
         orderBy: { createdAt: "asc" },
@@ -44,8 +52,15 @@ export default async function IssueDetailPage({
         include: { actor: { select: { name: true } } },
       },
     },
-  });
-  const isAdmin = session.user.role === "ADMIN";
+  }),
+    isAdmin
+      ? prisma.user.findMany({
+          select: { id: true, name: true, email: true },
+          orderBy: { name: "asc" },
+        })
+      : Promise.resolve([]),
+  ]);
+
   const isOwner = issue?.createdBy === session.user.id;
   if (!issue || (!isOwner && !isAdmin)) {
     notFound();
@@ -82,6 +97,16 @@ export default async function IssueDetailPage({
               <span className="font-semibold text-foreground">Created:</span>{" "}
               {formatDate(issue.createdAt)}
             </p>
+            <p>
+              <span className="font-semibold text-foreground">Reported:</span>{" "}
+              {issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified"}
+            </p>
+            <p>
+              <span className="font-semibold text-foreground">Assigned to:</span>{" "}
+              {issue.assignee
+                ? issue.assignee.name || issue.assignee.email
+                : "Unassigned"}
+            </p>
           </div>
           {issue.url && (
             <p className="text-sm">
@@ -93,6 +118,14 @@ export default async function IssueDetailPage({
                 className="text-primary hover:underline">
                 {issue.url}
               </a>
+            </p>
+          )}
+          {issue.sourceNotes && (
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">
+                Source notes:
+              </span>{" "}
+              {issue.sourceNotes}
             </p>
           )}
         </CardContent>
@@ -107,11 +140,18 @@ export default async function IssueDetailPage({
           priority: issue.priority,
           severity: issue.severity,
           url: issue.url,
+          sourceNotes: issue.sourceNotes,
+          reportedAt: issue.reportedAt ? issue.reportedAt.toISOString().slice(0, 10) : "",
+          assigneeId: issue.assigneeId,
           status: issue.status,
         }}
         canEdit={canEdit}
         canDelete={canDelete}
         isAdmin={isAdmin}
+        assigneeOptions={assignableUsers.map((u) => ({
+          id: u.id,
+          label: u.name || u.email,
+        }))}
       />
 
       {/* Screenshot gallery */}
@@ -141,6 +181,41 @@ export default async function IssueDetailPage({
                   </a>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
+      {issue.attachments.length > 0 && (
+        <section className="mt-6" aria-labelledby="attachments-heading">
+          <Card>
+            <CardHeader>
+              <CardTitle id="attachments-heading" className="text-lg">
+                Associated files
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm">
+                {issue.attachments.map((file) => (
+                  <li
+                    key={file.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-background px-3 py-2">
+                    <div>
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-primary hover:underline">
+                        {file.filename}
+                      </a>
+                      <p className="text-xs text-muted-foreground">
+                        {file.mimeType} • {(file.sizeBytes / 1024).toFixed(1)} KB
+                        • Uploaded by {file.uploader.name || file.uploader.email}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
         </section>

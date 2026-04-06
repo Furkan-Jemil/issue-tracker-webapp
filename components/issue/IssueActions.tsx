@@ -16,7 +16,15 @@ type IssueInitial = {
   priority: string;
   severity: string;
   url: string | null;
+  sourceNotes: string | null;
+  reportedAt: string;
+  assigneeId: string | null;
   status: string;
+};
+
+type AssigneeOption = {
+  id: string;
+  label: string;
 };
 
 export function IssueActions({
@@ -25,12 +33,14 @@ export function IssueActions({
   canEdit,
   canDelete,
   isAdmin,
+  assigneeOptions,
 }: {
   issueId: string;
   initial: IssueInitial;
   canEdit: boolean;
   canDelete: boolean;
   isAdmin: boolean;
+  assigneeOptions: AssigneeOption[];
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -158,6 +168,41 @@ export function IssueActions({
                   placeholder="https://..."
                   defaultValue={initial.url ?? ""}
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-sourceNotes">Source notes (optional)</Label>
+                <Input
+                  id="edit-sourceNotes"
+                  name="sourceNotes"
+                  placeholder="Where was the issue logged"
+                  defaultValue={initial.sourceNotes ?? ""}
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-reportedAt">Date reported</Label>
+                  <Input
+                    id="edit-reportedAt"
+                    name="reportedAt"
+                    type="date"
+                    defaultValue={initial.reportedAt}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-assigneeId">Assigned to</Label>
+                  <Select
+                    id="edit-assigneeId"
+                    name="assigneeId"
+                    defaultValue={initial.assigneeId ?? ""}
+                    disabled={!isAdmin}>
+                    <option value="">Unassigned</option>
+                    {assigneeOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
               </div>
               <Button type="submit" disabled={pending}>
                 {pending ? "Saving…" : "Save changes"}

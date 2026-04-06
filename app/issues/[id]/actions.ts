@@ -7,6 +7,7 @@ import {
   parseEnumValue,
   parseIssueType,
   parsePriority,
+  parseReportedAtDate,
   parseSeverity,
 } from "@/lib/issueValidation";
 import { createNotification } from "@/lib/notifications";
@@ -49,6 +50,11 @@ export async function updateIssue(issueId: string, formData: FormData) {
   const rawSeverity = formData.get("severity");
   const urlRaw = String(formData.get("url") ?? "").trim();
   const url = urlRaw.length > 0 ? urlRaw : null;
+  const sourceNotesRaw = String(formData.get("sourceNotes") ?? "").trim();
+  const sourceNotes = sourceNotesRaw.length > 0 ? sourceNotesRaw : null;
+  const assigneeIdRaw = String(formData.get("assigneeId") ?? "").trim();
+  const parsedReportedAt = parseReportedAtDate(formData.get("reportedAt"));
+  const reportedAt = parsedReportedAt ?? null;
 
   const type = rawType != null ? parseIssueType(rawType) : null;
   const priority = rawPriority != null ? parsePriority(rawPriority) : null;
@@ -59,6 +65,7 @@ export async function updateIssue(issueId: string, formData: FormData) {
   }
 
   let nextStatus: IssueStatus = issue.status;
+  let nextAssigneeId: string | null = issue.assigneeId;
   if (isAdmin) {
     const parsed = parseEnumValue(
       formData.get("status"),
@@ -67,9 +74,20 @@ export async function updateIssue(issueId: string, formData: FormData) {
     if (parsed) {
       nextStatus = parsed;
     }
+
+    if (assigneeIdRaw.length === 0) {
+      nextAssigneeId = null;
+    } else {
+      const assignee = await prisma.user.findUnique({
+        where: { id: assigneeIdRaw },
+        select: { id: true },
+      });
+      nextAssigneeId = assignee?.id ?? null;
+    }
   }
 
   const statusChanged = nextStatus !== issue.status;
+  const assigneeChanged = nextAssigneeId !== issue.assigneeId;
 
   await prisma.$transaction(async (tx) => {
     await tx.issue.update({
@@ -81,7 +99,10 @@ export async function updateIssue(issueId: string, formData: FormData) {
         priority,
         severity,
         url,
+        sourceNotes,
+        reportedAt,
         status: nextStatus,
+        assigneeId: nextAssigneeId,
       },
     });
 
@@ -106,6 +127,13 @@ export async function updateIssue(issueId: string, formData: FormData) {
         actorId: session.user.id,
         eventType: "UPDATED",
         description: `Issue updated by ${session.user.name || "Unknown"} (${formatRole(session.user.role)})`,
+        metadata: {
+          assigneeChanged,
+          previousAssigneeId: issue.assigneeId,
+          newAssigneeId: nextAssigneeId,
+          reportedAt,
+          sourceNotes,
+        },
       },
     });
   });
@@ -117,6 +145,21 @@ export async function updateIssue(issueId: string, formData: FormData) {
       message: `Status of "${issue.title}" changed: ${issue.status} → ${nextStatus}`,
     }).catch((err) => {
       console.error("Failed to create status notification", err);
+    });
+  }
+
+  if (
+    assigneeChanged &&
+    nextAssigneeId &&
+    nextAssigneeId !== issue.createdBy &&
+    nextAssigneeId !== session.user.id
+  ) {
+    await createNotification({
+      userId: nextAssigneeId,
+      issueId,
+      message: `You were assigned to issue \"${title}\".`,
+    }).catch((err) => {
+      console.error("Failed to create assignee notification", err);
     });
   }
 
