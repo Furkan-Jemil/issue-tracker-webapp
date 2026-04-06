@@ -5,7 +5,10 @@ import { randomUUID } from "crypto";
 import { getAppSession } from "@/lib/auth/session";
 import { applyRateLimit } from "@/lib/rateLimit";
 import {
+  ALLOWED_ATTACHMENT_MIME_TYPES,
   ALLOWED_SCREENSHOT_MIME_TYPES,
+  MAX_ATTACHMENT_COUNT,
+  MAX_ATTACHMENT_SIZE_BYTES,
   MAX_SCREENSHOT_COUNT,
   MAX_SCREENSHOT_SIZE_BYTES,
 } from "@/lib/issueValidation";
@@ -14,7 +17,10 @@ const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 const MAX_FILE_SIZE = MAX_SCREENSHOT_SIZE_BYTES;
 const MAX_FILE_COUNT = MAX_SCREENSHOT_COUNT;
 const ALLOWED_TYPES = [...ALLOWED_SCREENSHOT_MIME_TYPES];
+const MAX_ATTACHMENT_FILE_SIZE = MAX_ATTACHMENT_SIZE_BYTES;
+const MAX_ATTACHMENT_FILE_COUNT = MAX_ATTACHMENT_COUNT;
 type AllowedMimeType = (typeof ALLOWED_SCREENSHOT_MIME_TYPES)[number];
+type AllowedAttachmentMimeType = (typeof ALLOWED_ATTACHMENT_MIME_TYPES)[number];
 const MIME_EXTENSION: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
@@ -83,6 +89,38 @@ function isAllowedMimeType(value: string): value is AllowedMimeType {
   return ALLOWED_TYPES.includes(value as AllowedMimeType);
 }
 
+function isAllowedAttachmentMimeType(
+  value: string,
+): value is AllowedAttachmentMimeType {
+  return ALLOWED_ATTACHMENT_MIME_TYPES.includes(
+    value as AllowedAttachmentMimeType,
+  );
+}
+
+function sanitizeFilename(name: string): string {
+  const cleaned = name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return cleaned.slice(0, 120) || "file";
+}
+
+function extFromName(name: string): string | null {
+  const idx = name.lastIndexOf(".");
+  if (idx <= 0 || idx === name.length - 1) return null;
+  return name.slice(idx + 1).toLowerCase();
+}
+
+function extFromMime(mime: string): string {
+  if (mime === "application/pdf") return "pdf";
+  if (mime === "text/plain") return "txt";
+  if (mime === "text/csv") return "csv";
+  if (mime === "application/zip") return "zip";
+  if (mime === "application/json") return "json";
+  if (mime === "application/msword") return "doc";
+  if (mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return "docx";
+  if (mime === "application/vnd.ms-excel") return "xls";
+  if (mime === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") return "xlsx";
+  return "bin";
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getAppSession();
@@ -102,9 +140,16 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const files = formData.getAll("screenshots");
+    const attachmentFiles = formData.getAll("attachments");
     if (files.length > MAX_FILE_COUNT) {
       return NextResponse.json(
         { error: `Maximum ${MAX_FILE_COUNT} files allowed` },
+        { status: 400 },
+      );
+    }
+    if (attachmentFiles.length > MAX_ATTACHMENT_FILE_COUNT) {
+      return NextResponse.json(
+        { error: `Maximum ${MAX_ATTACHMENT_FILE_COUNT} attachments allowed` },
         { status: 400 },
       );
     }
@@ -116,6 +161,16 @@ export async function POST(req: NextRequest) {
       sizeBytes: number;
     }[] = [];
     const rejectedFiles: {
+      filename: string;
+      reason: string;
+    }[] = [];
+    const savedAttachments: {
+      url: string;
+      filename: string;
+      mimeType: string;
+      sizeBytes: number;
+    }[] = [];
+    const rejectedAttachments: {
       filename: string;
       reason: string;
     }[] = [];
@@ -188,7 +243,46 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (savedFiles.length === 0 && files.length > 0) {
+    for (const rawFile of attachmentFiles) {
+      if (!(rawFile instanceof File)) {
+        rejectedAttachments.push({ filename: "unknown", reason: "Invalid file payload" });
+        continue;
+      }
+
+      const originalName = rawFile.name || "unnamed";
+      if (!rawFile.name || rawFile.name.length > 255) {
+        rejectedAttachments.push({ filename: originalName, reason: "Invalid filename" });
+        continue;
+      }
+      if (!rawFile.type || !isAllowedAttachmentMimeType(rawFile.type)) {
+        rejectedAttachments.push({ filename: originalName, reason: "Unsupported file type" });
+        continue;
+      }
+      if (rawFile.size > MAX_ATTACHMENT_FILE_SIZE) {
+        rejectedAttachments.push({ filename: originalName, reason: `File exceeds ${MAX_ATTACHMENT_FILE_SIZE} bytes` });
+        continue;
+      }
+
+      const sourceExt = extFromName(originalName);
+      const ext = sourceExt || extFromMime(rawFile.type);
+      const storedFilename = `${randomUUID()}-${sanitizeFilename(originalName)}.${ext}`;
+      const filepath = path.join(UPLOAD_DIR, storedFilename);
+      await fs.writeFile(filepath, Buffer.from(await rawFile.arrayBuffer()));
+
+      savedAttachments.push({
+        url: `/uploads/${storedFilename}`,
+        filename: originalName,
+        mimeType: rawFile.type,
+        sizeBytes: rawFile.size,
+      });
+    }
+
+    if (
+      savedFiles.length === 0 &&
+      files.length > 0 &&
+      savedAttachments.length === 0 &&
+      attachmentFiles.length === 0
+    ) {
       return NextResponse.json(
         {
           error: "No valid files uploaded",
@@ -198,9 +292,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (
+      savedAttachments.length === 0 &&
+      attachmentFiles.length > 0 &&
+      savedFiles.length === 0 &&
+      files.length === 0
+    ) {
+      return NextResponse.json(
+        {
+          error: "No valid attachments uploaded",
+          attachmentsRejected: rejectedAttachments,
+        },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json({
       files: savedFiles,
       rejected: rejectedFiles,
+      attachments: savedAttachments,
+      attachmentsRejected: rejectedAttachments,
     });
   } catch (error) {
     console.error("Screenshot upload failed", error);
