@@ -3,9 +3,13 @@ import { redirect } from "next/navigation";
 import { getAppSession } from "@/lib/auth/session";
 import { defineAbilitiesFor } from "@/lib/casl";
 import { NewIssueForm } from "@/components/issue/NewIssueForm";
+import type { IssueStatus } from "@prisma/client";
 import {
+  parseAttachmentMetadata,
+  parseEnumValue,
   parseIssueType,
   parsePriority,
+  parseReportedAtDate,
   parseScreenshotMetadata,
   parseSeverity,
 } from "@/lib/issueValidation";
@@ -29,7 +33,10 @@ async function createIssue(formData: FormData) {
   const rawType = formData.get("type");
   const rawPriority = formData.get("priority");
   const rawSeverity = formData.get("severity");
-  const url = formData.get("url") as string;
+  const url = String(formData.get("url") ?? "").trim() || null;
+  const sourceNotes = String(formData.get("sourceNotes") ?? "").trim() || null;
+  const reportedAt = parseReportedAtDate(formData.get("reportedAt"));
+  const assigneeIdRaw = String(formData.get("assigneeId") ?? "").trim() || null;
 
   if (!title || !description || !rawType || !rawPriority || !rawSeverity) {
     redirect("/issues/new?error=missing-required-fields");
@@ -42,6 +49,17 @@ async function createIssue(formData: FormData) {
     redirect("/issues/new?error=invalid-enum");
   }
 
+  let status: IssueStatus = "OPEN";
+  if (session.user.role === "ADMIN") {
+    const parsedStatus = parseEnumValue(
+      formData.get("status"),
+      ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"] as const,
+    );
+    if (parsedStatus) {
+      status = parsedStatus;
+    }
+  }
+
   const screenshotsParseResult = parseScreenshotMetadata(
     formData.get("screenshotsMeta"),
   );
@@ -49,7 +67,24 @@ async function createIssue(formData: FormData) {
     redirect("/issues/new?error=invalid-screenshots-meta");
   }
 
+  const attachmentsParseResult = parseAttachmentMetadata(
+    formData.get("attachmentsMeta"),
+  );
+  if (attachmentsParseResult.error) {
+    redirect("/issues/new?error=invalid-attachments-meta");
+  }
+
   const screenshots = screenshotsParseResult.data ?? [];
+  const attachments = attachmentsParseResult.data ?? [];
+
+  let assigneeId: string | null = null;
+  if (assigneeIdRaw) {
+    const assignee = await prisma.user.findUnique({
+      where: { id: assigneeIdRaw },
+      select: { id: true },
+    });
+    assigneeId = assignee?.id ?? null;
+  }
 
   const issue = await prisma.issue.create({
     data: {
@@ -58,7 +93,11 @@ async function createIssue(formData: FormData) {
       type,
       priority,
       severity,
+      status,
       url,
+      sourceNotes,
+      reportedAt,
+      assigneeId,
       createdBy: session.user.id,
       screenshots: {
         create: screenshots.map((file, idx: number) => ({
@@ -69,8 +108,18 @@ async function createIssue(formData: FormData) {
           order: idx,
         })),
       },
+      attachments: {
+        create: attachments.map((file, idx: number) => ({
+          url: file.url,
+          filename: file.filename,
+          mimeType: file.mimeType,
+          sizeBytes: file.sizeBytes,
+          uploaderId: session.user.id,
+          order: idx,
+        })),
+      },
     },
-    include: { screenshots: true },
+    include: { screenshots: true, attachments: true },
   });
 
   await prisma.issueHistory.create({
@@ -84,7 +133,12 @@ async function createIssue(formData: FormData) {
         type: issue.type,
         priority: issue.priority,
         severity: issue.severity,
+        status: issue.status,
+        assigneeId: issue.assigneeId,
+        reportedAt: issue.reportedAt,
+        sourceNotes: issue.sourceNotes,
         screenshotCount: issue.screenshots.length,
+        attachmentCount: issue.attachments.length,
       },
     },
   });
@@ -97,6 +151,21 @@ export default async function NewIssuePage({
 }: {
   searchParams?: Promise<{ error?: string }>;
 }) {
+  const session = await getAppSession();
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const ability = defineAbilitiesFor(session.user);
+  if (!ability.can("create", "Issue")) {
+    redirect("/issues");
+  }
+
+  const assignableUsers = await prisma.user.findMany({
+    select: { id: true, name: true, email: true },
+    orderBy: { name: "asc" },
+  });
+
   const params = await searchParams;
   const errorMessage =
     params?.error === "missing-required-fields"
@@ -105,7 +174,20 @@ export default async function NewIssuePage({
         ? "Invalid issue type, priority, or severity."
         : params?.error === "invalid-screenshots-meta"
           ? "Invalid screenshot metadata. Please retry upload."
+          : params?.error === "invalid-attachments-meta"
+            ? "Invalid attachment metadata. Please retry upload."
           : "";
 
-  return <NewIssueForm action={createIssue} errorMessage={errorMessage} />;
+  return (
+    <NewIssueForm
+      action={createIssue}
+      errorMessage={errorMessage}
+      isAdmin={session.user.role === "ADMIN"}
+      loggedByLabel={session.user.name || session.user.email}
+      assignees={assignableUsers.map((u) => ({
+        id: u.id,
+        label: u.name || u.email,
+      }))}
+    />
+  );
 }

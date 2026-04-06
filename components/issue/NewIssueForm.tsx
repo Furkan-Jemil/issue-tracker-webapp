@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ScreenshotUpload } from "@/components/issue/ScreenshotUpload";
+import { AttachmentUpload } from "@/components/issue/AttachmentUpload";
 
 type MetaEntry = {
   url: string;
@@ -22,15 +23,27 @@ type MetaEntry = {
   sizeBytes: number;
 };
 
+type AssigneeOption = {
+  id: string;
+  label: string;
+};
+
 export function NewIssueForm({
   action,
   errorMessage,
+  isAdmin,
+  loggedByLabel,
+  assignees,
 }: {
   action: (formData: FormData) => void | Promise<void>;
   errorMessage: string;
+  isAdmin: boolean;
+  loggedByLabel: string;
+  assignees: AssigneeOption[];
 }) {
   const [pending, startTransition] = useTransition();
-  const [files, setFiles] = useState<File[]>([]);
+  const [screenshotFiles, setScreenshotFiles] = useState<File[]>([]);
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const [uploadError, setUploadError] = useState("");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -38,11 +51,15 @@ export function NewIssueForm({
     setUploadError("");
     const form = e.currentTarget;
     const formData = new FormData(form);
-    let meta: MetaEntry[] = [];
-    if (files.length > 0) {
+    let screenshotsMeta: MetaEntry[] = [];
+    let attachmentsMeta: MetaEntry[] = [];
+    if (screenshotFiles.length > 0 || attachmentFiles.length > 0) {
       const uploadFd = new FormData();
-      for (const f of files) {
+      for (const f of screenshotFiles) {
         uploadFd.append("screenshots", f);
+      }
+      for (const f of attachmentFiles) {
+        uploadFd.append("attachments", f);
       }
       const res = await fetch("/api/upload", { method: "POST", body: uploadFd });
       const payload = await res.json().catch(() => ({}));
@@ -50,13 +67,17 @@ export function NewIssueForm({
         setUploadError(
           typeof payload?.error === "string"
             ? payload.error
-            : "Screenshot upload failed.",
+            : "File upload failed.",
         );
         return;
       }
-      meta = Array.isArray(payload.files) ? payload.files : [];
+      screenshotsMeta = Array.isArray(payload.files) ? payload.files : [];
+      attachmentsMeta = Array.isArray(payload.attachments)
+        ? payload.attachments
+        : [];
     }
-    formData.set("screenshotsMeta", JSON.stringify(meta));
+    formData.set("screenshotsMeta", JSON.stringify(screenshotsMeta));
+    formData.set("attachmentsMeta", JSON.stringify(attachmentsMeta));
     startTransition(() => {
       action(formData);
     });
@@ -66,9 +87,9 @@ export function NewIssueForm({
     <div className="mx-auto w-full max-w-2xl px-3 py-4 md:px-6 md:py-8">
       <Card>
         <CardHeader>
-          <CardTitle>New issue</CardTitle>
+          <CardTitle>New item</CardTitle>
           <CardDescription>
-            Describe the problem or improvement. Uploads are optional.
+            Log an issue with source context, assignment, and supporting files.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -88,27 +109,57 @@ export function NewIssueForm({
               </div>
             ) : null}
             <div className="space-y-1.5">
-              <Label htmlFor="title">Title</Label>
-              <Input id="title" name="title" required maxLength={255} />
+              <Label htmlFor="title">Issue</Label>
+              <Input
+                id="title"
+                name="title"
+                placeholder="Enter value here"
+                required
+                maxLength={255}
+              />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" name="description" required rows={6} />
+              <Label htmlFor="description">Issue description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                placeholder="Enter value here"
+                required
+                rows={5}
+              />
+              <p className="text-xs text-muted-foreground">Describe the issue.</p>
             </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="type">Type</Label>
-                <Select id="type" name="type" required defaultValue="BUG">
-                  <option value="BUG">Bug</option>
-                  <option value="IMPROVEMENT">Improvement</option>
-                </Select>
-              </div>
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="priority">Priority</Label>
                 <Select id="priority" name="priority" required defaultValue="MEDIUM">
                   <option value="LOW">Low</option>
                   <option value="MEDIUM">Medium</option>
                   <option value="HIGH">High</option>
+                </Select>
+                <p className="text-xs text-muted-foreground">Add the priority of this issue.</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  id="status"
+                  name="status"
+                  defaultValue="OPEN"
+                  disabled={!isAdmin}>
+                  <option value="OPEN">Open</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="RESOLVED">Resolved</option>
+                  <option value="CLOSED">Closed</option>
+                </Select>
+                <p className="text-xs text-muted-foreground">Status of the issue.</p>
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="type">Type</Label>
+                <Select id="type" name="type" required defaultValue="BUG">
+                  <option value="BUG">Bug</option>
+                  <option value="IMPROVEMENT">Improvement</option>
                 </Select>
               </div>
               <div className="space-y-1.5">
@@ -121,16 +172,55 @@ export function NewIssueForm({
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="url">URL (optional)</Label>
-              <Input id="url" name="url" type="url" placeholder="https://..." />
+              <Label htmlFor="assigneeId">Assigned to</Label>
+              <Select id="assigneeId" name="assigneeId" defaultValue="">
+                <option value="">Unassigned</option>
+                {assignees.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.label}
+                  </option>
+                ))}
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Person or group the issue is assigned to.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="reportedAt">Date reported</Label>
+              <Input id="reportedAt" name="reportedAt" type="date" />
+              <p className="text-xs text-muted-foreground">The date the issue was reported.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="url">Issue source</Label>
+              <Input id="url" name="url" type="url" placeholder="Enter a URL" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="sourceNotes">Alternative text (optional)</Label>
+              <Input
+                id="sourceNotes"
+                name="sourceNotes"
+                placeholder="Where was the issue logged (ticket, customer support call etc.)"
+              />
             </div>
             <ScreenshotUpload
               onChange={(next) => {
-                setFiles(next);
+                setScreenshotFiles(next);
               }}
             />
+            <AttachmentUpload
+              onChange={(next) => {
+                setAttachmentFiles(next);
+              }}
+            />
+            <div className="space-y-1.5">
+              <Label htmlFor="loggedByDisplay">Issue logged by</Label>
+              <Input id="loggedByDisplay" value={loggedByLabel} readOnly />
+              <p className="text-xs text-muted-foreground">
+                The person who logged the issue.
+              </p>
+            </div>
             <Button type="submit" disabled={pending} className="w-full md:w-auto">
-              {pending ? "Submitting…" : "Create issue"}
+              {pending ? "Saving…" : "Save"}
             </Button>
           </form>
         </CardContent>
