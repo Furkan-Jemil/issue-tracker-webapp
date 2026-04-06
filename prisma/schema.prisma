@@ -63,6 +63,8 @@ model User {
   sessions       Session[]
   accounts       Account[]
   issues         Issue[]        @relation("IssueCreator")
+  assignedIssues Issue[]        @relation("IssueAssignee")
+  attachments    Attachment[]
   comments       Comment[]
   notifications  Notification[]
   historyActions IssueHistory[] @relation("HistoryActor")
@@ -132,13 +134,18 @@ model Issue {
   priority    Priority
   severity    Severity
   url         String?
+  sourceNotes String?     @db.Text
+  reportedAt  DateTime?
   status      IssueStatus @default(OPEN)
   createdBy   String
+  assigneeId  String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   creator       User           @relation("IssueCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  assignee      User?          @relation("IssueAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   screenshots   Screenshot[]
+  attachments   Attachment[]
   comments      Comment[]
   history       IssueHistory[]
   notifications Notification[]
@@ -151,6 +158,8 @@ model Issue {
   @@index([createdAt])
   @@index([status, priority])
   @@index([createdBy, status])
+  @@index([assigneeId])
+  @@index([reportedAt])
   @@map("issues")
 }
 
@@ -169,6 +178,26 @@ model Screenshot {
   @@index([issueId])
   @@index([issueId, order])
   @@map("screenshots")
+}
+
+model Attachment {
+  id         String   @id @default(uuid())
+  issueId    String
+  uploaderId String
+  url        String
+  filename   String
+  mimeType   String
+  sizeBytes  Int
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  issue    Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  uploader User  @relation(fields: [uploaderId], references: [id], onDelete: Restrict)
+
+  @@index([issueId])
+  @@index([uploaderId])
+  @@index([issueId, order])
+  @@map("attachments")
 }
 
 model Comment {
