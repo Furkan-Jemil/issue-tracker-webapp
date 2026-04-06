@@ -52,3 +52,4 @@ playwright-report/
 next-env.d.ts
 
 /generated/prisma
+/tmp/
