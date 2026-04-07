@@ -51,10 +51,12 @@ async function createIssue(formData: FormData) {
 
   let status: IssueStatus = "OPEN";
   if (session.user.role === "ADMIN") {
-    const parsedStatus = parseEnumValue(
-      formData.get("status"),
-      ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"] as const,
-    );
+    const parsedStatus = parseEnumValue(formData.get("status"), [
+      "OPEN",
+      "IN_PROGRESS",
+      "RESOLVED",
+      "CLOSED",
+    ] as const);
     if (parsedStatus) {
       status = parsedStatus;
     }
@@ -176,7 +178,7 @@ export default async function NewIssuePage({
           ? "Invalid screenshot metadata. Please retry upload."
           : params?.error === "invalid-attachments-meta"
             ? "Invalid attachment metadata. Please retry upload."
-          : "";
+            : "";
 
   return (
     <NewIssueForm
