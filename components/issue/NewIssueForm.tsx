@@ -138,17 +138,25 @@ export function NewIssueForm({
                 required
                 rows={5}
               />
-              <p className="text-xs text-muted-foreground">Describe the issue.</p>
+              <p className="text-xs text-muted-foreground">
+                Describe the issue.
+              </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="priority">Priority</Label>
-                <Select id="priority" name="priority" required defaultValue="MEDIUM">
+                <Select
+                  id="priority"
+                  name="priority"
+                  required
+                  defaultValue="MEDIUM">
                   <option value="LOW">Low</option>
                   <option value="MEDIUM">Medium</option>
                   <option value="HIGH">High</option>
                 </Select>
-                <p className="text-xs text-muted-foreground">Add the priority of this issue.</p>
+                <p className="text-xs text-muted-foreground">
+                  Add the priority of this issue.
+                </p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="status">Status</Label>
@@ -162,7 +170,9 @@ export function NewIssueForm({
                   <option value="RESOLVED">Resolved</option>
                   <option value="CLOSED">Closed</option>
                 </Select>
-                <p className="text-xs text-muted-foreground">Status of the issue.</p>
+                <p className="text-xs text-muted-foreground">
+                  Status of the issue.
+                </p>
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -175,7 +185,11 @@ export function NewIssueForm({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="severity">Severity</Label>
-                <Select id="severity" name="severity" required defaultValue="MINOR">
+                <Select
+                  id="severity"
+                  name="severity"
+                  required
+                  defaultValue="MINOR">
                   <option value="MINOR">Minor</option>
                   <option value="MAJOR">Major</option>
                   <option value="CRITICAL">Critical</option>
@@ -199,7 +213,9 @@ export function NewIssueForm({
             <div className="space-y-1.5">
               <Label htmlFor="reportedAt">Date reported</Label>
               <Input id="reportedAt" name="reportedAt" type="date" />
-              <p className="text-xs text-muted-foreground">The date the issue was reported.</p>
+              <p className="text-xs text-muted-foreground">
+                The date the issue was reported.
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="url">Issue source</Label>
@@ -230,7 +246,10 @@ export function NewIssueForm({
                 The person who logged the issue.
               </p>
             </div>
-            <Button type="submit" disabled={pending} className="w-full md:w-auto">
+            <Button
+              type="submit"
+              disabled={pending}
+              className="w-full md:w-auto">
               {pending ? "Saving…" : "Save"}
             </Button>
           </form>
