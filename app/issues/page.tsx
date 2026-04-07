@@ -405,7 +405,8 @@ export default async function IssuesListPage({
                   {isAdmin && (
                     <TableCell className={cellPaddingClass}>
                       {issue.assigneeId
-                        ? reporterById.get(issue.assigneeId) || "Unknown assignee"
+                        ? reporterById.get(issue.assigneeId) ||
+                          "Unknown assignee"
                         : "Unassigned"}
                     </TableCell>
                   )}
