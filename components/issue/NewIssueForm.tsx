@@ -68,10 +68,12 @@ export function NewIssueForm({
         });
         const payload = await res.json().catch(() => ({}));
         if (!res.ok) {
-          // Do not block issue creation when optional uploads fail.
           setUploadError(
-            "File upload failed. Issue will be saved without uploaded files.",
+            typeof payload?.error === "string"
+              ? payload.error
+              : "File upload failed. Please retry before saving.",
           );
+          return;
         } else {
           screenshotsMeta = Array.isArray(payload.files) ? payload.files : [];
           attachmentsMeta = Array.isArray(payload.attachments)
@@ -79,10 +81,10 @@ export function NewIssueForm({
             : [];
         }
       } catch {
-        // Network/runtime upload failures should not prevent issue reporting.
         setUploadError(
-          "File upload is temporarily unavailable. Issue will be saved without uploaded files.",
+          "File upload is temporarily unavailable. Please retry before saving.",
         );
+        return;
       }
     }
     formData.set("screenshotsMeta", JSON.stringify(screenshotsMeta));
