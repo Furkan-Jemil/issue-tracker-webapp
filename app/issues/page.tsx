@@ -9,11 +9,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ListChecks, Search } from "lucide-react";
+import { Filter, Search } from "lucide-react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -179,25 +178,10 @@ export default async function IssuesListPage({
 
   return (
     <div className="w-full px-3 py-3 md:px-4 md:py-4">
-      <div className="mb-4 flex gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
-          <ListChecks className="h-5 w-5" strokeWidth={2} aria-hidden />
-        </div>
-        <div className="min-w-0 space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-            {isAdmin ? "All issues" : "My issues"}
-          </h1>
-          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-            Search, filter, and triage reports in one place. Adjust density for
-            quick scans or comfortable reading.
-          </p>
-        </div>
-      </div>
       <Card>
         <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/30 pb-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold">Queue</CardTitle>
-            <CardDescription>{issuesTableCaption}</CardDescription>
+            <CardTitle className="text-lg font-semibold">Issues</CardTitle>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -236,111 +220,122 @@ export default async function IssuesListPage({
               </CardContent>
             </Card>
           )}
-          <form method="get" className="flex flex-wrap items-center gap-2">
-            <input type="hidden" name="density" value={density} />
-            <div className="relative min-w-[220px] flex-1">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                aria-hidden="true"
-              />
-              <label htmlFor="issues-title-search" className="sr-only">
-                Search issue title
-              </label>
-              <Input
-                id="issues-title-search"
-                name="q"
-                defaultValue={query}
-                placeholder="Search by issue title..."
-                className="pl-9"
-              />
-            </div>
-            {isAdmin && (
-              <>
-                <label htmlFor="issues-status-filter" className="sr-only">
-                  Filter by status
+          <details className="rounded-lg border border-border/70" open={hasActiveFilters}>
+            <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-sm font-medium text-foreground">
+              <Filter className="h-4 w-4" aria-hidden="true" />
+              Filters
+              {hasActiveFilters && (
+                <Badge variant="secondary" className="ml-1">
+                  Active
+                </Badge>
+              )}
+            </summary>
+            <form method="get" className="flex flex-wrap items-center gap-2 border-t border-border/70 p-3">
+              <input type="hidden" name="density" value={density} />
+              <div className="relative min-w-[220px] flex-1">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <label htmlFor="issues-title-search" className="sr-only">
+                  Search issue title
                 </label>
-                <select
-                  id="issues-status-filter"
-                  name="status"
-                  defaultValue={status}
-                  className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">All Statuses</option>
-                  <option value="OPEN">Open</option>
-                  <option value="IN_PROGRESS">In Progress</option>
-                  <option value="RESOLVED">Resolved</option>
-                  <option value="CLOSED">Closed</option>
-                </select>
+                <Input
+                  id="issues-title-search"
+                  name="q"
+                  defaultValue={query}
+                  placeholder="Search by issue title..."
+                  className="pl-9"
+                />
+              </div>
+              {isAdmin && (
+                <>
+                  <label htmlFor="issues-status-filter" className="sr-only">
+                    Filter by status
+                  </label>
+                  <select
+                    id="issues-status-filter"
+                    name="status"
+                    defaultValue={status}
+                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="">All Statuses</option>
+                    <option value="OPEN">Open</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="RESOLVED">Resolved</option>
+                    <option value="CLOSED">Closed</option>
+                  </select>
 
-                <label htmlFor="issues-priority-filter" className="sr-only">
-                  Filter by priority
-                </label>
-                <select
-                  id="issues-priority-filter"
-                  name="priority"
-                  defaultValue={priority}
-                  className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">All Priorities</option>
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                </select>
+                  <label htmlFor="issues-priority-filter" className="sr-only">
+                    Filter by priority
+                  </label>
+                  <select
+                    id="issues-priority-filter"
+                    name="priority"
+                    defaultValue={priority}
+                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="">All Priorities</option>
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                  </select>
 
-                <label htmlFor="issues-severity-filter" className="sr-only">
-                  Filter by severity
-                </label>
-                <select
-                  id="issues-severity-filter"
-                  name="severity"
-                  defaultValue={severity}
-                  className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">All Severities</option>
-                  <option value="MINOR">Minor</option>
-                  <option value="MAJOR">Major</option>
-                  <option value="CRITICAL">Critical</option>
-                </select>
+                  <label htmlFor="issues-severity-filter" className="sr-only">
+                    Filter by severity
+                  </label>
+                  <select
+                    id="issues-severity-filter"
+                    name="severity"
+                    defaultValue={severity}
+                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="">All Severities</option>
+                    <option value="MINOR">Minor</option>
+                    <option value="MAJOR">Major</option>
+                    <option value="CRITICAL">Critical</option>
+                  </select>
 
-                <label htmlFor="issues-reporter-filter" className="sr-only">
-                  Filter by reporter
-                </label>
-                <select
-                  id="issues-reporter-filter"
-                  name="reporter"
-                  defaultValue={reporter}
-                  className="h-10 min-w-52 rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">All Reporters</option>
-                  {reporters.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name || user.email}
-                    </option>
-                  ))}
-                </select>
+                  <label htmlFor="issues-reporter-filter" className="sr-only">
+                    Filter by reporter
+                  </label>
+                  <select
+                    id="issues-reporter-filter"
+                    name="reporter"
+                    defaultValue={reporter}
+                    className="h-10 min-w-52 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="">All Reporters</option>
+                    {reporters.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name || user.email}
+                      </option>
+                    ))}
+                  </select>
 
-                <label htmlFor="issues-assignee-filter" className="sr-only">
-                  Filter by assignee
-                </label>
-                <select
-                  id="issues-assignee-filter"
-                  name="assignee"
-                  defaultValue={assignee}
-                  className="h-10 min-w-52 rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">All Assignees</option>
-                  {reporters.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name || user.email}
-                    </option>
-                  ))}
-                </select>
-              </>
-            )}
-            <Button type="submit" size="sm">
-              {isAdmin ? "Apply" : "Search"}
-            </Button>
-            {hasActiveFilters && (
-              <Button asChild variant="outline" size="sm">
-                <Link href={buildClearFiltersHref()}>Clear Filters</Link>
+                  <label htmlFor="issues-assignee-filter" className="sr-only">
+                    Filter by assignee
+                  </label>
+                  <select
+                    id="issues-assignee-filter"
+                    name="assignee"
+                    defaultValue={assignee}
+                    className="h-10 min-w-52 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="">All Assignees</option>
+                    {reporters.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name || user.email}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              )}
+              <Button type="submit" size="sm">
+                {isAdmin ? "Apply" : "Search"}
               </Button>
-            )}
-          </form>
+              {hasActiveFilters && (
+                <Button asChild variant="outline" size="sm">
+                  <Link href={buildClearFiltersHref()}>Clear Filters</Link>
+                </Button>
+              )}
+            </form>
+          </details>
           <Table>
             <caption className="sr-only">{issuesTableCaption}</caption>
             <TableHeader>
