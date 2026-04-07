@@ -61,20 +61,29 @@ export function NewIssueForm({
       for (const f of attachmentFiles) {
         uploadFd.append("attachments", f);
       }
-      const res = await fetch("/api/upload", { method: "POST", body: uploadFd });
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok) {
+      try {
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadFd,
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          // Do not block issue creation when optional uploads fail.
+          setUploadError(
+            "File upload failed. Issue will be saved without uploaded files.",
+          );
+        } else {
+          screenshotsMeta = Array.isArray(payload.files) ? payload.files : [];
+          attachmentsMeta = Array.isArray(payload.attachments)
+            ? payload.attachments
+            : [];
+        }
+      } catch {
+        // Network/runtime upload failures should not prevent issue reporting.
         setUploadError(
-          typeof payload?.error === "string"
-            ? payload.error
-            : "File upload failed.",
+          "File upload is temporarily unavailable. Issue will be saved without uploaded files.",
         );
-        return;
       }
-      screenshotsMeta = Array.isArray(payload.files) ? payload.files : [];
-      attachmentsMeta = Array.isArray(payload.attachments)
-        ? payload.attachments
-        : [];
     }
     formData.set("screenshotsMeta", JSON.stringify(screenshotsMeta));
     formData.set("attachmentsMeta", JSON.stringify(attachmentsMeta));

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
+import { put } from "@vercel/blob";
 import { getAppSession } from "@/lib/auth/session";
 import { applyRateLimit } from "@/lib/rateLimit";
 import {
@@ -27,6 +28,9 @@ const MIME_EXTENSION: Record<string, string> = {
   "image/gif": "gif",
   "image/webp": "webp",
 };
+const IS_VERCEL = Boolean(process.env.VERCEL);
+const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+const USE_BLOB_STORAGE = IS_VERCEL && Boolean(BLOB_TOKEN);
 
 function detectMimeFromMagic(buffer: Buffer): string | null {
   // JPEG: FF D8 FF
@@ -141,6 +145,17 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const files = formData.getAll("screenshots");
     const attachmentFiles = formData.getAll("attachments");
+
+    if (IS_VERCEL && !USE_BLOB_STORAGE) {
+      return NextResponse.json(
+        {
+          error:
+            "Upload storage is not configured. Set BLOB_READ_WRITE_TOKEN in environment variables.",
+        },
+        { status: 503 },
+      );
+    }
+
     if (files.length > MAX_FILE_COUNT) {
       return NextResponse.json(
         { error: `Maximum ${MAX_FILE_COUNT} files allowed` },
@@ -175,7 +190,9 @@ export async function POST(req: NextRequest) {
       reason: string;
     }[] = [];
 
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
+    if (!USE_BLOB_STORAGE) {
+      await fs.mkdir(UPLOAD_DIR, { recursive: true });
+    }
 
     for (const rawFile of files) {
       if (!(rawFile instanceof File)) {
@@ -232,11 +249,23 @@ export async function POST(req: NextRequest) {
 
       const ext = MIME_EXTENSION[detectedType];
       const storedFilename = `${randomUUID()}.${ext}`;
-      const filepath = path.join(UPLOAD_DIR, storedFilename);
-      await fs.writeFile(filepath, buffer);
+      let url = `/uploads/${storedFilename}`;
+
+      if (USE_BLOB_STORAGE) {
+        const blob = await put(`uploads/${storedFilename}`, buffer, {
+          access: "public",
+          token: BLOB_TOKEN,
+          contentType: detectedType,
+          addRandomSuffix: false,
+        });
+        url = blob.url;
+      } else {
+        const filepath = path.join(UPLOAD_DIR, storedFilename);
+        await fs.writeFile(filepath, buffer);
+      }
 
       savedFiles.push({
-        url: `/uploads/${storedFilename}`,
+        url,
         filename: originalName,
         mimeType: detectedType,
         sizeBytes: rawFile.size,
@@ -266,11 +295,24 @@ export async function POST(req: NextRequest) {
       const sourceExt = extFromName(originalName);
       const ext = sourceExt || extFromMime(rawFile.type);
       const storedFilename = `${randomUUID()}-${sanitizeFilename(originalName)}.${ext}`;
-      const filepath = path.join(UPLOAD_DIR, storedFilename);
-      await fs.writeFile(filepath, Buffer.from(await rawFile.arrayBuffer()));
+      const buffer = Buffer.from(await rawFile.arrayBuffer());
+      let url = `/uploads/${storedFilename}`;
+
+      if (USE_BLOB_STORAGE) {
+        const blob = await put(`uploads/${storedFilename}`, buffer, {
+          access: "public",
+          token: BLOB_TOKEN,
+          contentType: rawFile.type,
+          addRandomSuffix: false,
+        });
+        url = blob.url;
+      } else {
+        const filepath = path.join(UPLOAD_DIR, storedFilename);
+        await fs.writeFile(filepath, buffer);
+      }
 
       savedAttachments.push({
-        url: `/uploads/${storedFilename}`,
+        url,
         filename: originalName,
         mimeType: rawFile.type,
         sizeBytes: rawFile.size,
