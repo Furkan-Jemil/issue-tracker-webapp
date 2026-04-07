@@ -119,10 +119,63 @@ function extFromMime(mime: string): string {
   if (mime === "application/zip") return "zip";
   if (mime === "application/json") return "json";
   if (mime === "application/msword") return "doc";
-  if (mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return "docx";
+  if (
+    mime ===
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  )
+    return "docx";
   if (mime === "application/vnd.ms-excel") return "xls";
-  if (mime === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") return "xlsx";
+  if (
+    mime === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  )
+    return "xlsx";
   return "bin";
+}
+
+function toDataUrl(mimeType: string, buffer: Buffer): string {
+  return `data:${mimeType};base64,${buffer.toString("base64")}`;
+}
+
+async function persistUploadedFile(options: {
+  buffer: Buffer;
+  mimeType: string;
+  storedFilename: string;
+  kind: "screenshot" | "attachment";
+}): Promise<{ url: string }> {
+  const { buffer, mimeType, storedFilename, kind } = options;
+
+  if (USE_BLOB_STORAGE) {
+    try {
+      const blob = await put(`uploads/${storedFilename}`, buffer, {
+        access: "public",
+        token: BLOB_TOKEN,
+        contentType: mimeType,
+        addRandomSuffix: false,
+      });
+      return { url: blob.url };
+    } catch (error) {
+      console.error(
+        `${kind} blob upload failed, falling back to data URL`,
+        error,
+      );
+    }
+  }
+
+  if (!IS_VERCEL) {
+    try {
+      await fs.mkdir(UPLOAD_DIR, { recursive: true });
+      const filepath = path.join(UPLOAD_DIR, storedFilename);
+      await fs.writeFile(filepath, buffer);
+      return { url: `/uploads/${storedFilename}` };
+    } catch (error) {
+      console.error(
+        `${kind} disk upload failed, falling back to data URL`,
+        error,
+      );
+    }
+  }
+
+  return { url: toDataUrl(mimeType, buffer) };
 }
 
 export async function POST(req: NextRequest) {
@@ -145,16 +198,6 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const files = formData.getAll("screenshots");
     const attachmentFiles = formData.getAll("attachments");
-
-    if (IS_VERCEL && !USE_BLOB_STORAGE) {
-      return NextResponse.json(
-        {
-          error:
-            "Upload storage is not configured. Set BLOB_READ_WRITE_TOKEN in environment variables.",
-        },
-        { status: 503 },
-      );
-    }
 
     if (files.length > MAX_FILE_COUNT) {
       return NextResponse.json(
@@ -189,10 +232,6 @@ export async function POST(req: NextRequest) {
       filename: string;
       reason: string;
     }[] = [];
-
-    if (!USE_BLOB_STORAGE) {
-      await fs.mkdir(UPLOAD_DIR, { recursive: true });
-    }
 
     for (const rawFile of files) {
       if (!(rawFile instanceof File)) {
@@ -249,20 +288,12 @@ export async function POST(req: NextRequest) {
 
       const ext = MIME_EXTENSION[detectedType];
       const storedFilename = `${randomUUID()}.${ext}`;
-      let url = `/uploads/${storedFilename}`;
-
-      if (USE_BLOB_STORAGE) {
-        const blob = await put(`uploads/${storedFilename}`, buffer, {
-          access: "public",
-          token: BLOB_TOKEN,
-          contentType: detectedType,
-          addRandomSuffix: false,
-        });
-        url = blob.url;
-      } else {
-        const filepath = path.join(UPLOAD_DIR, storedFilename);
-        await fs.writeFile(filepath, buffer);
-      }
+      const { url } = await persistUploadedFile({
+        buffer,
+        mimeType: detectedType,
+        storedFilename,
+        kind: "screenshot",
+      });
 
       savedFiles.push({
         url,
@@ -274,21 +305,33 @@ export async function POST(req: NextRequest) {
 
     for (const rawFile of attachmentFiles) {
       if (!(rawFile instanceof File)) {
-        rejectedAttachments.push({ filename: "unknown", reason: "Invalid file payload" });
+        rejectedAttachments.push({
+          filename: "unknown",
+          reason: "Invalid file payload",
+        });
         continue;
       }
 
       const originalName = rawFile.name || "unnamed";
       if (!rawFile.name || rawFile.name.length > 255) {
-        rejectedAttachments.push({ filename: originalName, reason: "Invalid filename" });
+        rejectedAttachments.push({
+          filename: originalName,
+          reason: "Invalid filename",
+        });
         continue;
       }
       if (!rawFile.type || !isAllowedAttachmentMimeType(rawFile.type)) {
-        rejectedAttachments.push({ filename: originalName, reason: "Unsupported file type" });
+        rejectedAttachments.push({
+          filename: originalName,
+          reason: "Unsupported file type",
+        });
         continue;
       }
       if (rawFile.size > MAX_ATTACHMENT_FILE_SIZE) {
-        rejectedAttachments.push({ filename: originalName, reason: `File exceeds ${MAX_ATTACHMENT_FILE_SIZE} bytes` });
+        rejectedAttachments.push({
+          filename: originalName,
+          reason: `File exceeds ${MAX_ATTACHMENT_FILE_SIZE} bytes`,
+        });
         continue;
       }
 
@@ -296,20 +339,12 @@ export async function POST(req: NextRequest) {
       const ext = sourceExt || extFromMime(rawFile.type);
       const storedFilename = `${randomUUID()}-${sanitizeFilename(originalName)}.${ext}`;
       const buffer = Buffer.from(await rawFile.arrayBuffer());
-      let url = `/uploads/${storedFilename}`;
-
-      if (USE_BLOB_STORAGE) {
-        const blob = await put(`uploads/${storedFilename}`, buffer, {
-          access: "public",
-          token: BLOB_TOKEN,
-          contentType: rawFile.type,
-          addRandomSuffix: false,
-        });
-        url = blob.url;
-      } else {
-        const filepath = path.join(UPLOAD_DIR, storedFilename);
-        await fs.writeFile(filepath, buffer);
-      }
+      const { url } = await persistUploadedFile({
+        buffer,
+        mimeType: rawFile.type,
+        storedFilename,
+        kind: "attachment",
+      });
 
       savedAttachments.push({
         url,
