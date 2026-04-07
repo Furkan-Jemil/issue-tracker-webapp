@@ -67,10 +67,12 @@ export async function updateIssue(issueId: string, formData: FormData) {
   let nextStatus: IssueStatus = issue.status;
   let nextAssigneeId: string | null = issue.assigneeId;
   if (isAdmin) {
-    const parsed = parseEnumValue(
-      formData.get("status"),
-      ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"] as const,
-    );
+    const parsed = parseEnumValue(formData.get("status"), [
+      "OPEN",
+      "IN_PROGRESS",
+      "RESOLVED",
+      "CLOSED",
+    ] as const);
     if (parsed) {
       nextStatus = parsed;
     }
