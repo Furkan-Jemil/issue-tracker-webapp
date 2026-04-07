@@ -95,16 +95,16 @@ export function NewIssueForm({
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-3 py-4 md:px-6 md:py-8">
+    <div className="w-full max-w-none px-3 py-3 md:px-4 md:py-4">
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle>New item</CardTitle>
           <CardDescription>
             Log an issue with source context, assignment, and supporting files.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form className="space-y-4" onSubmit={onSubmit}>
+        <CardContent className="p-4 md:p-5">
+          <form className="space-y-3" onSubmit={onSubmit}>
             {errorMessage ? (
               <div
                 role="alert"

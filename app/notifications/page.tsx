@@ -58,7 +58,7 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-3 py-4 md:px-6 md:py-8">
+    <div className="w-full px-3 py-3 md:px-4 md:py-4">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">Notifications</h1>
         <Button type="button" onClick={markAllAsRead}>

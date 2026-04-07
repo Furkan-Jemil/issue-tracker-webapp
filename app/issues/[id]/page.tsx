@@ -70,7 +70,7 @@ export default async function IssueDetailPage({
   const canDelete = isAdmin;
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-3 py-4 md:px-6 md:py-8">
+    <div className="w-full px-3 py-3 md:px-4 md:py-4">
       <Card>
         <CardHeader className="gap-3">
           <div className="flex flex-wrap items-center gap-2">

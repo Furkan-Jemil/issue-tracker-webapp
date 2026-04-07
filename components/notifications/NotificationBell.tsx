@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const POLL_MS = 45_000;
 
-export default function NotificationBell() {
+export default function NotificationBell({ className }: { className?: string }) {
   const [unread, setUnread] = useState(0);
 
   useEffect(() => {
@@ -36,7 +37,10 @@ export default function NotificationBell() {
     <Link
       href="/notifications"
       aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ""}`}
-      className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
+      className={cn(
+        "relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+        className,
+      )}>
       <Bell className="h-5 w-5" />
       {unread > 0 && (
         <Badge

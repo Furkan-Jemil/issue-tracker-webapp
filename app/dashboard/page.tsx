@@ -19,7 +19,7 @@ export default async function DashboardPage() {
 
   if (session.user.role !== "ADMIN") {
     return (
-      <div className="mx-auto w-full max-w-2xl px-3 py-6 md:px-6 md:py-10">
+      <div className="w-full px-3 py-3 md:px-4 md:py-4">
         <Card>
           <CardHeader>
             <CardTitle>Admin Access Required</CardTitle>
@@ -39,8 +39,8 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-3 py-4 md:px-6 md:py-8">
-      <div className="mb-6 space-y-1">
+    <div className="w-full px-3 py-3 md:px-4 md:py-4">
+      <div className="mb-4 space-y-1">
         <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
           Dashboard
         </h1>
@@ -48,7 +48,7 @@ export default async function DashboardPage() {
           Monitor volume, status mix, and recent activity across the workspace.
         </p>
       </div>
-      <Card className="mb-6 border-border/80 shadow-sm">
+      <Card className="mb-4 border-border/80 shadow-sm">
         <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/25 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="text-lg font-semibold">Overview</CardTitle>

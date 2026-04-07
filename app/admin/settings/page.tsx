@@ -10,7 +10,7 @@ export default async function AdminSettingsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-3 py-4 md:px-6 md:py-8">
+    <div className="w-full px-3 py-3 md:px-4 md:py-4">
       <Card>
         <CardHeader>
           <CardTitle>System Settings</CardTitle>

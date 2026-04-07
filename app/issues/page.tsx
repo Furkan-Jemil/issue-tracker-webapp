@@ -178,8 +178,8 @@ export default async function IssuesListPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-3 py-4 md:px-6 md:py-8">
-      <div className="mb-6 flex gap-4">
+    <div className="w-full px-3 py-3 md:px-4 md:py-4">
+      <div className="mb-4 flex gap-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
           <ListChecks className="h-5 w-5" strokeWidth={2} aria-hidden />
         </div>
