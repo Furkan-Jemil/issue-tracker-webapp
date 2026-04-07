@@ -114,7 +114,11 @@ export function IssueActions({
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="edit-type">Type</Label>
-                  <Select id="edit-type" name="type" required defaultValue={initial.type}>
+                  <Select
+                    id="edit-type"
+                    name="type"
+                    required
+                    defaultValue={initial.type}>
                     <option value="BUG">Bug</option>
                     <option value="IMPROVEMENT">Improvement</option>
                   </Select>
@@ -170,7 +174,9 @@ export function IssueActions({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-sourceNotes">Source notes (optional)</Label>
+                <Label htmlFor="edit-sourceNotes">
+                  Source notes (optional)
+                </Label>
                 <Input
                   id="edit-sourceNotes"
                   name="sourceNotes"
