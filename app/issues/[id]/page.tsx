@@ -35,24 +35,24 @@ export default async function IssueDetailPage({
 
   const [issue, assignableUsers] = await Promise.all([
     prisma.issue.findUnique({
-    where: { id: routeParams.id },
-    include: {
-      assignee: { select: { id: true, name: true, email: true } },
-      attachments: {
-        orderBy: { order: "asc" },
-        include: { uploader: { select: { name: true, email: true } } },
+      where: { id: routeParams.id },
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+        attachments: {
+          orderBy: { order: "asc" },
+          include: { uploader: { select: { name: true, email: true } } },
+        },
+        screenshots: true,
+        comments: {
+          orderBy: { createdAt: "asc" },
+          include: { user: { select: { name: true } } },
+        },
+        history: {
+          orderBy: { createdAt: "asc" },
+          include: { actor: { select: { name: true } } },
+        },
       },
-      screenshots: true,
-      comments: {
-        orderBy: { createdAt: "asc" },
-        include: { user: { select: { name: true } } },
-      },
-      history: {
-        orderBy: { createdAt: "asc" },
-        include: { actor: { select: { name: true } } },
-      },
-    },
-  }),
+    }),
     isAdmin
       ? prisma.user.findMany({
           select: { id: true, name: true, email: true },
@@ -99,10 +99,14 @@ export default async function IssueDetailPage({
             </p>
             <p>
               <span className="font-semibold text-foreground">Reported:</span>{" "}
-              {issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified"}
+              {issue.reportedAt
+                ? formatDate(issue.reportedAt)
+                : "Not specified"}
             </p>
             <p>
-              <span className="font-semibold text-foreground">Assigned to:</span>{" "}
+              <span className="font-semibold text-foreground">
+                Assigned to:
+              </span>{" "}
               {issue.assignee
                 ? issue.assignee.name || issue.assignee.email
                 : "Unassigned"}
@@ -141,7 +145,9 @@ export default async function IssueDetailPage({
           severity: issue.severity,
           url: issue.url,
           sourceNotes: issue.sourceNotes,
-          reportedAt: issue.reportedAt ? issue.reportedAt.toISOString().slice(0, 10) : "",
+          reportedAt: issue.reportedAt
+            ? issue.reportedAt.toISOString().slice(0, 10)
+            : "",
           assigneeId: issue.assigneeId,
           status: issue.status,
         }}
@@ -209,8 +215,9 @@ export default async function IssueDetailPage({
                         {file.filename}
                       </a>
                       <p className="text-xs text-muted-foreground">
-                        {file.mimeType} • {(file.sizeBytes / 1024).toFixed(1)} KB
-                        • Uploaded by {file.uploader.name || file.uploader.email}
+                        {file.mimeType} • {(file.sizeBytes / 1024).toFixed(1)}{" "}
+                        KB • Uploaded by{" "}
+                        {file.uploader.name || file.uploader.email}
                       </p>
                     </div>
                   </li>
@@ -243,8 +250,8 @@ export default async function IssueDetailPage({
                 <li
                   key={h.id}
                   className="rounded-md border bg-background px-3 py-2">
-                  [{formatDate(h.createdAt)}] {h.eventType}:{" "}
-                  {h.description} by {h.actor?.name || "Unknown"}
+                  [{formatDate(h.createdAt)}] {h.eventType}: {h.description} by{" "}
+                  {h.actor?.name || "Unknown"}
                 </li>
               ))}
             </ul>
