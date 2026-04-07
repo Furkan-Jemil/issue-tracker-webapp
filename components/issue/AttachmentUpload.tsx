@@ -81,7 +81,9 @@ export function AttachmentUpload({
         </div>
       )}
       {files.length > 0 && (
-        <ul className="space-y-1 text-sm" aria-label="Selected associated files">
+        <ul
+          className="space-y-1 text-sm"
+          aria-label="Selected associated files">
           {files.map((file, idx) => (
             <li
               key={`${file.name}-${idx}`}
