@@ -45,7 +45,9 @@ function normalizeField(value: FormDataEntryValue | null): string | undefined {
   return t.length > 0 ? t : undefined;
 }
 
-export function parseIssueType(value: FormDataEntryValue | null): IssueType | null {
+export function parseIssueType(
+  value: FormDataEntryValue | null,
+): IssueType | null {
   const v = normalizeField(value)?.toUpperCase();
   if (v === "BUG" || v === "IMPROVEMENT") return v;
   return null;
@@ -106,8 +108,10 @@ export function parseScreenshotMetadata(
     }
     const rec = item as Record<string, unknown>;
     const url = typeof rec.url === "string" ? rec.url.trim() : "";
-    const filename = typeof rec.filename === "string" ? rec.filename.trim() : "";
-    const mimeType = typeof rec.mimeType === "string" ? rec.mimeType.trim() : "";
+    const filename =
+      typeof rec.filename === "string" ? rec.filename.trim() : "";
+    const mimeType =
+      typeof rec.mimeType === "string" ? rec.mimeType.trim() : "";
     const sizeBytes =
       typeof rec.sizeBytes === "number" && Number.isFinite(rec.sizeBytes)
         ? rec.sizeBytes
@@ -160,8 +164,10 @@ export function parseAttachmentMetadata(
     }
     const rec = item as Record<string, unknown>;
     const url = typeof rec.url === "string" ? rec.url.trim() : "";
-    const filename = typeof rec.filename === "string" ? rec.filename.trim() : "";
-    const mimeType = typeof rec.mimeType === "string" ? rec.mimeType.trim() : "";
+    const filename =
+      typeof rec.filename === "string" ? rec.filename.trim() : "";
+    const mimeType =
+      typeof rec.mimeType === "string" ? rec.mimeType.trim() : "";
     const sizeBytes =
       typeof rec.sizeBytes === "number" && Number.isFinite(rec.sizeBytes)
         ? rec.sizeBytes
