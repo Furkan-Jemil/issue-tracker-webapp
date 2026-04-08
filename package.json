@@ -33,7 +33,8 @@
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "next dev",
-    "build": "prisma generate && prisma db push && next build",
+    "build": "prisma generate && next build",
+    "db:push": "prisma db push",
     "start": "next start",
     "create-admin": "tsx scripts/create-admin-user.ts"
   },
