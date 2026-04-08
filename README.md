@@ -7,12 +7,13 @@ This project is built with Next.js (App Router), TypeScript, Prisma, and Postgre
 - Run `npm install` to install dependencies.
 - Copy `.env.example` to `.env` and fill in values.
 - Run `npx prisma generate`.
-- Run `npx prisma db push` to sync schema.
+- Run `npm run db:push` to sync schema (requires a reachable database).
 - Run `npm run dev` to start the development server.
 
 ## Production Build
 
 - Run `npm run build`.
+- Run `npm run db:push` during deployment when you need to apply schema changes.
 - Run `npm run start`.
 
 ## Quality Gate
