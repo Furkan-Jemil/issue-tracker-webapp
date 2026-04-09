@@ -100,7 +100,7 @@ export default function AdminUsersPage() {
               value={bulkRole}
               onChange={(e) => setBulkRole(e.target.value)}
               className="max-w-52">
-              <option value="">Bulk set role...</option>
+              <option value="">Set role...</option>
               <option value="USER">User</option>
               <option value="TESTER">Tester</option>
               <option value="ADMIN">Admin</option>
@@ -108,7 +108,7 @@ export default function AdminUsersPage() {
             <Button
               onClick={handleBulkRole}
               disabled={!bulkRole || selected.length === 0}>
-              Apply
+              Apply role
             </Button>
             <Badge variant="secondary">{selected.length} selected</Badge>
           </div>
@@ -169,7 +169,7 @@ export default function AdminUsersPage() {
           </Table>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="text-sm text-muted-foreground">
-              Page {page} of {totalPages}
+              Page {page} / {totalPages}
             </span>
             <div className="flex gap-2">
               <Button
