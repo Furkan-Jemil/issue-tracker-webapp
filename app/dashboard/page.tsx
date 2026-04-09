@@ -45,7 +45,7 @@ export default async function DashboardPage() {
           Dashboard
         </h1>
         <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
-          Monitor volume, status mix, and recent activity across the workspace.
+          Track issue activity, status, and trends.
         </p>
       </div>
       <Card className="mb-4 border-border/80 shadow-sm">
@@ -53,8 +53,7 @@ export default async function DashboardPage() {
           <div>
             <CardTitle className="text-lg font-semibold">Overview</CardTitle>
             <CardDescription>
-              High-level metrics for the last 30 days. Open the full queue
-              anytime.
+              Snapshot for the selected date range.
             </CardDescription>
           </div>
           <Button asChild variant="outline" className="shrink-0">
