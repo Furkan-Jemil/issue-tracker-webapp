@@ -183,6 +183,7 @@ export default async function IssuesListPage({
         <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/30 pb-4 md:flex-row md:items-center md:justify-between">
           <div>
             <CardTitle className="text-lg font-semibold">Issues</CardTitle>
+            <CardDescription>Browse, search, and manage reported issues.</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -206,17 +207,14 @@ export default async function IssuesListPage({
           {notice === "admin-dashboard-only" && (
             <Card className="border-amber-300 bg-amber-50/60">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">
-                  Dashboard Is Admin-Only
-                </CardTitle>
+                <CardTitle className="text-base">Dashboard access is admin-only</CardTitle>
                 <CardDescription className="text-amber-900/80">
-                  Per system access rules, the Dashboard is restricted to Admin
-                  users. You have been redirected to the Issues page.
+                  You were redirected to Issues.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
                 <Button asChild variant="outline" size="sm">
-                  <Link href={buildDismissNoticeHref()}>Dismiss</Link>
+                  <Link href={buildDismissNoticeHref()}>Close</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -245,7 +243,7 @@ export default async function IssuesListPage({
                   id="issues-title-search"
                   name="q"
                   defaultValue={query}
-                  placeholder="Search by issue title..."
+                  placeholder="Search title"
                   className="pl-9"
                 />
               </div>
@@ -328,11 +326,11 @@ export default async function IssuesListPage({
                 </>
               )}
               <Button type="submit" size="sm">
-                {isAdmin ? "Apply" : "Search"}
+                {isAdmin ? "Apply filters" : "Search"}
               </Button>
               {hasActiveFilters && (
                 <Button asChild variant="outline" size="sm">
-                  <Link href={buildClearFiltersHref()}>Clear Filters</Link>
+                  <Link href={buildClearFiltersHref()}>Reset</Link>
                 </Button>
               )}
             </form>
@@ -423,7 +421,7 @@ export default async function IssuesListPage({
           </Table>
           <div className="flex flex-col gap-2 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
             <p>
-              Page {currentPage} of {totalPages}
+              Page {currentPage} / {totalPages}
             </p>
             <div className="flex gap-2">
               <Button asChild variant="outline" size="sm" disabled={!hasPrev}>
