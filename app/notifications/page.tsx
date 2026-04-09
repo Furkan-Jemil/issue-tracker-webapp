@@ -62,7 +62,7 @@ export default function NotificationsPage() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">Notifications</h1>
         <Button type="button" onClick={markAllAsRead}>
-          Mark all as read
+          Mark all read
         </Button>
       </div>
       {error && (
@@ -75,12 +75,12 @@ export default function NotificationsPage() {
       {loading ? (
         <Card>
           <CardContent className="p-5" aria-live="polite">
-            Loading...
+            Loading notifications...
           </CardContent>
         </Card>
       ) : notifications.length === 0 ? (
         <Card>
-          <CardContent className="p-5">No notifications.</CardContent>
+          <CardContent className="p-5">No new notifications.</CardContent>
         </Card>
       ) : (
         <ul aria-live="polite" aria-busy={loading} className="space-y-2">
@@ -112,7 +112,7 @@ export default function NotificationsPage() {
                           event.preventDefault();
                           void markOneAsRead(n.id);
                         }}>
-                        Mark as read
+                        Mark read
                       </Button>
                     )}
                   </CardContent>
