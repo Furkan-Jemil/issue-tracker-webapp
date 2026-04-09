@@ -96,9 +96,6 @@ export function AppShell({
               <span className="block text-sm font-semibold tracking-tight text-foreground">
                 IssueTracker
               </span>
-              <span className="block text-[11px] text-muted-foreground">
-                Structured reporting
-              </span>
             </span>
           </Link>
         </div>
