@@ -58,11 +58,11 @@ type DashboardData = {
 
 const palette = {
   open: "#16a34a",
-  inProgress: "#0891b2",
+  inProgress: "#0284c7",
   resolved: "#0f766e",
   closed: "#64748b",
   low: "#22c55e",
-  medium: "#eab308",
+  medium: "#f59e0b",
   high: "#ef4444",
 };
 
@@ -74,6 +74,7 @@ export default function DashboardCharts() {
   const [priorityFilter, setPriorityFilter] = useState("");
   const [severityFilter, setSeverityFilter] = useState("");
   const [timeRange, setTimeRange] = useState("30d");
+  const hasActiveFilters = Boolean(statusFilter || priorityFilter || severityFilter);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -122,10 +123,12 @@ export default function DashboardCharts() {
       labels: ["Low", "Medium", "High"],
       datasets: [
         {
+          label: "Priority mix",
           data: data ? [data.low, data.medium, data.high] : [],
           backgroundColor: [palette.low, palette.medium, palette.high],
-          borderWidth: 0,
-          hoverOffset: 4,
+          borderColor: "hsl(var(--card))",
+          borderWidth: 4,
+          hoverOffset: 8,
         },
       ],
     }),
@@ -142,7 +145,11 @@ export default function DashboardCharts() {
     );
 
     return {
-      labels: data.trend.labels.map((label) => label.slice(5)),
+      labels: data.trend.labels.map((label) => {
+        const parsed = new Date(label);
+        if (Number.isNaN(parsed.getTime())) return label.slice(5);
+        return parsed.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      }),
       datasets: [
         {
           label: "Open",
@@ -156,7 +163,7 @@ export default function DashboardCharts() {
           label: "In Progress",
           data: byLabel.get("in progress") ?? [],
           borderColor: palette.inProgress,
-          backgroundColor: "rgba(8, 145, 178, 0.12)",
+          backgroundColor: "rgba(2, 132, 199, 0.12)",
           fill: true,
           tension: 0.32,
         },
@@ -198,55 +205,55 @@ export default function DashboardCharts() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
         <Link href="/issues">
-          <Card className="h-full">
+          <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Issues</p>
-              <p className="text-xl font-semibold">{data.totalIssues}</p>
+              <p className="text-xs text-muted-foreground">Total issues</p>
+              <p className="text-2xl font-semibold leading-tight">{data.totalIssues}</p>
             </CardContent>
           </Card>
         </Link>
         <Link href="/issues/filter?status=OPEN">
-          <Card className="h-full">
+          <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Open</p>
-              <p className="text-xl font-semibold">{data.open}</p>
+              <p className="text-xs text-muted-foreground">Open</p>
+              <p className="text-2xl font-semibold leading-tight text-emerald-700">{data.open}</p>
             </CardContent>
           </Card>
         </Link>
         <Link href="/issues/filter?status=IN_PROGRESS">
-          <Card className="h-full">
+          <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">In Progress</p>
-              <p className="text-xl font-semibold">{data.inProgress}</p>
+              <p className="text-xs text-muted-foreground">In progress</p>
+              <p className="text-2xl font-semibold leading-tight text-sky-700">{data.inProgress}</p>
             </CardContent>
           </Card>
         </Link>
         <Link href="/issues/filter?status=RESOLVED">
-          <Card className="h-full">
+          <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Resolved</p>
-              <p className="text-xl font-semibold">{data.resolved}</p>
+              <p className="text-xs text-muted-foreground">Resolved</p>
+              <p className="text-2xl font-semibold leading-tight text-teal-700">{data.resolved}</p>
             </CardContent>
           </Card>
         </Link>
         <Link href="/issues/filter?status=CLOSED">
-          <Card className="h-full">
+          <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Closed</p>
-              <p className="text-xl font-semibold">{data.closed}</p>
+              <p className="text-xs text-muted-foreground">Closed</p>
+              <p className="text-2xl font-semibold leading-tight text-slate-600">{data.closed}</p>
             </CardContent>
           </Card>
         </Link>
       </div>
 
-      <Card>
+      <Card className="border-border/70 bg-card/95">
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
-          <CardTitle className="text-base">Dashboard Filters</CardTitle>
+          <CardTitle className="text-base">Filters</CardTitle>
           <Badge variant="outline">Range: {timeRange}</Badge>
         </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
+        <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,1fr))_auto_auto]">
           <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">All Statuses</option>
             <option value="OPEN">Open</option>
@@ -273,8 +280,19 @@ export default function DashboardCharts() {
             <option value="365d">Last year</option>
           </Select>
           <Button
+            variant="ghost"
+            className="justify-center"
+            disabled={!hasActiveFilters}
+            onClick={() => {
+              setStatusFilter("");
+              setPriorityFilter("");
+              setSeverityFilter("");
+            }}>
+            Clear
+          </Button>
+          <Button
             variant="outline"
-            className="ml-auto"
+            className="justify-center"
             onClick={() => {
               if (!data) return;
               const byLabel = new Map(data.trend.datasets.map((set) => [set.label, set.data]));
@@ -304,50 +322,71 @@ export default function DashboardCharts() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Issue Trend</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[320px] p-3">
-            <Line
-              data={trendData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: "top" } },
-                scales: {
-                  y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(148,163,184,0.18)" } },
-                  x: { grid: { display: false } },
-                },
-              }}
-            />
-          </CardContent>
-        </Card>
+      <Card className="border-border/70 bg-card/95">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Analytics</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-3 p-3 md:grid-cols-5">
+          <div className="md:col-span-3">
+            <p className="mb-2 text-xs font-medium text-muted-foreground">Issue Trend</p>
+            <div className="h-[220px] rounded-xl border border-border/60 bg-background/60 p-3">
+              <Line
+                data={trendData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: "top",
+                      align: "start",
+                      labels: { usePointStyle: true, pointStyle: "line", boxWidth: 20, boxHeight: 3 },
+                    },
+                    tooltip: {
+                      backgroundColor: "rgba(15, 23, 42, 0.92)",
+                      padding: 10,
+                      cornerRadius: 10,
+                    },
+                  },
+                  scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(148,163,184,0.18)" } },
+                    x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 7 } },
+                  },
+                }}
+              />
+            </div>
+          </div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Priority Mix</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[320px] p-3">
-            <Doughnut
-              data={priorityData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: "62%",
-                plugins: { legend: { position: "bottom" } },
-              }}
-            />
-          </CardContent>
-        </Card>
-      </div>
+          <div className="space-y-3 md:col-span-2">
+            <div>
+              <p className="mb-2 text-xs font-medium text-muted-foreground">Priority Mix</p>
+              <div className="h-[220px] rounded-xl border border-border/60 bg-background/60 p-3">
+                <Doughnut
+                  data={priorityData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "68%",
+                    plugins: {
+                      legend: { position: "bottom", labels: { usePointStyle: true, pointStyle: "circle" } },
+                      tooltip: {
+                        callbacks: {
+                          label: (context) => `${context.label}: ${context.raw}`,
+                        },
+                      },
+                    },
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <Card>
+      <Card className="border-border/70 bg-card/95">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Status Distribution</CardTitle>
         </CardHeader>
-        <CardContent className="h-[280px] p-3">
+        <CardContent className="h-[220px] p-3">
           <Bar
             data={statusData}
             options={{
@@ -363,24 +402,25 @@ export default function DashboardCharts() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-border/70 bg-card/95">
         <CardHeader>
           <CardTitle className="text-base">Recent Issues</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
-            {data.recentIssues?.map((issue) => (
-              <li key={issue.id} className="rounded-md border bg-background p-3">
-                <div>
+            {data.recentIssues?.slice(0, 4).map((issue) => (
+              <li key={issue.id} className="rounded-lg border border-border/70 bg-background/70 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <Link href={`/issues/${issue.id}`} className="font-semibold text-primary hover:underline">
                     {issue.title}
                   </Link>
+                  <Badge variant="outline">{issue.status}</Badge>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Reporter: {issue.creator?.name || issue.creator?.email}
+                <div className="mt-1 text-sm text-muted-foreground">
+                  {issue.creator?.name || issue.creator?.email || "Unknown reporter"}
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Priority: {issue.priority} | Status: {issue.status}
+                <div className="mt-2">
+                  <Badge variant="secondary">Priority: {issue.priority}</Badge>
                 </div>
               </li>
             ))}
