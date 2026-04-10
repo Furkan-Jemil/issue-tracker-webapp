@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,6 +9,8 @@ import {
   LogOut,
   Settings2,
   Shield,
+  ChevronsLeft,
+  ChevronsRight,
   Ticket,
   ListChecks,
 } from "lucide-react";
@@ -63,17 +66,62 @@ export function AppShell({
   role?: string;
 }) {
   const pathname = usePathname();
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("app-shell-sidebar-expanded");
+    if (stored !== null) {
+      setSidebarExpanded(stored === "true");
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      "app-shell-sidebar-expanded",
+      String(sidebarExpanded),
+    );
+  }, [sidebarExpanded]);
+
+  const sidebarWidthClass = sidebarExpanded
+    ? "w-56 md:w-60"
+    : "w-16 md:w-20";
+  const contentOffsetClass = sidebarExpanded
+    ? "pl-56 md:pl-60"
+    : "pl-16 md:pl-20";
 
   return (
     <div className="min-h-screen bg-background">
-      <aside className="fixed inset-y-0 left-0 z-40 flex w-16 flex-col border-r border-border/70 bg-card/95 backdrop-blur-md md:w-20">
-        <div className="flex h-16 items-center justify-center border-b border-border/70 px-2">
-          <Link href="/issues" className="flex items-center gap-3 outline-none">
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border/70 bg-card/95 shadow-[8px_0_30px_rgba(15,23,42,0.04)] backdrop-blur-md transition-[width] duration-200 ease-out",
+          sidebarWidthClass,
+        )}>
+        <div className="flex h-16 items-center justify-between gap-2 border-b border-border/70 px-3">
+          <Link href="/issues" className="flex min-w-0 items-center gap-3 outline-none">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-1 ring-primary/10">
               <Ticket className="h-5 w-5" strokeWidth={2.25} aria-hidden />
             </span>
-            <span className="sr-only">IssueTracker</span>
+            <span
+              className={cn(
+                "min-w-0 overflow-hidden text-sm font-semibold tracking-wide text-foreground transition-all duration-200",
+                sidebarExpanded ? "max-w-[140px] opacity-100" : "max-w-0 opacity-0",
+              )}>
+              IssueTracker
+            </span>
           </Link>
+
+          <button
+            type="button"
+            aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            aria-pressed={sidebarExpanded}
+            onClick={() => setSidebarExpanded((current) => !current)}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
+            {sidebarExpanded ? (
+              <ChevronsLeft className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <ChevronsRight className="h-4 w-4" aria-hidden="true" />
+            )}
+          </button>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 p-2 pt-2">
@@ -88,12 +136,20 @@ export function AppShell({
                 aria-current={active ? "page" : undefined}
                 title={item.label}
                 className={cn(
-                  "group flex h-11 items-center justify-center gap-3 rounded-xl px-3 text-sm font-medium transition-all duration-200",
+                  "group flex h-11 items-center rounded-xl text-sm font-medium transition-all duration-200",
+                  sidebarExpanded ? "justify-start gap-3 px-3" : "justify-center px-2",
                   active
                     ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 )}>
                 <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                <span
+                  className={cn(
+                    "min-w-0 overflow-hidden whitespace-nowrap transition-all duration-200",
+                    sidebarExpanded ? "max-w-[160px] opacity-100" : "max-w-0 opacity-0",
+                  )}>
+                  {item.label}
+                </span>
               </Link>
             );
           })}
@@ -101,9 +157,7 @@ export function AppShell({
       </aside>
 
       <div
-        className={cn(
-          "min-h-screen pl-16 md:pl-20",
-        )}>
+        className={cn("min-h-screen transition-[padding-left] duration-200 ease-out", contentOffsetClass)}>
         <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-md">
           <div className="flex min-h-14 items-center justify-between gap-3 px-3 py-2 md:px-4 lg:px-6">
             <div className="min-w-0">
