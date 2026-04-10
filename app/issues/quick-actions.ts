@@ -15,7 +15,10 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
 
 export async function changeIssueStatusQuick(issueId: string, status: string) {
   const session = await getAppSession();
-  if (!session?.user || session.user.role !== "ADMIN") {
+  if (
+    !session?.user ||
+    (session.user.role !== "ADMIN" && session.user.role !== "TESTER")
+  ) {
     throw new Error("Unauthorized");
   }
 
