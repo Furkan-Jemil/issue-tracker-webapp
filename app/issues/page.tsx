@@ -8,8 +8,8 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Filter, Search } from "lucide-react";
+import { IssuesFilterPopover } from "@/app/issues/IssuesFilterPopover";
+import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import {
   Card,
   CardContent,
@@ -46,7 +46,8 @@ export default async function IssuesListPage({
 }: {
   searchParams?: Promise<{
     page?: string;
-    density?: string;
+    view?: string;
+    details?: string;
     q?: string;
     status?: string;
     priority?: string;
@@ -65,7 +66,8 @@ export default async function IssuesListPage({
   const isAdmin = session.user.role === "ADMIN";
 
   const currentPage = Math.max(1, Number(params?.page || "1") || 1);
-  const density = params?.density === "compact" ? "compact" : "comfortable";
+  const view = params?.view === "details" ? "details" : "compact";
+  const showDetails = view === "details";
   const query = params?.q?.trim() || "";
   const status = isAdmin ? parseIssueStatus(params?.status) || "" : "";
   const priority = isAdmin ? parsePriority(params?.priority) || "" : "";
@@ -117,14 +119,14 @@ export default async function IssuesListPage({
     prisma.issue.count({ where }),
     isAdmin
       ? prisma.user.findMany({
-          select: { id: true, name: true, email: true },
+          select: { id: true, name: true, email: true, role: true },
           orderBy: { name: "asc" },
         })
       : Promise.resolve([]),
   ]);
 
   const reporterById = new Map(
-    reporters.map((user) => [user.id, user.name || user.email]),
+    reporters.map((user) => [user.id, user]),
   );
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -135,9 +137,24 @@ export default async function IssuesListPage({
   const hasActiveFilters = Boolean(
     query || status || priority || severity || reporter || assignee,
   );
-  const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${total} total issues), ${density} density`;
-  const cellPaddingClass = density === "compact" ? "py-1.5" : "py-3";
-  const headPaddingClass = density === "compact" ? "h-9 py-1" : "h-11";
+  const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${total} total issues), ${view} view`;
+  const cellPaddingClass = showDetails ? "py-2.5" : "py-1.5";
+  const headPaddingClass = showDetails ? "h-10 py-1.5" : "h-9 py-1";
+
+  function getUserLabel(userId: string, fallback: string) {
+    const user = reporterById.get(userId);
+    return user ? user.name || user.email : fallback;
+  }
+
+  function getUserRoleChip(role?: string | null) {
+    if (!role) return null;
+    const label = role === "TESTER" ? "Tester" : role === "ADMIN" ? "Admin" : "User";
+    return (
+      <Badge variant="outline" className="ml-2 px-1.5 py-0 text-[10px] font-medium uppercase tracking-wide">
+        {label}
+      </Badge>
+    );
+  }
 
   function appendToolbarParams(nextParams: URLSearchParams) {
     if (query) nextParams.set("q", query);
@@ -151,7 +168,7 @@ export default async function IssuesListPage({
   function buildIssuesHref(page: number) {
     const nextParams = new URLSearchParams({
       page: String(page),
-      density,
+      view,
     });
     appendToolbarParams(nextParams);
     return `/issues?${nextParams.toString()}`;
@@ -160,20 +177,20 @@ export default async function IssuesListPage({
   function buildDismissNoticeHref() {
     const nextParams = new URLSearchParams({
       page: String(currentPage),
-      density,
+      view,
     });
     appendToolbarParams(nextParams);
     return `/issues?${nextParams.toString()}`;
   }
 
-  function buildDensityHref(nextDensity: "compact" | "comfortable") {
-    const nextParams = new URLSearchParams({ density: nextDensity, page: "1" });
+  function buildViewHref(nextView: "compact" | "details") {
+    const nextParams = new URLSearchParams({ view: nextView, page: "1" });
     appendToolbarParams(nextParams);
     return `/issues?${nextParams.toString()}`;
   }
 
   function buildClearFiltersHref() {
-    const nextParams = new URLSearchParams({ density, page: "1" });
+    const nextParams = new URLSearchParams({ view, page: "1" });
     return `/issues?${nextParams.toString()}`;
   }
 
@@ -185,19 +202,37 @@ export default async function IssuesListPage({
             <CardTitle className="text-lg font-semibold">Issues</CardTitle>
             <CardDescription>Browse, search, and manage reported issues.</CardDescription>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 md:justify-end">
             <Button
               asChild
-              variant={density === "comfortable" ? "default" : "outline"}
+              variant={view === "compact" ? "default" : "outline"}
               size="sm">
-              <Link href={buildDensityHref("comfortable")}>Comfortable</Link>
+              <Link href={buildViewHref("compact")}>Compact</Link>
             </Button>
             <Button
               asChild
-              variant={density === "compact" ? "default" : "outline"}
+              variant={view === "details" ? "default" : "outline"}
               size="sm">
-              <Link href={buildDensityHref("compact")}>Compact</Link>
+              <Link href={buildViewHref("details")}>Detailed</Link>
             </Button>
+            <IssuesFilterPopover
+              view={view}
+              isAdmin={isAdmin}
+              hasActiveFilters={hasActiveFilters}
+              query={query}
+              status={status}
+              priority={priority}
+              severity={severity}
+              reporter={reporter}
+              assignee={assignee}
+              reporters={reporters.map((user) => ({
+                id: user.id,
+                label: user.name || user.email,
+                role: user.role,
+              }))}
+              onSubmitHref="/issues"
+              onResetHref={buildClearFiltersHref()}
+            />
             <Button asChild>
               <Link href="/issues/new">Report Issue</Link>
             </Button>
@@ -219,122 +254,6 @@ export default async function IssuesListPage({
               </CardContent>
             </Card>
           )}
-          <details className="rounded-lg border border-border/70" open={hasActiveFilters}>
-            <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-sm font-medium text-foreground">
-              <Filter className="h-4 w-4" aria-hidden="true" />
-              Filters
-              {hasActiveFilters && (
-                <Badge variant="secondary" className="ml-1">
-                  Active
-                </Badge>
-              )}
-            </summary>
-            <form method="get" className="flex flex-wrap items-center gap-2 border-t border-border/70 p-3">
-              <input type="hidden" name="density" value={density} />
-              <div className="relative min-w-[220px] flex-1">
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <label htmlFor="issues-title-search" className="sr-only">
-                  Search issue title
-                </label>
-                <Input
-                  id="issues-title-search"
-                  name="q"
-                  defaultValue={query}
-                  placeholder="Search title"
-                  className="pl-9"
-                />
-              </div>
-              {isAdmin && (
-                <>
-                  <label htmlFor="issues-status-filter" className="sr-only">
-                    Filter by status
-                  </label>
-                  <select
-                    id="issues-status-filter"
-                    name="status"
-                    defaultValue={status}
-                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
-                    <option value="">All Statuses</option>
-                    <option value="OPEN">Open</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="RESOLVED">Resolved</option>
-                    <option value="CLOSED">Closed</option>
-                  </select>
-
-                  <label htmlFor="issues-priority-filter" className="sr-only">
-                    Filter by priority
-                  </label>
-                  <select
-                    id="issues-priority-filter"
-                    name="priority"
-                    defaultValue={priority}
-                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
-                    <option value="">All Priorities</option>
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                  </select>
-
-                  <label htmlFor="issues-severity-filter" className="sr-only">
-                    Filter by severity
-                  </label>
-                  <select
-                    id="issues-severity-filter"
-                    name="severity"
-                    defaultValue={severity}
-                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
-                    <option value="">All Severities</option>
-                    <option value="MINOR">Minor</option>
-                    <option value="MAJOR">Major</option>
-                    <option value="CRITICAL">Critical</option>
-                  </select>
-
-                  <label htmlFor="issues-reporter-filter" className="sr-only">
-                    Filter by reporter
-                  </label>
-                  <select
-                    id="issues-reporter-filter"
-                    name="reporter"
-                    defaultValue={reporter}
-                    className="h-10 min-w-52 rounded-md border border-input bg-background px-3 py-2 text-sm">
-                    <option value="">All Reporters</option>
-                    {reporters.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name || user.email}
-                      </option>
-                    ))}
-                  </select>
-
-                  <label htmlFor="issues-assignee-filter" className="sr-only">
-                    Filter by assignee
-                  </label>
-                  <select
-                    id="issues-assignee-filter"
-                    name="assignee"
-                    defaultValue={assignee}
-                    className="h-10 min-w-52 rounded-md border border-input bg-background px-3 py-2 text-sm">
-                    <option value="">All Assignees</option>
-                    {reporters.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name || user.email}
-                      </option>
-                    ))}
-                  </select>
-                </>
-              )}
-              <Button type="submit" size="sm">
-                {isAdmin ? "Apply filters" : "Search"}
-              </Button>
-              {hasActiveFilters && (
-                <Button asChild variant="outline" size="sm">
-                  <Link href={buildClearFiltersHref()}>Reset</Link>
-                </Button>
-              )}
-            </form>
-          </details>
           <Table>
             <caption className="sr-only">{issuesTableCaption}</caption>
             <TableHeader>
@@ -354,22 +273,26 @@ export default async function IssuesListPage({
                 <TableHead scope="col" className={headPaddingClass}>
                   Status
                 </TableHead>
-                {isAdmin && (
+                {isAdmin && showDetails && (
                   <TableHead scope="col" className={headPaddingClass}>
                     Assignee
                   </TableHead>
                 )}
-                {isAdmin && (
+                {isAdmin && showDetails && (
                   <TableHead scope="col" className={headPaddingClass}>
                     Reporter
                   </TableHead>
                 )}
-                <TableHead scope="col" className={headPaddingClass}>
-                  Reported
-                </TableHead>
-                <TableHead scope="col" className={headPaddingClass}>
-                  Created
-                </TableHead>
+                {showDetails && (
+                  <TableHead scope="col" className={headPaddingClass}>
+                    Reported
+                  </TableHead>
+                )}
+                {showDetails && (
+                  <TableHead scope="col" className={headPaddingClass}>
+                    Created
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -392,29 +315,48 @@ export default async function IssuesListPage({
                     {issue.severity}
                   </TableCell>
                   <TableCell className={cellPaddingClass}>
-                    <Badge variant={statusVariant(issue.status)}>
-                      {issue.status}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant={statusVariant(issue.status)}>
+                        {issue.status}
+                      </Badge>
+                      {isAdmin && (
+                        <StatusQuickActions
+                          issueId={issue.id}
+                          currentStatus={issue.status}
+                        />
+                      )}
+                    </div>
                   </TableCell>
-                  {isAdmin && (
+                  {isAdmin && showDetails && (
                     <TableCell className={cellPaddingClass}>
-                      {issue.assigneeId
-                        ? reporterById.get(issue.assigneeId) ||
-                          "Unknown assignee"
-                        : "Unassigned"}
+                      {issue.assigneeId ? (
+                        <div className="flex items-center gap-2">
+                          <span>{getUserLabel(issue.assigneeId, "Unknown assignee")}</span>
+                          {getUserRoleChip(reporterById.get(issue.assigneeId)?.role)}
+                        </div>
+                      ) : (
+                        "Unassigned"
+                      )}
                     </TableCell>
                   )}
-                  {isAdmin && (
+                  {isAdmin && showDetails && (
                     <TableCell className={cellPaddingClass}>
-                      {reporterById.get(issue.createdBy) || "Unknown reporter"}
+                      <div className="flex items-center gap-2">
+                        <span>{getUserLabel(issue.createdBy, "Unknown reporter")}</span>
+                        {getUserRoleChip(reporterById.get(issue.createdBy)?.role)}
+                      </div>
                     </TableCell>
                   )}
-                  <TableCell className={cellPaddingClass}>
-                    {issue.reportedAt ? formatDate(issue.reportedAt) : "-"}
-                  </TableCell>
-                  <TableCell className={cellPaddingClass}>
-                    {formatDate(issue.createdAt)}
-                  </TableCell>
+                  {showDetails && (
+                    <TableCell className={cellPaddingClass}>
+                      {issue.reportedAt ? formatDate(issue.reportedAt) : "-"}
+                    </TableCell>
+                  )}
+                  {showDetails && (
+                    <TableCell className={cellPaddingClass}>
+                      {formatDate(issue.createdAt)}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
