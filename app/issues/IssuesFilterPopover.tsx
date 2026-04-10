@@ -94,11 +94,11 @@ export function IssuesFilterPopover({
       {open && (
         <div
           id="issues-filter-popover"
-          className="absolute left-0 top-11 z-30 w-[min(92vw,860px)] rounded-xl border border-border/70 bg-card p-3 shadow-lg md:left-auto md:right-0">
+          className="absolute left-0 top-11 z-30 w-[min(92vw,360px)] rounded-xl border border-border/70 bg-card p-3 shadow-lg md:left-auto md:right-0">
           <form method="get" action={onSubmitHref} className="space-y-3">
             <input type="hidden" name="view" value={view} />
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-              <div className="relative md:col-span-2 lg:col-span-3">
+            <div className="grid grid-cols-1 gap-2">
+              <div className="relative">
                 <Search
                   className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                   aria-hidden="true"
