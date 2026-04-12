@@ -29,7 +29,7 @@ export default async function IssueDetailPage({
   const routeParams = await params;
   const session = await getAppSession();
   if (!session?.user) {
-    return <div className="p-8">You must be logged in to view this issue.</div>;
+    return <div className="rounded-xl border border-border/70 bg-card/80 p-4 text-sm">You must be logged in to view this issue.</div>;
   }
   const isAdmin = session.user.role === "ADMIN";
 
@@ -70,11 +70,11 @@ export default async function IssueDetailPage({
   const canDelete = isAdmin;
 
   return (
-    <div className="w-full px-3 py-3 md:px-4 md:py-4">
+    <div className="page-stack">
       <Card>
         <CardHeader className="gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <CardTitle className="text-2xl">{issue.title}</CardTitle>
+            <CardTitle className="text-xl md:text-2xl">{issue.title}</CardTitle>
             <Badge variant={statusVariant(issue.status)}>{issue.status}</Badge>
           </div>
         </CardHeader>
