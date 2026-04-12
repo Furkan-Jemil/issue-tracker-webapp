@@ -60,7 +60,7 @@ export default async function IssuesListPage({
   const params = await searchParams;
   const session = await getAppSession();
   if (!session?.user) {
-    return <div className="p-8">You must be logged in to view issues.</div>;
+    return <div className="rounded-xl border border-border/70 bg-card/80 p-4 text-sm">You must be logged in to view issues.</div>;
   }
 
   const isAdmin = session.user.role === "ADMIN";
@@ -196,12 +196,12 @@ export default async function IssuesListPage({
   }
 
   return (
-    <div className="w-full px-3 py-3 md:px-4 md:py-4">
+    <div className="page-stack">
       <Card>
         <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/30 pb-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold">Issues</CardTitle>
-            <CardDescription>Browse, search, and manage reported issues.</CardDescription>
+            <CardTitle className="text-xl">Issues</CardTitle>
+            <CardDescription className="page-subtitle">Browse, search, and manage reported issues.</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
             <Button
