@@ -67,6 +67,29 @@ const palette = {
 };
 
 const chartGridColor = "rgba(100, 116, 139, 0.2)";
+const fallbackChartColors = {
+  total: "hsl(262 62% 58%)",
+  open: "hsl(173 58% 39%)",
+  inProgress: "hsl(210 62% 52%)",
+  resolved: "hsl(37 92% 50%)",
+  closed: "hsl(222 12% 46%)",
+  low: "hsl(210 62% 52%)",
+  medium: "hsl(37 92% 50%)",
+  high: "hsl(8 78% 58%)",
+};
+
+function getThemeColor(variableName: string, alpha?: number) {
+  if (typeof window === "undefined") return "";
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(variableName)
+    .trim();
+  if (!value) return "";
+  return alpha === undefined ? `hsl(${value})` : `hsl(${value} / ${alpha})`;
+}
+
+function resolveColor(variableName: string, fallback: string, alpha?: number) {
+  return getThemeColor(variableName, alpha) || fallback;
+}
 
 export default function DashboardCharts() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -77,6 +100,20 @@ export default function DashboardCharts() {
   const [severityFilter, setSeverityFilter] = useState("");
   const [timeRange, setTimeRange] = useState("30d");
   const hasActiveFilters = Boolean(statusFilter || priorityFilter || severityFilter);
+
+  const chartColors = {
+    total: resolveColor("--chart-4", fallbackChartColors.total),
+    open: resolveColor("--chart-1", fallbackChartColors.open),
+    inProgress: resolveColor("--chart-2", fallbackChartColors.inProgress),
+    resolved: resolveColor("--chart-3", fallbackChartColors.resolved),
+    closed: resolveColor("--chart-5", fallbackChartColors.closed),
+    low: resolveColor("--chart-2", fallbackChartColors.low),
+    medium: resolveColor("--chart-3", fallbackChartColors.medium),
+    high: resolveColor("--chart-5", fallbackChartColors.high),
+    openSoft: resolveColor("--chart-1", fallbackChartColors.open, 0.14),
+    inProgressSoft: resolveColor("--chart-2", fallbackChartColors.inProgress, 0.14),
+    resolvedSoft: resolveColor("--chart-3", fallbackChartColors.resolved, 0.14),
+  };
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -112,7 +149,7 @@ export default function DashboardCharts() {
         {
           label: "Issues",
           data: data ? [data.open, data.inProgress, data.resolved, data.closed] : [],
-          backgroundColor: [palette.open, palette.inProgress, palette.resolved, palette.closed],
+          backgroundColor: [chartColors.open, chartColors.inProgress, chartColors.resolved, chartColors.closed],
           borderRadius: 8,
         },
       ],
@@ -127,7 +164,7 @@ export default function DashboardCharts() {
         {
           label: "Priority mix",
           data: data ? [data.low, data.medium, data.high] : [],
-          backgroundColor: [palette.low, palette.medium, palette.high],
+          backgroundColor: [chartColors.low, chartColors.medium, chartColors.high],
           borderColor: "hsl(var(--card))",
           borderWidth: 4,
           hoverOffset: 8,
@@ -156,24 +193,24 @@ export default function DashboardCharts() {
         {
           label: "Open",
           data: byLabel.get("open") ?? [],
-          borderColor: palette.open,
-          backgroundColor: "rgba(22, 163, 74, 0.16)",
+          borderColor: chartColors.open,
+          backgroundColor: chartColors.openSoft,
           fill: true,
           tension: 0.32,
         },
         {
           label: "In Progress",
           data: byLabel.get("in progress") ?? [],
-          borderColor: palette.inProgress,
-          backgroundColor: "rgba(2, 132, 199, 0.12)",
+          borderColor: chartColors.inProgress,
+          backgroundColor: chartColors.inProgressSoft,
           fill: true,
           tension: 0.32,
         },
         {
           label: "Resolved",
           data: byLabel.get("resolved") ?? [],
-          borderColor: palette.resolved,
-          backgroundColor: "rgba(15, 118, 110, 0.1)",
+          borderColor: chartColors.resolved,
+          backgroundColor: chartColors.resolvedSoft,
           fill: true,
           tension: 0.32,
         },
@@ -212,7 +249,7 @@ export default function DashboardCharts() {
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
               <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Total issues</p>
-              <p className="text-xl font-semibold leading-tight text-slate-900">{data.totalIssues}</p>
+              <p className="text-lg font-semibold leading-tight text-foreground">{data.totalIssues}</p>
             </CardContent>
           </Card>
         </Link>
@@ -220,7 +257,7 @@ export default function DashboardCharts() {
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
               <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Open</p>
-              <p className="text-xl font-semibold leading-tight text-blue-700">{data.open}</p>
+              <p className="text-lg font-semibold leading-tight text-[hsl(var(--chart-1))]">{data.open}</p>
             </CardContent>
           </Card>
         </Link>
@@ -228,7 +265,7 @@ export default function DashboardCharts() {
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
               <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">In progress</p>
-              <p className="text-xl font-semibold leading-tight text-teal-700">{data.inProgress}</p>
+              <p className="text-lg font-semibold leading-tight text-[hsl(var(--chart-2))]">{data.inProgress}</p>
             </CardContent>
           </Card>
         </Link>
@@ -236,7 +273,7 @@ export default function DashboardCharts() {
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
               <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Resolved</p>
-              <p className="text-xl font-semibold leading-tight text-emerald-700">{data.resolved}</p>
+              <p className="text-lg font-semibold leading-tight text-[hsl(var(--chart-3))]">{data.resolved}</p>
             </CardContent>
           </Card>
         </Link>
@@ -244,7 +281,7 @@ export default function DashboardCharts() {
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
               <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Closed</p>
-              <p className="text-xl font-semibold leading-tight text-slate-600">{data.closed}</p>
+              <p className="text-lg font-semibold leading-tight text-[hsl(var(--chart-5))]">{data.closed}</p>
             </CardContent>
           </Card>
         </Link>
@@ -351,9 +388,13 @@ export default function DashboardCharts() {
                       },
                     },
                     tooltip: {
-                      backgroundColor: "rgba(15, 23, 42, 0.94)",
+                      backgroundColor: "hsl(var(--popover))",
+                      titleColor: "hsl(var(--popover-foreground))",
+                      bodyColor: "hsl(var(--popover-foreground))",
                       padding: 10,
                       cornerRadius: 10,
+                      borderColor: "hsl(var(--border))",
+                      borderWidth: 1,
                     },
                   },
                   scales: {
@@ -393,6 +434,11 @@ export default function DashboardCharts() {
                         },
                       },
                       tooltip: {
+                        backgroundColor: "hsl(var(--popover))",
+                        titleColor: "hsl(var(--popover-foreground))",
+                        bodyColor: "hsl(var(--popover-foreground))",
+                        borderColor: "hsl(var(--border))",
+                        borderWidth: 1,
                         callbacks: {
                           label: (context) => `${context.label}: ${context.raw}`,
                         },
