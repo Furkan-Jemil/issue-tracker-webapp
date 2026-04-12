@@ -4,7 +4,6 @@
 
 @layer base {
   :root {
-    /* Slate neutrals + teal accent — readable, distinct from default shadcn zinc */
     --background: 210 25% 97%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -31,6 +30,33 @@
     --chart-5: 8 78% 58%;
     --radius: 0.625rem;
   }
+
+  .dark {
+    --background: 222 27% 9%;
+    --foreground: 210 20% 95%;
+    --card: 222 24% 11%;
+    --card-foreground: 210 20% 95%;
+    --popover: 222 24% 11%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 172 56% 46%;
+    --primary-foreground: 222 47% 8%;
+    --secondary: 222 20% 16%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 222 18% 16%;
+    --muted-foreground: 215 18% 72%;
+    --accent: 222 22% 18%;
+    --accent-foreground: 210 20% 95%;
+    --destructive: 0 70% 53%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 218 18% 24%;
+    --input: 218 18% 24%;
+    --ring: 172 56% 46%;
+    --chart-1: 172 56% 46%;
+    --chart-2: 203 72% 55%;
+    --chart-3: 41 90% 56%;
+    --chart-4: 262 68% 66%;
+    --chart-5: 8 82% 63%;
+  }
 }
 
 @layer base {
@@ -39,7 +65,7 @@
   }
   html,
   body {
-    @apply text-[15px] leading-6;
+    @apply text-sm leading-[1.45];
   }
   html {
     scroll-padding-top: 140px;
@@ -64,6 +90,25 @@
       );
     background-attachment: fixed;
   }
+
+  .dark body {
+    background-image:
+      radial-gradient(
+        ellipse 82% 56% at 50% -24%,
+        hsl(173 76% 22% / 0.35),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 62% 46% at 100% 0%,
+        hsl(205 72% 22% / 0.24),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 50% 42% at 0% 6%,
+        hsl(221 48% 18% / 0.35),
+        transparent
+      );
+  }
 }
 
 @layer components {
@@ -74,13 +119,13 @@
     @apply mx-auto w-full max-w-[1480px];
   }
   .page-stack {
-    @apply space-y-5 md:space-y-6;
+    @apply space-y-4 md:space-y-5;
   }
   .page-title {
-    @apply text-[1.6rem] font-semibold leading-tight tracking-tight md:text-[1.85rem];
+    @apply text-[1.35rem] font-semibold leading-tight tracking-tight md:text-[1.55rem];
   }
   .page-subtitle {
-    @apply text-sm text-muted-foreground md:text-[0.95rem];
+    @apply text-[13px] text-muted-foreground md:text-sm;
   }
   .page-enter {
     animation: fadeIn 0.2s ease-out;

@@ -7,8 +7,10 @@ import {
   FileClock,
   LayoutDashboard,
   LogOut,
+  Moon,
   Settings2,
   Shield,
+  SunMedium,
   ChevronsLeft,
   ChevronsRight,
   Ticket,
@@ -67,6 +69,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
     const stored = window.localStorage.getItem("app-shell-sidebar-expanded");
@@ -82,11 +85,31 @@ export function AppShell({
     );
   }, [sidebarExpanded]);
 
+  useEffect(() => {
+    const stored = window.localStorage.getItem("app-theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const nextTheme = stored === "dark" || stored === "light"
+      ? stored
+      : prefersDark
+        ? "dark"
+        : "light";
+
+    setTheme(nextTheme);
+    document.documentElement.classList.toggle("dark", nextTheme === "dark");
+  }, []);
+
+  function toggleTheme() {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    window.localStorage.setItem("app-theme", nextTheme);
+    document.documentElement.classList.toggle("dark", nextTheme === "dark");
+  }
+
   const sidebarWidthClass = sidebarExpanded
-    ? "w-56 md:w-60"
+    ? "w-52 md:w-56"
     : "w-16 md:w-20";
   const contentOffsetClass = sidebarExpanded
-    ? "pl-56 md:pl-60"
+    ? "pl-52 md:pl-56"
     : "pl-16 md:pl-20";
 
   return (
@@ -136,7 +159,7 @@ export function AppShell({
                 aria-current={active ? "page" : undefined}
                 title={item.label}
                 className={cn(
-                  "group flex h-11 items-center rounded-xl text-sm font-medium transition-all duration-200",
+                  "group flex h-10 items-center rounded-xl text-[13px] font-medium transition-all duration-200",
                   sidebarExpanded ? "justify-start gap-3 px-3" : "justify-center px-2",
                   active
                     ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
@@ -167,6 +190,17 @@ export function AppShell({
             </div>
 
             <div className="flex items-center gap-2 md:gap-3">
+              <button
+                type="button"
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                onClick={toggleTheme}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-card/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
+                {theme === "dark" ? (
+                  <SunMedium className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <Moon className="h-4 w-4" aria-hidden="true" />
+                )}
+              </button>
               <NotificationBell className="h-10 w-10 shrink-0" />
               <Button asChild variant="outline" size="sm" className="gap-2 rounded-full px-3">
                 <Link href="/logout" aria-label="Logout">
