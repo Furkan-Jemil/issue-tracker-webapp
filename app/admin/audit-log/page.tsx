@@ -35,7 +35,7 @@ function formatDate(d: Date | string): string {
 export default async function AdminAuditLogPage() {
   const session = await getAppSession();
   if (!session?.user || session.user.role !== "ADMIN") {
-    return <div className="p-8">Admin access required.</div>;
+    return <div className="rounded-xl border border-border/70 bg-card/80 p-4 text-sm">Admin access required.</div>;
   }
   const logs: AuditLogEntry[] = await prisma.issueHistory.findMany({
     orderBy: { createdAt: "desc" },
@@ -51,10 +51,10 @@ export default async function AdminAuditLogPage() {
   }
 
   return (
-    <div className="w-full px-3 py-3 md:px-4 md:py-4">
+    <div className="page-stack">
       <Card>
         <CardHeader>
-          <CardTitle>Audit Log</CardTitle>
+          <CardTitle className="text-xl">Audit Log</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
