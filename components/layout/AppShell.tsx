@@ -159,7 +159,7 @@ export function AppShell({
       <div
         className={cn("min-h-screen transition-[padding-left] duration-200 ease-out", contentOffsetClass)}>
         <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-md">
-          <div className="flex min-h-14 items-center justify-between gap-3 px-3 py-2 md:px-4 lg:px-6">
+          <div className="page-shell flex min-h-14 items-center justify-between gap-3 px-3 py-2 md:px-4 lg:px-5">
             <div className="min-w-0">
               <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
                 Workspace
@@ -213,7 +213,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main id="main-content" className="page-enter w-full px-3 py-3 md:px-4 md:py-4 lg:px-6 lg:py-5">
+        <main id="main-content" className="page-enter page-shell w-full px-3 py-3 md:px-4 md:py-4 lg:px-5 lg:py-5">
           {children}
         </main>
       </div>
