@@ -72,10 +72,10 @@ export default function AdminUsersPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="w-full px-3 py-3 md:px-4 md:py-4">
+    <div className="page-stack">
       <Card>
         <CardHeader>
-          <CardTitle>User Management</CardTitle>
+          <CardTitle className="text-xl">User Management</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-3">
