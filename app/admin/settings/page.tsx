@@ -6,14 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 export default async function AdminSettingsPage() {
   const session = await getAppSession();
   if (!session?.user || session.user.role !== "ADMIN") {
-    return <div className="p-8">Admin access required.</div>;
+    return <div className="rounded-xl border border-border/70 bg-card/80 p-4 text-sm">Admin access required.</div>;
   }
 
   return (
-    <div className="w-full px-3 py-3 md:px-4 md:py-4">
+    <div className="page-stack">
       <Card>
         <CardHeader>
-          <CardTitle>System Settings</CardTitle>
+          <CardTitle className="text-xl">System Settings</CardTitle>
           <CardDescription>
             Manage system configuration and export data.
           </CardDescription>
