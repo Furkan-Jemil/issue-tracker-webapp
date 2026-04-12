@@ -17,10 +17,10 @@ export default async function EditUserPage({
   const routeParams = await params;
   const session = await getAppSession();
   if (!session?.user || session.user.role !== "ADMIN") {
-    return <div className="p-8">Admin access required.</div>;
+    return <div className="rounded-xl border border-border/70 bg-card/80 p-4 text-sm">Admin access required.</div>;
   }
   const user = await prisma.user.findUnique({ where: { id: routeParams.id } });
-  if (!user) return <div className="p-8">User not found.</div>;
+  if (!user) return <div className="rounded-xl border border-border/70 bg-card/80 p-4 text-sm">User not found.</div>;
   const userId = user.id;
 
   async function updateRole(formData: FormData) {
@@ -47,10 +47,10 @@ export default async function EditUserPage({
   }
 
   return (
-    <div className="w-full px-3 py-3 md:px-4 md:py-4">
+    <div className="page-stack">
       <Card>
         <CardHeader>
-          <CardTitle>Edit User</CardTitle>
+          <CardTitle className="text-xl">Edit User</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={updateRole} className="space-y-4">
