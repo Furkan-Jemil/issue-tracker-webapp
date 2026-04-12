@@ -12,7 +12,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute -bottom-32 -left-16 h-72 w-72 rounded-full bg-[hsl(239_70%_60%/0.12)] blur-3xl"
+            className="pointer-events-none absolute -bottom-32 -left-16 h-72 w-72 rounded-full bg-[hsl(198_78%_64%/0.14)] blur-3xl"
           />
           <div className="relative space-y-6">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md">
