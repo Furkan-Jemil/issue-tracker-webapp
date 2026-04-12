@@ -75,13 +75,13 @@ export default async function IssueDetailPage({
         <CardHeader className="gap-3 border-b border-border/60 bg-muted/20">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="space-y-1">
-              <CardTitle className="text-xl md:text-2xl">{issue.title}</CardTitle>
+              <CardTitle className="text-lg md:text-xl">{issue.title}</CardTitle>
               <p className="page-subtitle">Issue details, ownership, and activity timeline.</p>
             </div>
             <Badge variant={statusVariant(issue.status)}>{issue.status}</Badge>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:gap-6">
+        <CardContent className="grid gap-4 p-4 md:p-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:gap-5">
           <section className="space-y-4">
             <div>
               <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">

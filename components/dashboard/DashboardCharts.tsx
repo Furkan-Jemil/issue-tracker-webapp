@@ -211,40 +211,40 @@ export default function DashboardCharts() {
         <Link href="/issues">
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
-              <p className="text-xs text-muted-foreground">Total issues</p>
-              <p className="text-2xl font-semibold leading-tight text-slate-900">{data.totalIssues}</p>
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Total issues</p>
+              <p className="text-xl font-semibold leading-tight text-slate-900">{data.totalIssues}</p>
             </CardContent>
           </Card>
         </Link>
         <Link href="/issues/filter?status=OPEN">
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
-              <p className="text-xs text-muted-foreground">Open</p>
-              <p className="text-2xl font-semibold leading-tight text-blue-700">{data.open}</p>
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Open</p>
+              <p className="text-xl font-semibold leading-tight text-blue-700">{data.open}</p>
             </CardContent>
           </Card>
         </Link>
         <Link href="/issues/filter?status=IN_PROGRESS">
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
-              <p className="text-xs text-muted-foreground">In progress</p>
-              <p className="text-2xl font-semibold leading-tight text-teal-700">{data.inProgress}</p>
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">In progress</p>
+              <p className="text-xl font-semibold leading-tight text-teal-700">{data.inProgress}</p>
             </CardContent>
           </Card>
         </Link>
         <Link href="/issues/filter?status=RESOLVED">
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
-              <p className="text-xs text-muted-foreground">Resolved</p>
-              <p className="text-2xl font-semibold leading-tight text-emerald-700">{data.resolved}</p>
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Resolved</p>
+              <p className="text-xl font-semibold leading-tight text-emerald-700">{data.resolved}</p>
             </CardContent>
           </Card>
         </Link>
         <Link href="/issues/filter?status=CLOSED">
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
-              <p className="text-xs text-muted-foreground">Closed</p>
-              <p className="text-2xl font-semibold leading-tight text-slate-600">{data.closed}</p>
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Closed</p>
+              <p className="text-xl font-semibold leading-tight text-slate-600">{data.closed}</p>
             </CardContent>
           </Card>
         </Link>
@@ -252,7 +252,7 @@ export default function DashboardCharts() {
 
       <Card className="border-border/70 bg-card/95">
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
-          <CardTitle className="text-base">Filters</CardTitle>
+          <CardTitle className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Filters</CardTitle>
           <Badge variant="outline">Range: {timeRange}</Badge>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,1fr))_auto_auto]">
@@ -326,7 +326,7 @@ export default function DashboardCharts() {
 
       <Card className="border-border/70 bg-card/95">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Analytics</CardTitle>
+          <CardTitle className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Analytics</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 p-3 md:grid-cols-5">
           <div className="md:col-span-3">
@@ -408,7 +408,7 @@ export default function DashboardCharts() {
 
       <Card className="border-border/70 bg-card/95">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Status Distribution</CardTitle>
+          <CardTitle className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Status Distribution</CardTitle>
         </CardHeader>
         <CardContent className="h-[220px] p-3">
           <Bar
@@ -428,7 +428,7 @@ export default function DashboardCharts() {
 
       <Card className="border-border/70 bg-card/95">
         <CardHeader>
-          <CardTitle className="text-base">Recent Issues</CardTitle>
+          <CardTitle className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Recent Issues</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">

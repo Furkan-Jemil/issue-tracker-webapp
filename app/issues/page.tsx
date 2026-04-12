@@ -197,10 +197,10 @@ export default async function IssuesListPage({
 
   return (
     <div className="page-stack">
-      <Card>
-        <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/30 pb-4 md:flex-row md:items-center md:justify-between">
+      <Card className="overflow-hidden">
+        <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/30 pb-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <CardTitle className="text-xl">Issues</CardTitle>
+            <CardTitle className="text-lg">Issues</CardTitle>
             <CardDescription className="page-subtitle">Browse, search, and manage reported issues.</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
@@ -239,11 +239,11 @@ export default async function IssuesListPage({
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-4 md:p-5">
           {notice === "admin-dashboard-only" && (
             <Card className="border-amber-300 bg-amber-50/60">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Dashboard access is admin-only</CardTitle>
+                <CardTitle className="text-sm">Dashboard access is admin-only</CardTitle>
                 <CardDescription className="text-amber-900/80">
                   You were redirected to Issues.
                 </CardDescription>
@@ -255,7 +255,7 @@ export default async function IssuesListPage({
               </CardContent>
             </Card>
           )}
-          <Table>
+          <Table className="rounded-xl border border-border/70 bg-card/40">
             <caption className="sr-only">{issuesTableCaption}</caption>
             <TableHeader>
               <TableRow>

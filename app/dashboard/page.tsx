@@ -40,23 +40,21 @@ export default async function DashboardPage() {
 
   return (
     <div className="page-stack">
-      <div className="mb-4 space-y-1">
-        <h1 className="page-title">
-          Dashboard
-        </h1>
+      <div className="space-y-1">
+        <h1 className="page-title">Dashboard</h1>
         <p className="page-subtitle max-w-2xl">
           Track issue activity, status, and trends.
         </p>
       </div>
-      <Card className="mb-4 border-border/80 shadow-sm">
+      <Card className="border-border/80 shadow-sm">
         <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/25 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold">Overview</CardTitle>
+            <CardTitle className="text-base font-semibold">Overview</CardTitle>
             <CardDescription>
               Snapshot for the selected date range.
             </CardDescription>
           </div>
-          <Button asChild variant="outline" className="shrink-0">
+          <Button asChild variant="outline" size="sm" className="shrink-0">
             <Link href="/issues">View all issues</Link>
           </Button>
         </CardHeader>
