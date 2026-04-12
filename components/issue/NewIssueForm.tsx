@@ -95,10 +95,10 @@ export function NewIssueForm({
   }
 
   return (
-    <div className="w-full max-w-none px-3 py-3 md:px-4 md:py-4">
+    <div className="page-stack">
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle>New item</CardTitle>
+          <CardTitle className="text-xl">New item</CardTitle>
           <CardDescription>
             Log an issue with source context, assignment, and supporting files.
           </CardDescription>
