@@ -57,13 +57,32 @@ export default function NotificationsPage() {
     router.refresh();
   }
 
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
   return (
     <div className="page-stack">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="page-title">Notifications</h1>
+        <div>
+          <h1 className="page-title">Notifications</h1>
+          <p className="page-subtitle">Track alerts and quickly jump to related issues.</p>
+        </div>
         <Button type="button" onClick={markAllAsRead}>
           Mark all read
         </Button>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Unread</p>
+            <p className="mt-1 text-2xl font-semibold">{unreadCount}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Total shown</p>
+            <p className="mt-1 text-2xl font-semibold">{notifications.length}</p>
+          </CardContent>
+        </Card>
       </div>
       {error && (
         <div
@@ -93,10 +112,10 @@ export default function NotificationsPage() {
                     void markOneAsRead(n.id);
                   }
                 }}>
-                <Card className={n.isRead ? "opacity-85" : "border-primary/30"}>
-                  <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
-                    <CardTitle className="text-base">{n.message}</CardTitle>
-                    <Badge variant={n.isRead ? "outline" : "secondary"}>
+                <Card className={n.isRead ? "opacity-85" : "border-primary/30 shadow-sm shadow-primary/10"}>
+                  <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
+                    <CardTitle className="text-base leading-6">{n.message}</CardTitle>
+                    <Badge variant={n.isRead ? "outline" : "secondary"} className="mt-0.5">
                       {n.isRead ? "Read" : "Unread"}
                     </Badge>
                   </CardHeader>

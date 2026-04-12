@@ -7,6 +7,7 @@ import { Filter, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 
 type ReporterOption = {
   id: string;
@@ -116,61 +117,56 @@ export function IssuesFilterPopover({
               </div>
               {isAdmin && (
                 <>
-                  <select
+                  <Select
                     id="issues-status-filter"
                     name="status"
-                    defaultValue={status}
-                    className="h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm">
+                    defaultValue={status}>
                     <option value="">All Statuses</option>
                     <option value="OPEN">Open</option>
                     <option value="IN_PROGRESS">In Progress</option>
                     <option value="RESOLVED">Resolved</option>
                     <option value="CLOSED">Closed</option>
-                  </select>
-                  <select
+                  </Select>
+                  <Select
                     id="issues-priority-filter"
                     name="priority"
-                    defaultValue={priority}
-                    className="h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm">
+                    defaultValue={priority}>
                     <option value="">All Priorities</option>
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
                     <option value="HIGH">High</option>
-                  </select>
-                  <select
+                  </Select>
+                  <Select
                     id="issues-severity-filter"
                     name="severity"
-                    defaultValue={severity}
-                    className="h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm">
+                    defaultValue={severity}>
                     <option value="">All Severities</option>
                     <option value="MINOR">Minor</option>
                     <option value="MAJOR">Major</option>
                     <option value="CRITICAL">Critical</option>
-                  </select>
-                  <select
+                  </Select>
+                  <Select
                     id="issues-reporter-filter"
                     name="reporter"
-                    defaultValue={reporter}
-                    className="h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm">
+                    defaultValue={reporter}>
                     <option value="">All Reporters</option>
                     {reporterOptions.map((user) => (
                       <option key={user.id} value={user.id}>
                         {user.label}
                       </option>
                     ))}
-                  </select>
-                  <select
+                  </Select>
+                  <Select
                     id="issues-assignee-filter"
                     name="assignee"
-                    defaultValue={assignee}
-                    className="h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm">
+                    defaultValue={assignee}>
                     <option value="">All Assignees</option>
                     {reporterOptions.map((user) => (
                       <option key={user.id} value={user.id}>
                         {user.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </>
               )}
             </div>

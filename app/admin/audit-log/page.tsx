@@ -42,6 +42,9 @@ export default async function AdminAuditLogPage() {
     take: 100,
     include: auditLogInclude,
   });
+  const createdCount = logs.filter((log) => log.eventType === "CREATED").length;
+  const statusCount = logs.filter((log) => log.eventType === "STATUS_CHANGED").length;
+  const commentedCount = logs.filter((log) => log.eventType === "COMMENTED").length;
 
   function eventVariant(eventType: string) {
     if (eventType === "CREATED") return "secondary" as const;
@@ -52,12 +55,33 @@ export default async function AdminAuditLogPage() {
 
   return (
     <div className="page-stack">
-      <Card>
-        <CardHeader>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Created</p>
+            <p className="mt-1 text-2xl font-semibold">{createdCount}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Status changes</p>
+            <p className="mt-1 text-2xl font-semibold">{statusCount}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Comments</p>
+            <p className="mt-1 text-2xl font-semibold">{commentedCount}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border/60 bg-muted/20">
           <CardTitle className="text-xl">Audit Log</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="rounded-xl border border-border/70 bg-card/40">
             <caption className="sr-only">Recent issue history events</caption>
             <TableHeader>
               <TableRow>

@@ -98,14 +98,14 @@ export default async function RegisterPage({
   return (
     <AuthShell>
       <Card className="w-full max-w-md border-border/80 shadow-lg shadow-black/5">
-        <CardHeader className="space-y-1">
+        <CardHeader className="space-y-1.5 border-b border-border/60 bg-muted/20">
           <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <UserPlus className="h-5 w-5" aria-hidden />
           </div>
-          <CardTitle className="text-2xl font-semibold tracking-tight">
+          <CardTitle className="text-xl font-semibold tracking-tight md:text-2xl">
             Create account
           </CardTitle>
-          <CardDescription className="text-base">
+          <CardDescription className="text-sm md:text-base">
             Join to report issues and collaborate with your team.
           </CardDescription>
         </CardHeader>

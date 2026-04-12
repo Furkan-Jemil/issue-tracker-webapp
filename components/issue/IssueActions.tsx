@@ -46,8 +46,8 @@ export function IssueActions({
   const [pending, startTransition] = useTransition();
 
   return (
-    <section className="mt-6 space-y-4" aria-label="Issue actions">
-      <div className="flex flex-wrap gap-2">
+    <section className="space-y-4" aria-label="Issue actions">
+      <div className="flex flex-wrap items-center gap-2">
         {canEdit ? (
           <Button
             type="button"
@@ -79,8 +79,8 @@ export function IssueActions({
       </div>
 
       {canEdit && open ? (
-        <Card>
-          <CardHeader>
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-border/60 bg-muted/20">
             <CardTitle className="text-lg">Edit issue</CardTitle>
           </CardHeader>
           <CardContent>
@@ -91,128 +91,138 @@ export function IssueActions({
                   updateIssue(issueId, fd);
                 });
               }}>
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-title">Title</Label>
-                <Input
-                  id="edit-title"
-                  name="title"
-                  required
-                  maxLength={255}
-                  defaultValue={initial.title}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  name="description"
-                  required
-                  rows={6}
-                  defaultValue={initial.description}
-                />
-              </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-type">Type</Label>
-                  <Select
-                    id="edit-type"
-                    name="type"
-                    required
-                    defaultValue={initial.type}>
-                    <option value="BUG">Bug</option>
-                    <option value="IMPROVEMENT">Improvement</option>
-                  </Select>
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-title">Title</Label>
+                    <Input
+                      id="edit-title"
+                      name="title"
+                      required
+                      maxLength={255}
+                      defaultValue={initial.title}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-description">Description</Label>
+                    <Textarea
+                      id="edit-description"
+                      name="description"
+                      required
+                      rows={9}
+                      defaultValue={initial.description}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-priority">Priority</Label>
-                  <Select
-                    id="edit-priority"
-                    name="priority"
-                    required
-                    defaultValue={initial.priority}>
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-severity">Severity</Label>
-                  <Select
-                    id="edit-severity"
-                    name="severity"
-                    required
-                    defaultValue={initial.severity}>
-                    <option value="MINOR">Minor</option>
-                    <option value="MAJOR">Major</option>
-                    <option value="CRITICAL">Critical</option>
-                  </Select>
+
+                <div className="space-y-4 rounded-xl border border-border/70 bg-muted/20 p-3 md:p-4">
+                  <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-1">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edit-type">Type</Label>
+                      <Select
+                        id="edit-type"
+                        name="type"
+                        required
+                        defaultValue={initial.type}>
+                        <option value="BUG">Bug</option>
+                        <option value="IMPROVEMENT">Improvement</option>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edit-priority">Priority</Label>
+                      <Select
+                        id="edit-priority"
+                        name="priority"
+                        required
+                        defaultValue={initial.priority}>
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edit-severity">Severity</Label>
+                      <Select
+                        id="edit-severity"
+                        name="severity"
+                        required
+                        defaultValue={initial.severity}>
+                        <option value="MINOR">Minor</option>
+                        <option value="MAJOR">Major</option>
+                        <option value="CRITICAL">Critical</option>
+                      </Select>
+                    </div>
+                  </div>
+                  {isAdmin ? (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edit-status">Status</Label>
+                      <Select
+                        id="edit-status"
+                        name="status"
+                        required
+                        defaultValue={initial.status}>
+                        <option value="OPEN">Open</option>
+                        <option value="IN_PROGRESS">In progress</option>
+                        <option value="RESOLVED">Resolved</option>
+                        <option value="CLOSED">Closed</option>
+                      </Select>
+                    </div>
+                  ) : null}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-url">URL (optional)</Label>
+                    <Input
+                      id="edit-url"
+                      name="url"
+                      type="url"
+                      placeholder="https://..."
+                      defaultValue={initial.url ?? ""}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-sourceNotes">Source notes (optional)</Label>
+                    <Input
+                      id="edit-sourceNotes"
+                      name="sourceNotes"
+                      placeholder="Where was the issue logged"
+                      defaultValue={initial.sourceNotes ?? ""}
+                    />
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edit-reportedAt">Date reported</Label>
+                      <Input
+                        id="edit-reportedAt"
+                        name="reportedAt"
+                        type="date"
+                        defaultValue={initial.reportedAt}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edit-assigneeId">Assigned to</Label>
+                      <Select
+                        id="edit-assigneeId"
+                        name="assigneeId"
+                        defaultValue={initial.assigneeId ?? ""}
+                        disabled={!isAdmin}>
+                        <option value="">Unassigned</option>
+                        {assigneeOptions.map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  </div>
                 </div>
               </div>
-              {isAdmin ? (
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-status">Status</Label>
-                  <Select
-                    id="edit-status"
-                    name="status"
-                    required
-                    defaultValue={initial.status}>
-                    <option value="OPEN">Open</option>
-                    <option value="IN_PROGRESS">In progress</option>
-                    <option value="RESOLVED">Resolved</option>
-                    <option value="CLOSED">Closed</option>
-                  </Select>
-                </div>
-              ) : null}
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-url">URL (optional)</Label>
-                <Input
-                  id="edit-url"
-                  name="url"
-                  type="url"
-                  placeholder="https://..."
-                  defaultValue={initial.url ?? ""}
-                />
+              <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-4">
+                <Button type="submit" disabled={pending}>
+                  {pending ? "Saving..." : "Save changes"}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-sourceNotes">
-                  Source notes (optional)
-                </Label>
-                <Input
-                  id="edit-sourceNotes"
-                  name="sourceNotes"
-                  placeholder="Where was the issue logged"
-                  defaultValue={initial.sourceNotes ?? ""}
-                />
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-reportedAt">Date reported</Label>
-                  <Input
-                    id="edit-reportedAt"
-                    name="reportedAt"
-                    type="date"
-                    defaultValue={initial.reportedAt}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-assigneeId">Assigned to</Label>
-                  <Select
-                    id="edit-assigneeId"
-                    name="assigneeId"
-                    defaultValue={initial.assigneeId ?? ""}
-                    disabled={!isAdmin}>
-                    <option value="">Unassigned</option>
-                    {assigneeOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              </div>
-              <Button type="submit" disabled={pending}>
-                {pending ? "Saving…" : "Save changes"}
-              </Button>
             </form>
           </CardContent>
         </Card>
