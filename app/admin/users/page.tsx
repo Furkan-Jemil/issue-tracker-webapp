@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Table,
   TableBody,
@@ -81,6 +82,10 @@ export default function AdminUsersPage() {
 
   return (
     <div className="page-stack">
+      <PageHeader
+        title="Users"
+        description="Manage user accounts, roles, and permissions."
+      />
       <div className="grid gap-3 sm:grid-cols-3">
         <Card>
           <CardContent className="p-4">

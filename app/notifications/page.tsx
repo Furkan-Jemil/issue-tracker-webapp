@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type NotificationItem = {
   id: string;
@@ -61,11 +62,11 @@ export default function NotificationsPage() {
 
   return (
     <div className="page-stack">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="page-title">Notifications</h1>
-          <p className="page-subtitle">Track alerts and quickly jump to related issues.</p>
-        </div>
+      <PageHeader
+        title="Notifications"
+        description="Stay on top of issue updates and assignments."
+      />
+      <div className="flex flex-wrap items-center justify-end gap-2">
         <Button type="button" onClick={markAllAsRead}>
           Mark all read
         </Button>

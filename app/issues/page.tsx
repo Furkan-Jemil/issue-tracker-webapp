@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IssuesFilterPopover } from "@/app/issues/IssuesFilterPopover";
 import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
+import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Card,
   CardContent,
@@ -184,12 +185,6 @@ export default async function IssuesListPage({
     return `/issues?${nextParams.toString()}`;
   }
 
-  function buildViewHref(nextView: "compact" | "details") {
-    const nextParams = new URLSearchParams({ view: nextView, page: "1" });
-    appendToolbarParams(nextParams);
-    return `/issues?${nextParams.toString()}`;
-  }
-
   function buildClearFiltersHref() {
     const nextParams = new URLSearchParams({ view, page: "1" });
     return `/issues?${nextParams.toString()}`;
@@ -197,25 +192,11 @@ export default async function IssuesListPage({
 
   return (
     <div className="page-stack">
-      <Card className="overflow-hidden">
-        <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/30 pb-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <CardTitle className="text-lg">Issues</CardTitle>
-            <CardDescription className="page-subtitle">Browse, search, and manage reported issues.</CardDescription>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 md:justify-end">
-            <Button
-              asChild
-              variant={view === "compact" ? "default" : "outline"}
-              size="sm">
-              <Link href={buildViewHref("compact")}>Compact</Link>
-            </Button>
-            <Button
-              asChild
-              variant={view === "details" ? "default" : "outline"}
-              size="sm">
-              <Link href={buildViewHref("details")}>Detailed</Link>
-            </Button>
+      <PageHeader
+        title="Issues"
+        description="Browse, search, and manage reported issues."
+        actions={
+          <>
             <IssuesFilterPopover
               view={view}
               isAdmin={isAdmin}
@@ -237,7 +218,14 @@ export default async function IssuesListPage({
             <Button asChild>
               <Link href="/issues/new">Report Issue</Link>
             </Button>
-          </div>
+          </>
+        }
+      />
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border/60 bg-muted/30 pb-3">
+          <CardDescription className="page-subtitle">
+            Browse, search, and manage reported issues.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 p-4 md:p-5">
           {notice === "admin-dashboard-only" && (

@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Table,
   TableBody,
@@ -55,6 +56,10 @@ export default async function AdminAuditLogPage() {
 
   return (
     <div className="page-stack">
+      <PageHeader
+        title="Audit Log"
+        description="Review system changes, comments, and status updates."
+      />
       <div className="grid gap-3 sm:grid-cols-3">
         <Card>
           <CardContent className="p-4">

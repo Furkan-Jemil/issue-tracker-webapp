@@ -72,42 +72,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image:
-      radial-gradient(
-        ellipse 82% 56% at 50% -24%,
-        hsl(173 52% 87% / 0.5),
-        transparent
-      ),
-      radial-gradient(
-        ellipse 62% 46% at 100% 0%,
-        hsl(39 90% 88% / 0.24),
-        transparent
-      ),
-      radial-gradient(
-        ellipse 50% 42% at 0% 6%,
-        hsl(198 72% 90% / 0.3),
-        transparent
-      );
     background-attachment: fixed;
-  }
-
-  .dark body {
-    background-image:
-      radial-gradient(
-        ellipse 82% 56% at 50% -24%,
-        hsl(173 76% 22% / 0.35),
-        transparent
-      ),
-      radial-gradient(
-        ellipse 62% 46% at 100% 0%,
-        hsl(205 72% 22% / 0.24),
-        transparent
-      ),
-      radial-gradient(
-        ellipse 50% 42% at 0% 6%,
-        hsl(221 48% 18% / 0.35),
-        transparent
-      );
   }
 }
 

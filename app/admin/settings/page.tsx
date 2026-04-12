@@ -1,6 +1,7 @@
 import { getAppSession } from "@/lib/auth/session";
 import ExportDataButton from "./ExportDataButton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default async function AdminSettingsPage() {
   const session = await getAppSession();
@@ -10,6 +11,10 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className="page-stack">
+      <PageHeader
+        title="System Settings"
+        description="Manage system configuration and export data."
+      />
       <Card className="overflow-hidden">
         <CardHeader className="border-b border-border/60 bg-muted/20">
           <CardTitle className="text-xl">System Settings</CardTitle>

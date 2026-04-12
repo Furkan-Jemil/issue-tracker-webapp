@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
@@ -40,12 +41,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="page-stack">
-      <div className="space-y-1">
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle max-w-2xl">
-          Track issue activity, status, and trends.
-        </p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="Track issue activity, status, and trends."
+      />
       <Card className="border-border/80 shadow-sm">
         <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/25 sm:flex-row sm:items-center sm:justify-between">
           <div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -70,6 +70,8 @@ export function AppShell({
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("app-shell-sidebar-expanded");
@@ -97,6 +99,29 @@ export function AppShell({
     setTheme(nextTheme);
     document.documentElement.classList.toggle("dark", nextTheme === "dark");
   }, []);
+
+  useEffect(() => {
+    function onPointerDown(event: PointerEvent) {
+      if (!profileMenuOpen) return;
+      const target = event.target as Node | null;
+      if (target && profileMenuRef.current && !profileMenuRef.current.contains(target)) {
+        setProfileMenuOpen(false);
+      }
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setProfileMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [profileMenuOpen]);
 
   function toggleTheme() {
     const nextTheme = theme === "dark" ? "light" : "dark";
@@ -189,7 +214,7 @@ export function AppShell({
               </p>
             </div>
 
-            <div className="flex items-center gap-2 md:gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
               <button
                 type="button"
                 aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
@@ -202,47 +227,43 @@ export function AppShell({
                 )}
               </button>
               <NotificationBell className="h-10 w-10 shrink-0" />
-              <Button asChild variant="outline" size="sm" className="gap-2 rounded-full px-3">
-                <Link href="/logout" aria-label="Logout">
-                  <LogOut className="h-4 w-4" aria-hidden="true" />
-                  <span className="hidden sm:inline">Logout</span>
-                </Link>
-              </Button>
-              <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 py-1.5 sm:flex">
-                {role && (
-                  <Badge variant="outline" className="rounded-full px-2 py-0 text-[10px] font-semibold uppercase tracking-wide">
-                    {role}
-                  </Badge>
-                )}
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium leading-tight text-foreground">
-                    {profileName}
-                  </p>
-                  <p className="truncate text-[11px] leading-tight text-muted-foreground">
-                    {profileEmail}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  aria-label={`Profile: ${profileName}`}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/80 bg-muted/50 text-xs font-semibold text-primary shadow-sm transition-colors hover:bg-accent">
-                  {profileInitials}
-                </button>
-              </div>
+                <div ref={profileMenuRef} className="relative">
+                  <button
+                    type="button"
+                    aria-label={`Profile menu for ${profileName}`}
+                    aria-expanded={profileMenuOpen}
+                    onClick={() => setProfileMenuOpen((current) => !current)}
+                    className="flex h-9 items-center gap-2 rounded-full border border-border/70 bg-card/80 px-2.5 text-left transition-colors hover:bg-accent">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
+                      {profileInitials}
+                    </span>
+                    <span className="hidden max-w-[120px] truncate text-xs font-medium text-foreground sm:block">
+                      {profileName}
+                    </span>
+                  </button>
 
-              <div className="flex items-center gap-2 sm:hidden">
-                {role && (
-                  <Badge variant="outline" className="rounded-full px-2 py-0 text-[10px] font-semibold uppercase tracking-wide">
-                    {role}
-                  </Badge>
-                )}
-                <button
-                  type="button"
-                  aria-label={`Profile: ${profileName}`}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/80 bg-muted/50 text-xs font-semibold text-primary shadow-sm transition-colors hover:bg-accent">
-                  {profileInitials}
-                </button>
-              </div>
+                  {profileMenuOpen && (
+                    <div className="absolute right-0 top-11 z-50 w-64 rounded-xl border border-border/70 bg-card p-2 shadow-lg shadow-black/10">
+                      <div className="space-y-1 rounded-lg border border-border/60 bg-muted/20 p-3">
+                        <p className="truncate text-sm font-medium text-foreground">{profileName}</p>
+                        <p className="truncate text-xs text-muted-foreground">{profileEmail}</p>
+                        {role && (
+                          <Badge variant="outline" className="mt-1 rounded-full px-2 py-0 text-[10px] font-semibold uppercase tracking-wide">
+                            {role}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="mt-2 grid gap-1">
+                        <Button asChild variant="ghost" size="sm" className="justify-start">
+                          <Link href="/logout">
+                            <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
+                            Logout
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
             </div>
           </div>
         </header>

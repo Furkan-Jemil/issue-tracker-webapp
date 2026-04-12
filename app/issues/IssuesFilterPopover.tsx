@@ -43,6 +43,7 @@ export function IssuesFilterPopover({
   onResetHref: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [selectedView, setSelectedView] = useState(view);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -72,6 +73,10 @@ export function IssuesFilterPopover({
 
   const reporterOptions = useMemo(() => reporters, [reporters]);
 
+  useEffect(() => {
+    setSelectedView(view);
+  }, [view]);
+
   return (
     <div ref={containerRef} className="relative">
       <Button
@@ -84,7 +89,7 @@ export function IssuesFilterPopover({
         aria-controls="issues-filter-popover"
         onClick={() => setOpen((current) => !current)}>
         <Filter className="h-4 w-4" aria-hidden="true" />
-        Filter
+        View options
         {hasActiveFilters && (
           <Badge variant="secondary" className="ml-1">
             Active
@@ -95,9 +100,17 @@ export function IssuesFilterPopover({
       {open && (
         <div
           id="issues-filter-popover"
-          className="absolute left-0 top-11 z-30 w-[min(92vw,360px)] rounded-xl border border-border/70 bg-card p-3 shadow-lg md:left-auto md:right-0">
+          className="absolute left-0 top-11 z-30 w-[min(92vw,380px)] rounded-xl border border-border/70 bg-card p-3 shadow-lg md:left-auto md:right-0">
           <form method="get" action={onSubmitHref} className="space-y-3">
-            <input type="hidden" name="view" value={view} />
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant={selectedView === "compact" ? "default" : "outline"} size="sm" onClick={() => setSelectedView("compact")} className="justify-center">
+                Compact
+              </Button>
+              <Button type="button" variant={selectedView === "details" ? "default" : "outline"} size="sm" onClick={() => setSelectedView("details")} className="justify-center">
+                Detailed
+              </Button>
+            </div>
+            <input type="hidden" name="view" value={selectedView} />
             <div className="grid grid-cols-1 gap-2">
               <div className="relative">
                 <Search

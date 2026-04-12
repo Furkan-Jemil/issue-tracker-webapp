@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CommentThread } from "@/components/issue/CommentThread";
 import { IssueActions } from "@/components/issue/IssueActions";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,23 +27,25 @@ export default async function IssueDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const routeParams = await params;
+  const { id } = await params;
   const session = await getAppSession();
+
   if (!session?.user) {
     return <div className="rounded-xl border border-border/70 bg-card/80 p-4 text-sm">You must be logged in to view this issue.</div>;
   }
+
   const isAdmin = session.user.role === "ADMIN";
 
   const [issue, assignableUsers] = await Promise.all([
     prisma.issue.findUnique({
-      where: { id: routeParams.id },
+      where: { id },
       include: {
         assignee: { select: { id: true, name: true, email: true } },
+        screenshots: { orderBy: { createdAt: "desc" } },
         attachments: {
-          orderBy: { order: "asc" },
+          orderBy: { createdAt: "desc" },
           include: { uploader: { select: { name: true, email: true } } },
         },
-        screenshots: true,
         comments: {
           orderBy: { createdAt: "asc" },
           include: { user: { select: { name: true } } },
@@ -61,8 +64,12 @@ export default async function IssueDetailPage({
       : Promise.resolve([]),
   ]);
 
-  const isOwner = issue?.createdBy === session.user.id;
-  if (!issue || (!isOwner && !isAdmin)) {
+  if (!issue) {
+    notFound();
+  }
+
+  const isOwner = issue.createdBy === session.user.id;
+  if (!isOwner && !isAdmin) {
     notFound();
   }
 
@@ -71,32 +78,39 @@ export default async function IssueDetailPage({
 
   return (
     <div className="page-stack">
+      <PageHeader
+        title={issue.title}
+        description={issue.description}
+        breadcrumbs={[
+          { label: "Issues", href: "/issues" },
+          { label: "Details" },
+        ]}
+        actions={
+          <>
+            <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
+              {issue.status}
+            </Badge>
+            <Badge variant="outline" className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
+              {issue.priority}
+            </Badge>
+            <Badge variant="outline" className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
+              {issue.severity}
+            </Badge>
+          </>
+        }
+      />
+
       <Card className="overflow-hidden">
-        <CardHeader className="gap-3 border-b border-border/60 bg-muted/20">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="space-y-1">
-              <CardTitle className="text-lg md:text-xl">{issue.title}</CardTitle>
-              <p className="page-subtitle">Issue details, ownership, and activity timeline.</p>
-            </div>
-            <Badge variant={statusVariant(issue.status)}>{issue.status}</Badge>
-          </div>
-        </CardHeader>
         <CardContent className="grid gap-4 p-4 md:p-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:gap-5">
           <section className="space-y-4">
             <div>
-              <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                Description
-              </h2>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Description</h2>
               <p className="mt-2 text-sm leading-6 text-foreground/95">{issue.description}</p>
             </div>
             {issue.url && (
               <p className="text-sm">
                 <span className="font-semibold">URL:</span>{" "}
-                <a
-                  href={issue.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline">
+                <a href={issue.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   {issue.url}
                 </a>
               </p>
@@ -110,9 +124,7 @@ export default async function IssueDetailPage({
           </section>
 
           <aside className="rounded-xl border border-border/70 bg-muted/20 p-3 md:p-4">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Properties
-            </h2>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Properties</h2>
             <dl className="mt-3 space-y-2 text-sm">
               <div className="flex items-start justify-between gap-3">
                 <dt className="text-muted-foreground">Type</dt>
@@ -128,9 +140,7 @@ export default async function IssueDetailPage({
               </div>
               <div className="flex items-start justify-between gap-3">
                 <dt className="text-muted-foreground">Reported</dt>
-                <dd className="text-right font-medium text-foreground">
-                  {issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified"}
-                </dd>
+                <dd className="text-right font-medium text-foreground">{issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified"}</dd>
               </div>
               <div className="flex items-start justify-between gap-3">
                 <dt className="text-muted-foreground">Created</dt>
@@ -157,9 +167,7 @@ export default async function IssueDetailPage({
           severity: issue.severity,
           url: issue.url,
           sourceNotes: issue.sourceNotes,
-          reportedAt: issue.reportedAt
-            ? issue.reportedAt.toISOString().slice(0, 10)
-            : "",
+          reportedAt: issue.reportedAt ? issue.reportedAt.toISOString().slice(0, 10) : "",
           assigneeId: issue.assigneeId,
           status: issue.status,
         }}
@@ -172,31 +180,18 @@ export default async function IssueDetailPage({
         }))}
       />
 
-      {/* Screenshot gallery */}
       {(issue.screenshots.length > 0 || issue.attachments.length > 0) && (
         <section aria-labelledby="evidence-heading" className="grid gap-4 xl:grid-cols-2">
           {issue.screenshots.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle id="evidence-heading" className="text-lg">
-                  Screenshots
-                </CardTitle>
+                <CardTitle id="evidence-heading" className="text-lg">Screenshots</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2" role="list">
                   {issue.screenshots.map((s) => (
-                    <a
-                      key={s.id}
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      role="listitem"
-                      className="overflow-hidden rounded-md border">
-                      <img
-                        src={s.url}
-                        alt={`Screenshot: ${s.filename}`}
-                        className="h-24 w-24 object-cover transition-transform hover:scale-105"
-                      />
+                    <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" role="listitem" className="overflow-hidden rounded-md border">
+                      <img src={s.url} alt={`Screenshot: ${s.filename}`} className="h-24 w-24 object-cover transition-transform hover:scale-105" />
                     </a>
                   ))}
                 </div>
@@ -212,20 +207,13 @@ export default async function IssueDetailPage({
               <CardContent>
                 <ul className="space-y-2 text-sm">
                   {issue.attachments.map((file) => (
-                    <li
-                      key={file.id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-background px-3 py-2">
+                    <li key={file.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-background px-3 py-2">
                       <div>
-                        <a
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-medium text-primary hover:underline">
+                        <a href={file.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
                           {file.filename}
                         </a>
                         <p className="text-xs text-muted-foreground">
-                          {file.mimeType} • {(file.sizeBytes / 1024).toFixed(1)} KB • Uploaded by{" "}
-                          {file.uploader.name || file.uploader.email}
+                          {file.mimeType} • {(file.sizeBytes / 1024).toFixed(1)} KB • Uploaded by {file.uploader.name || file.uploader.email}
                         </p>
                       </div>
                     </li>
@@ -236,37 +224,29 @@ export default async function IssueDetailPage({
           )}
         </section>
       )}
-      {/* Comment thread */}
+
       <section className="mt-8" aria-labelledby="comments-heading">
-        <h2 id="comments-heading" className="sr-only">
-          Comments section
-        </h2>
+        <h2 id="comments-heading" className="sr-only">Comments section</h2>
         <CommentThread issueId={issue.id} comments={issue.comments} />
       </section>
-      {/* Issue history */}
+
       <section className="mt-8" aria-labelledby="activity-heading">
         <Card>
           <CardHeader>
-            <CardTitle id="activity-heading" className="text-lg">
-              Activity Log
-            </CardTitle>
+            <CardTitle id="activity-heading" className="text-lg">Activity Log</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul
-              className="space-y-2 text-sm text-muted-foreground"
-              aria-live="polite">
+            <ul className="space-y-2 text-sm text-muted-foreground" aria-live="polite">
               {issue.history.map((h) => (
-                <li
-                  key={h.id}
-                  className="rounded-md border bg-background px-3 py-2">
-                  [{formatDate(h.createdAt)}] {h.eventType}: {h.description} by{" "}
-                  {h.actor?.name || "Unknown"}
+                <li key={h.id} className="rounded-md border bg-background px-3 py-2">
+                  [{formatDate(h.createdAt)}] {h.eventType}: {h.description} by {h.actor?.name || "Unknown"}
                 </li>
               ))}
             </ul>
           </CardContent>
         </Card>
       </section>
+
       <div className="mt-6">
         <Button asChild variant="outline">
           <Link href="/issues">Back to Issues</Link>
