@@ -19,7 +19,7 @@ export default async function DashboardPage() {
 
   if (session.user.role !== "ADMIN") {
     return (
-      <div className="w-full px-3 py-3 md:px-4 md:py-4">
+      <div className="page-stack">
         <Card>
           <CardHeader>
             <CardTitle>Admin Access Required</CardTitle>
@@ -39,12 +39,12 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="w-full px-3 py-3 md:px-4 md:py-4">
+    <div className="page-stack">
       <div className="mb-4 space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+        <h1 className="page-title">
           Dashboard
         </h1>
-        <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+        <p className="page-subtitle max-w-2xl">
           Track issue activity, status, and trends.
         </p>
       </div>
