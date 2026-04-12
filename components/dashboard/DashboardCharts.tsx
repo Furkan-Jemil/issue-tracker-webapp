@@ -57,14 +57,16 @@ type DashboardData = {
 };
 
 const palette = {
-  open: "#16a34a",
-  inProgress: "#0284c7",
-  resolved: "#0f766e",
+  open: "#1d4ed8",
+  inProgress: "#0f766e",
+  resolved: "#15803d",
   closed: "#64748b",
-  low: "#22c55e",
+  low: "#0ea5e9",
   medium: "#f59e0b",
-  high: "#ef4444",
+  high: "#dc2626",
 };
+
+const chartGridColor = "rgba(100, 116, 139, 0.2)";
 
 export default function DashboardCharts() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -204,13 +206,13 @@ export default function DashboardCharts() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
         <Link href="/issues">
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
               <p className="text-xs text-muted-foreground">Total issues</p>
-              <p className="text-2xl font-semibold leading-tight">{data.totalIssues}</p>
+              <p className="text-2xl font-semibold leading-tight text-slate-900">{data.totalIssues}</p>
             </CardContent>
           </Card>
         </Link>
@@ -218,7 +220,7 @@ export default function DashboardCharts() {
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
               <p className="text-xs text-muted-foreground">Open</p>
-              <p className="text-2xl font-semibold leading-tight text-emerald-700">{data.open}</p>
+              <p className="text-2xl font-semibold leading-tight text-blue-700">{data.open}</p>
             </CardContent>
           </Card>
         </Link>
@@ -226,7 +228,7 @@ export default function DashboardCharts() {
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
               <p className="text-xs text-muted-foreground">In progress</p>
-              <p className="text-2xl font-semibold leading-tight text-sky-700">{data.inProgress}</p>
+              <p className="text-2xl font-semibold leading-tight text-teal-700">{data.inProgress}</p>
             </CardContent>
           </Card>
         </Link>
@@ -234,7 +236,7 @@ export default function DashboardCharts() {
           <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-3">
               <p className="text-xs text-muted-foreground">Resolved</p>
-              <p className="text-2xl font-semibold leading-tight text-teal-700">{data.resolved}</p>
+              <p className="text-2xl font-semibold leading-tight text-emerald-700">{data.resolved}</p>
             </CardContent>
           </Card>
         </Link>
@@ -339,17 +341,31 @@ export default function DashboardCharts() {
                     legend: {
                       position: "top",
                       align: "start",
-                      labels: { usePointStyle: true, pointStyle: "line", boxWidth: 20, boxHeight: 3 },
+                      labels: {
+                        usePointStyle: true,
+                        pointStyle: "line",
+                        boxWidth: 20,
+                        boxHeight: 3,
+                        padding: 16,
+                        font: { size: 11, weight: 600 },
+                      },
                     },
                     tooltip: {
-                      backgroundColor: "rgba(15, 23, 42, 0.92)",
+                      backgroundColor: "rgba(15, 23, 42, 0.94)",
                       padding: 10,
                       cornerRadius: 10,
                     },
                   },
                   scales: {
-                    y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(148,163,184,0.18)" } },
-                    x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 7 } },
+                    y: {
+                      beginAtZero: true,
+                      ticks: { precision: 0, font: { size: 11 } },
+                      grid: { color: chartGridColor },
+                    },
+                    x: {
+                      grid: { display: false },
+                      ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 7, font: { size: 11 } },
+                    },
                   },
                 }}
               />
@@ -367,7 +383,15 @@ export default function DashboardCharts() {
                     maintainAspectRatio: false,
                     cutout: "68%",
                     plugins: {
-                      legend: { position: "bottom", labels: { usePointStyle: true, pointStyle: "circle" } },
+                      legend: {
+                        position: "bottom",
+                        labels: {
+                          usePointStyle: true,
+                          pointStyle: "circle",
+                          padding: 14,
+                          font: { size: 11, weight: 600 },
+                        },
+                      },
                       tooltip: {
                         callbacks: {
                           label: (context) => `${context.label}: ${context.raw}`,
@@ -394,7 +418,7 @@ export default function DashboardCharts() {
               maintainAspectRatio: false,
               plugins: { legend: { display: false } },
               scales: {
-                y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(148,163,184,0.18)" } },
+                y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: chartGridColor } },
                 x: { grid: { display: false } },
               },
             }}
