@@ -222,11 +222,6 @@ export default async function IssuesListPage({
         }
       />
       <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border/60 bg-muted/30 pb-3">
-          <CardDescription className="page-subtitle">
-            Browse, search, and manage reported issues.
-          </CardDescription>
-        </CardHeader>
         <CardContent className="space-y-4 p-4 md:p-5">
           {notice === "admin-dashboard-only" && (
             <Card className="border-amber-300 bg-amber-50/60">

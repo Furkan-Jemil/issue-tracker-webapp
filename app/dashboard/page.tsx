@@ -44,23 +44,13 @@ export default async function DashboardPage() {
       <PageHeader
         title="Dashboard"
         description="Track issue activity, status, and trends."
-      />
-      <Card className="border-border/80 shadow-sm">
-        <CardHeader className="flex flex-col gap-3 border-b border-border/60 bg-muted/25 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle className="text-base font-semibold">Overview</CardTitle>
-            <CardDescription>
-              Snapshot for the selected date range.
-            </CardDescription>
-          </div>
+        actions={
           <Button asChild variant="outline" size="sm" className="shrink-0">
             <Link href="/issues">View all issues</Link>
           </Button>
-        </CardHeader>
-      </Card>
-      <div>
-        <DashboardCharts />
-      </div>
+        }
+      />
+      <DashboardCharts />
     </div>
   );
 }
