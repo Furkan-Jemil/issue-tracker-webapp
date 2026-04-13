@@ -1,12 +1,14 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Table,
   TableBody,
@@ -16,39 +18,57 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+type UserRow = {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string;
+  createdAt: string;
+};
+
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<UserRow[]>([]);
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const pageSize = 20;
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkRole, setBulkRole] = useState("");
 
+  const pageSize = 20;
+
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [search]);
 
+  async function loadUsers(nextPage = page, nextSearch = debouncedSearch, nextRole = roleFilter) {
+    const params = new URLSearchParams({
+      search: nextSearch,
+      role: nextRole,
+      page: String(nextPage),
+      pageSize: String(pageSize),
+    });
+
+    const res = await fetch(`/api/admin/users?${params.toString()}`);
+    const data = await res.json();
+    setUsers(data.users || []);
+    setTotal(data.total || 0);
+  }
+
   useEffect(() => {
-    fetch(
-      `/api/admin/users?search=${encodeURIComponent(debouncedSearch)}&page=${page}&pageSize=${pageSize}`,
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data.users || []);
-        setTotal(data.total || 0);
-      });
-  }, [debouncedSearch, page]);
+    void loadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, roleFilter, page]);
 
   function toggleSelect(id: string) {
     setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+      prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id],
     );
   }
 
@@ -61,13 +81,16 @@ export default function AdminUsersPage() {
     });
     setSelected([]);
     setBulkRole("");
-    // Refresh
-    fetch(`/api/admin/users?search=${encodeURIComponent(search)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data.users || []);
-        setTotal(data.total || 0);
-      });
+    void loadUsers();
+  }
+
+  async function updateSingleRole(userId: string, role: string) {
+    await fetch("/api/admin/users/bulk-role", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: [userId], role }),
+    });
+    void loadUsers();
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -82,10 +105,8 @@ export default function AdminUsersPage() {
 
   return (
     <div className="page-stack">
-      <PageHeader
-        title="Users"
-        description="Manage user accounts, roles, and permissions."
-      />
+      <PageHeader title="Users" description="Manage user accounts, roles, and permissions." />
+
       <div className="grid gap-3 sm:grid-cols-3">
         <Card>
           <CardContent className="p-4">
@@ -118,38 +139,56 @@ export default function AdminUsersPage() {
               type="text"
               placeholder="Search by name or email..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(event) => setSearch(event.target.value)}
               className="min-w-64 flex-1"
             />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setSearch("")}>
-              Clear
-            </Button>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/70 bg-background/70 p-2.5">
             <Select
-              aria-label="Select role for bulk update"
-              value={bulkRole}
-              onChange={(e) => setBulkRole(e.target.value)}
-              className="max-w-52">
-              <option value="">Set role...</option>
+              aria-label="Filter users by role"
+              value={roleFilter}
+              onChange={(event) => {
+                setRoleFilter(event.target.value);
+                setPage(1);
+              }}
+              className="max-w-44"
+            >
+              <option value="">All roles</option>
               <option value="USER">User</option>
               <option value="TESTER">Tester</option>
               <option value="ADMIN">Admin</option>
             </Select>
             <Button
-              onClick={handleBulkRole}
-              disabled={!bulkRole || selected.length === 0}>
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setSearch("");
+                setRoleFilter("");
+                setPage(1);
+              }}
+            >
+              Clear
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/70 bg-background/70 p-2.5">
+            <Select
+              aria-label="Select role for bulk update"
+              value={bulkRole}
+              onChange={(event) => setBulkRole(event.target.value)}
+              className="max-w-52"
+            >
+              <option value="">Set role...</option>
+              <option value="USER">User</option>
+              <option value="TESTER">Tester</option>
+              <option value="ADMIN">Admin</option>
+            </Select>
+            <Button onClick={handleBulkRole} disabled={!bulkRole || selected.length === 0}>
               Apply role
             </Button>
             <Badge variant="secondary">{selected.length} selected</Badge>
           </div>
+
           <Table className="rounded-xl border border-border/70 bg-card/40">
-            <caption className="sr-only">
-              Admin users table with bulk selection
-            </caption>
+            <caption className="sr-only">Admin users table with bulk selection</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>
@@ -157,14 +196,8 @@ export default function AdminUsersPage() {
                     aria-label="Select all users on page"
                     type="checkbox"
                     className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    checked={
-                      selected.length === users.length && users.length > 0
-                    }
-                    onChange={(e) =>
-                      setSelected(
-                        e.target.checked ? users.map((u) => u.id) : [],
-                      )
-                    }
+                    checked={selected.length === users.length && users.length > 0}
+                    onChange={(event) => setSelected(event.target.checked ? users.map((user) => user.id) : [])}
                   />
                 </TableHead>
                 <TableHead scope="col">Name</TableHead>
@@ -186,18 +219,53 @@ export default function AdminUsersPage() {
                       onChange={() => toggleSelect(user.id)}
                     />
                   </TableCell>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    <Badge variant={roleVariant(user.role)}>{user.role}</Badge>
+                    <Link href={`/admin/users/${user.id}`} className="font-medium text-primary hover:underline">
+                      {user.name || "Unnamed user"}
+                    </Link>
                   </TableCell>
                   <TableCell>
-                    {new Date(user.createdAt).toLocaleString()}
+                    <Link href={`/admin/users/${user.id}`} className="text-muted-foreground hover:text-primary hover:underline">
+                      {user.email}
+                    </Link>
                   </TableCell>
                   <TableCell>
-                    <Link
-                      href={`/admin/users/${user.id}`}
-                      className="text-primary hover:underline">
+                    <div className="flex flex-col gap-2">
+                      <Badge variant={roleVariant(user.role)}>{user.role}</Badge>
+                      <div className="flex flex-wrap gap-1.5">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={user.role === "USER" ? "default" : "outline"}
+                          className="h-7 rounded-full px-2.5 text-[10px] uppercase tracking-[0.12em]"
+                          onClick={() => updateSingleRole(user.id, "USER")}
+                        >
+                          User
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={user.role === "TESTER" ? "default" : "outline"}
+                          className="h-7 rounded-full px-2.5 text-[10px] uppercase tracking-[0.12em]"
+                          onClick={() => updateSingleRole(user.id, "TESTER")}
+                        >
+                          Tester
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={user.role === "ADMIN" ? "default" : "outline"}
+                          className="h-7 rounded-full px-2.5 text-[10px] uppercase tracking-[0.12em]"
+                          onClick={() => updateSingleRole(user.id, "ADMIN")}
+                        >
+                          Admin
+                        </Button>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{new Date(user.createdAt).toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Link href={`/admin/users/${user.id}`} className="text-primary hover:underline">
                       Edit
                     </Link>
                   </TableCell>
@@ -212,23 +280,24 @@ export default function AdminUsersPage() {
               )}
             </TableBody>
           </Table>
+
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-sm text-muted-foreground">
-              Page {page} / {totalPages}
-            </span>
+            <span className="text-sm text-muted-foreground">Page {page} / {totalPages}</span>
             <div className="flex gap-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}>
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={page <= 1}
+              >
                 Previous
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}>
+                onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                disabled={page >= totalPages}
+              >
                 Next
               </Button>
             </div>
