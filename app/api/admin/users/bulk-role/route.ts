@@ -6,11 +6,13 @@ import { parseEnumValue } from "@/lib/issueValidation";
 import { applyRateLimit } from "@/lib/rateLimit";
 
 const MAX_BULK_ROLE_IDS = 500;
+const MAX_USER_ID_LENGTH = 191;
 
-function isUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
+function normalizeId(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > MAX_USER_ID_LENGTH) return null;
+  return trimmed;
 }
 
 export async function POST(req: NextRequest) {
@@ -44,9 +46,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
-    const uniqueIds = Array.from(new Set(ids)).filter(
-      (id): id is string =>
-        typeof id === "string" && id.trim().length > 0 && isUuid(id.trim()),
+    const uniqueIds = Array.from(
+      new Set(ids.map((id) => normalizeId(id)).filter((id): id is string => Boolean(id))),
     );
     if (uniqueIds.length === 0 || uniqueIds.length > MAX_BULK_ROLE_IDS) {
       return NextResponse.json({ error: "Invalid ids list" }, { status: 400 });
