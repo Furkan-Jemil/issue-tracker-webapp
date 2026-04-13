@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ type UserRow = {
 };
 
 export default function AdminUsersPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -209,13 +211,25 @@ export default function AdminUsersPage() {
             </TableHeader>
             <TableBody>
               {users.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow
+                  key={user.id}
+                  className="cursor-pointer transition hover:bg-muted/30"
+                  tabIndex={0}
+                  onClick={() => router.push(`/admin/users/${user.id}`)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      router.push(`/admin/users/${user.id}`);
+                    }
+                  }}
+                >
                   <TableCell>
                     <input
                       aria-label={`Select user ${user.email}`}
                       type="checkbox"
                       className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       checked={selected.includes(user.id)}
+                      onClick={(event) => event.stopPropagation()}
                       onChange={() => toggleSelect(user.id)}
                     />
                   </TableCell>
@@ -238,7 +252,10 @@ export default function AdminUsersPage() {
                           size="sm"
                           variant={user.role === "USER" ? "default" : "outline"}
                           className="h-7 rounded-full px-2.5 text-[10px] uppercase tracking-[0.12em]"
-                          onClick={() => updateSingleRole(user.id, "USER")}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void updateSingleRole(user.id, "USER");
+                          }}
                         >
                           User
                         </Button>
@@ -247,7 +264,10 @@ export default function AdminUsersPage() {
                           size="sm"
                           variant={user.role === "TESTER" ? "default" : "outline"}
                           className="h-7 rounded-full px-2.5 text-[10px] uppercase tracking-[0.12em]"
-                          onClick={() => updateSingleRole(user.id, "TESTER")}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void updateSingleRole(user.id, "TESTER");
+                          }}
                         >
                           Tester
                         </Button>
@@ -256,7 +276,10 @@ export default function AdminUsersPage() {
                           size="sm"
                           variant={user.role === "ADMIN" ? "default" : "outline"}
                           className="h-7 rounded-full px-2.5 text-[10px] uppercase tracking-[0.12em]"
-                          onClick={() => updateSingleRole(user.id, "ADMIN")}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void updateSingleRole(user.id, "ADMIN");
+                          }}
                         >
                           Admin
                         </Button>
@@ -265,7 +288,11 @@ export default function AdminUsersPage() {
                   </TableCell>
                   <TableCell>{new Date(user.createdAt).toLocaleString()}</TableCell>
                   <TableCell>
-                    <Link href={`/admin/users/${user.id}`} className="text-primary hover:underline">
+                    <Link
+                      href={`/admin/users/${user.id}`}
+                      className="text-primary hover:underline"
+                      onClick={(event) => event.stopPropagation()}
+                    >
                       Edit
                     </Link>
                   </TableCell>
