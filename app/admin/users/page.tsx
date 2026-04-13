@@ -96,6 +96,12 @@ export default function AdminUsersPage() {
     void loadUsers();
   }
 
+  function roleLabel(role: string) {
+    if (role === "ADMIN") return "Admin";
+    if (role === "TESTER") return "Tester";
+    return "User";
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const adminCount = users.filter((user) => user.role === "ADMIN").length;
   const testerCount = users.filter((user) => user.role === "TESTER").length;
@@ -239,23 +245,42 @@ export default function AdminUsersPage() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <div className="relative inline-flex w-32 items-center">
-                      <Select
+                    <details className="group relative inline-block w-32">
+                      <summary
+                        className="flex h-8 cursor-pointer list-none items-center justify-between rounded-full border border-border/70 bg-background/80 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-foreground transition hover:bg-background/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         aria-label={`Change role for ${user.email}`}
-                        value={user.role}
                         onClick={(event) => event.stopPropagation()}
-                        onChange={(event) => {
-                          event.stopPropagation();
-                          void updateSingleRole(user.id, event.target.value);
-                        }}
-                        className="h-8 rounded-full border-border/70 bg-background/80 pl-3 pr-8 text-[11px] font-semibold uppercase tracking-[0.12em]"
                       >
-                        <option value="USER">User</option>
-                        <option value="TESTER">Tester</option>
-                        <option value="ADMIN">Admin</option>
-                      </Select>
-                      <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-                    </div>
+                        <span>{roleLabel(user.role)}</span>
+                        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition group-open:rotate-180" aria-hidden="true" />
+                      </summary>
+                      <div className="absolute left-0 top-[calc(100%+0.35rem)] z-20 w-32 rounded-xl border border-border/70 bg-popover p-1.5 shadow-lg shadow-black/20">
+                        {[
+                          ["USER", "User"],
+                          ["TESTER", "Tester"],
+                          ["ADMIN", "Admin"],
+                        ].map(([value, label]) => (
+                          <button
+                            key={value}
+                            type="button"
+                            className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition hover:bg-muted/80 ${
+                              user.role === value ? "bg-muted text-foreground" : "text-muted-foreground"
+                            }`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void updateSingleRole(user.id, value);
+                              const details = event.currentTarget.closest("details");
+                              if (details instanceof HTMLDetailsElement) {
+                                details.open = false;
+                              }
+                            }}
+                          >
+                            <span>{label}</span>
+                            {user.role === value && <span className="text-[10px] text-primary">Current</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </details>
                   </TableCell>
                   <TableCell>{new Date(user.createdAt).toLocaleString()}</TableCell>
                   <TableCell>
