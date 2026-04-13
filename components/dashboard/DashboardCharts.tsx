@@ -487,6 +487,9 @@ type DashboardData = {
                         borderColor: uiColors.tooltipBorder,
                         borderWidth: 1,
                         displayColors: true,
+                        callbacks: {
+                          labelTextColor: () => uiColors.tooltipText,
+                        },
                       },
                     },
                     scales: {
@@ -545,6 +548,7 @@ type DashboardData = {
                           borderColor: uiColors.tooltipBorder,
                           borderWidth: 1,
                           callbacks: {
+                            labelTextColor: () => uiColors.tooltipText,
                             label: (context) => `${context.label}: ${context.raw}`,
                           },
                         },
@@ -588,6 +592,9 @@ type DashboardData = {
                       cornerRadius: 10,
                       borderColor: uiColors.tooltipBorder,
                       borderWidth: 1,
+                      callbacks: {
+                        labelTextColor: () => uiColors.tooltipText,
+                      },
                     },
                   },
                   scales: {
