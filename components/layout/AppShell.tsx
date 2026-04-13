@@ -42,25 +42,6 @@ function getIcon(icon: NavIcon) {
   }
 }
 
-function getShellContext(pathname: string) {
-  if (pathname.startsWith("/dashboard")) {
-    return { title: "Dashboard", description: "Compact issue trends and activity." };
-  }
-  if (pathname.startsWith("/issues")) {
-    return { title: "Issues", description: "Browse, filter, and resolve work items." };
-  }
-  if (pathname.startsWith("/admin/users")) {
-    return { title: "Admin", description: "User access and role management." };
-  }
-  if (pathname.startsWith("/admin/audit-log")) {
-    return { title: "Audit Log", description: "System activity and change history." };
-  }
-  if (pathname.startsWith("/admin/settings")) {
-    return { title: "Activity", description: "Exports and system records." };
-  }
-  return { title: "Issue Tracker", description: "Current page activity and navigation." };
-}
-
 function isActive(pathname: string, href: string) {
   if (href === "/issues") {
     return pathname === "/issues" || pathname.startsWith("/issues/");
@@ -171,8 +152,6 @@ export function AppShell({
     applyTheme(nextTheme, true);
   }
 
-  const shellContext = getShellContext(pathname);
-
   const sidebarWidthClass = sidebarExpanded
     ? "w-52 md:w-56"
     : "w-16 md:w-20";
@@ -194,18 +173,7 @@ export function AppShell({
             </span>
             <span
               className={cn(
-                "min-w-0 overflow-hidden text-sm font-semibold tracking-wide text-foreground transition-all duration-200",
-                sidebarExpanded ? "max-w-[140px] opacity-100" : "max-w-0 opacity-0",
-              )}>
-              IssueTracker
-            </span>
-          </Link>
-
-          <button
-            type="button"
-            aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            aria-pressed={sidebarExpanded}
-            onClick={() => setSidebarExpanded((current) => !current)}
+              <div className="page-shell flex min-h-12 items-center justify-end gap-3 px-2.5 py-1.5 md:px-3 lg:px-4">
             className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
             {sidebarExpanded ? (
               <ChevronsLeft className="h-4 w-4" aria-hidden="true" />
