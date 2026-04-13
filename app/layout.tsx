@@ -18,7 +18,6 @@ function buildNavItems(role: string | undefined): AppNavItem[] {
   if (role === "ADMIN") {
     items.push(
       { href: "/admin/users", label: "Admin", icon: "admin" },
-      { href: "/admin/settings", label: "Settings", icon: "settings" },
       { href: "/admin/audit-log", label: "Audit Log", icon: "audit" },
     );
   }

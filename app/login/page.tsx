@@ -88,7 +88,7 @@ export default async function LoginPage({
             Sign in
           </CardTitle>
           <CardDescription className="text-sm md:text-base">
-            Continue with your workspace account.
+            Continue with your account.
           </CardDescription>
         </CardHeader>
         <CardContent>
