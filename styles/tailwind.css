@@ -74,6 +74,17 @@
     @apply bg-background text-foreground;
     background-attachment: fixed;
   }
+
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      color 180ms ease,
+      fill 180ms ease,
+      stroke 180ms ease;
+  }
 }
 
 @layer components {

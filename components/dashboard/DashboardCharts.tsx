@@ -72,8 +72,6 @@ type DashboardData = {
     closed: number;
   };
 
-  const chartGridColor = "rgba(148, 163, 184, 0.16)";
-
   const fallbackChartColors = {
     total: "hsl(221 83% 53%)",
     open: "hsl(221 83% 53%)",
@@ -132,6 +130,7 @@ type DashboardData = {
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
     const [statusFilter, setStatusFilter] = useState("");
     const [priorityFilter, setPriorityFilter] = useState("");
     const [severityFilter, setSeverityFilter] = useState("");
@@ -139,19 +138,50 @@ type DashboardData = {
     const [filtersOpen, setFiltersOpen] = useState(false);
     const hasActiveFilters = Boolean(statusFilter || priorityFilter || severityFilter);
 
-    const chartColors = {
-      total: resolveColor("--chart-4", fallbackChartColors.total),
-      open: resolveColor("--chart-1", fallbackChartColors.open),
-      inProgress: resolveColor("--chart-2", fallbackChartColors.inProgress),
-      resolved: resolveColor("--chart-3", fallbackChartColors.resolved),
-      closed: resolveColor("--chart-5", fallbackChartColors.closed),
-      low: resolveColor("--chart-1", fallbackChartColors.low),
-      medium: resolveColor("--chart-2", fallbackChartColors.medium),
-      high: resolveColor("--chart-3", fallbackChartColors.high),
-      openSoft: resolveColor("--chart-1", fallbackChartColors.open, 0.16),
-      inProgressSoft: resolveColor("--chart-2", fallbackChartColors.inProgress, 0.16),
-      closedSoft: resolveColor("--chart-5", fallbackChartColors.closed, 0.16),
-    };
+    useEffect(() => {
+      const root = document.documentElement;
+      const syncTheme = () => setThemeMode(root.classList.contains("dark") ? "dark" : "light");
+      syncTheme();
+
+      const observer = new MutationObserver(syncTheme);
+      observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+
+      return () => observer.disconnect();
+    }, []);
+
+    const chartColors = useMemo(
+      () => ({
+        total: resolveColor("--chart-4", fallbackChartColors.total),
+        open: resolveColor("--chart-1", fallbackChartColors.open),
+        inProgress: resolveColor("--chart-2", fallbackChartColors.inProgress),
+        resolved: resolveColor("--chart-3", fallbackChartColors.resolved),
+        closed: resolveColor("--chart-5", fallbackChartColors.closed),
+        low: resolveColor("--chart-1", fallbackChartColors.low),
+        medium: resolveColor("--chart-2", fallbackChartColors.medium),
+        high: resolveColor("--chart-3", fallbackChartColors.high),
+        openSoft: resolveColor("--chart-1", fallbackChartColors.open, 0.16),
+        inProgressSoft: resolveColor("--chart-2", fallbackChartColors.inProgress, 0.16),
+      }),
+      [themeMode],
+    );
+
+    const uiColors = useMemo(() => {
+      const isDark = themeMode === "dark";
+      return {
+        legendText: resolveColor("--muted-foreground", "hsl(215 16% 42%)"),
+        axisText: resolveColor("--muted-foreground", "hsl(215 16% 42%)"),
+        tooltipBg: isDark
+          ? "hsl(222 30% 8% / 0.96)"
+          : resolveColor("--popover", "hsl(0 0% 100%)"),
+        tooltipText: isDark
+          ? "hsl(210 20% 97%)"
+          : resolveColor("--popover-foreground", "hsl(222 47% 11%)"),
+        tooltipBorder: isDark
+          ? "hsl(218 22% 32% / 0.9)"
+          : resolveColor("--border", "hsl(214 24% 88%)"),
+        grid: resolveColor("--border", "hsl(214 24% 88%)", isDark ? 0.5 : 0.55),
+      };
+    }, [themeMode]);
 
     useEffect(() => {
       const params = new URLSearchParams();
@@ -428,10 +458,12 @@ type DashboardData = {
               </CardHeader>
               <CardContent className="h-[360px] p-4">
                 <Line
+                  key={`trend-${themeMode}`}
                   data={trendData}
                   options={{
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: { duration: 220, easing: "easeOutCubic" },
                     interaction: { mode: "index", intersect: false },
                     plugins: {
                       legend: {
@@ -443,16 +475,16 @@ type DashboardData = {
                           boxHeight: 3,
                           padding: 18,
                           font: { size: 11, weight: 600 },
-                          color: "hsl(var(--muted-foreground))",
+                          color: uiColors.legendText,
                         },
                       },
                       tooltip: {
-                        backgroundColor: "hsl(var(--popover))",
-                        titleColor: "hsl(var(--popover-foreground))",
-                        bodyColor: "hsl(var(--popover-foreground))",
+                        backgroundColor: uiColors.tooltipBg,
+                        titleColor: uiColors.tooltipText,
+                        bodyColor: uiColors.tooltipText,
                         padding: 12,
                         cornerRadius: 10,
-                        borderColor: "hsl(var(--border))",
+                        borderColor: uiColors.tooltipBorder,
                         borderWidth: 1,
                         displayColors: true,
                       },
@@ -460,13 +492,13 @@ type DashboardData = {
                     scales: {
                       y: {
                         beginAtZero: true,
-                        ticks: { precision: 0, font: { size: 11 } },
-                        grid: { color: chartGridColor },
+                        ticks: { precision: 0, font: { size: 11 }, color: uiColors.axisText },
+                        grid: { color: uiColors.grid },
                         border: { display: false },
                       },
                       x: {
                         grid: { display: false },
-                        ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8, font: { size: 11 } },
+                        ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8, font: { size: 11 }, color: uiColors.axisText },
                         border: { display: false },
                       },
                     },
@@ -487,10 +519,12 @@ type DashboardData = {
               <CardContent className="flex h-[360px] items-center justify-center p-4">
                 <div className="h-[270px] w-full">
                   <Doughnut
+                    key={`status-${themeMode}`}
                     data={statusData}
                     options={{
                       responsive: true,
                       maintainAspectRatio: false,
+                      animation: { duration: 220, easing: "easeOutCubic" },
                       cutout: "72%",
                       rotation: -90,
                       plugins: {
@@ -501,14 +535,14 @@ type DashboardData = {
                             pointStyle: "circle",
                             padding: 14,
                             font: { size: 11, weight: 600 },
-                            color: "hsl(var(--muted-foreground))",
+                            color: uiColors.legendText,
                           },
                         },
                         tooltip: {
-                          backgroundColor: "hsl(var(--popover))",
-                          titleColor: "hsl(var(--popover-foreground))",
-                          bodyColor: "hsl(var(--popover-foreground))",
-                          borderColor: "hsl(var(--border))",
+                          backgroundColor: uiColors.tooltipBg,
+                          titleColor: uiColors.tooltipText,
+                          bodyColor: uiColors.tooltipText,
+                          borderColor: uiColors.tooltipBorder,
                           borderWidth: 1,
                           callbacks: {
                             label: (context) => `${context.label}: ${context.raw}`,
@@ -529,10 +563,12 @@ type DashboardData = {
             </CardHeader>
             <CardContent className="h-[320px] p-4">
               <Bar
+                key={`comparison-${themeMode}`}
                 data={comparisonData}
                 options={{
                   responsive: true,
                   maintainAspectRatio: false,
+                  animation: { duration: 220, easing: "easeOutCubic" },
                   plugins: {
                     legend: {
                       position: "bottom",
@@ -541,29 +577,29 @@ type DashboardData = {
                         pointStyle: "circle",
                         padding: 14,
                         font: { size: 11, weight: 600 },
-                        color: "hsl(var(--muted-foreground))",
+                        color: uiColors.legendText,
                       },
                     },
                     tooltip: {
-                      backgroundColor: "hsl(var(--popover))",
-                      titleColor: "hsl(var(--popover-foreground))",
-                      bodyColor: "hsl(var(--popover-foreground))",
+                      backgroundColor: uiColors.tooltipBg,
+                      titleColor: uiColors.tooltipText,
+                      bodyColor: uiColors.tooltipText,
                       padding: 12,
                       cornerRadius: 10,
-                      borderColor: "hsl(var(--border))",
+                      borderColor: uiColors.tooltipBorder,
                       borderWidth: 1,
                     },
                   },
                   scales: {
                     x: {
                       grid: { display: false },
-                      ticks: { maxRotation: 0, autoSkip: false, font: { size: 11 } },
+                      ticks: { maxRotation: 0, autoSkip: false, font: { size: 11 }, color: uiColors.axisText },
                       border: { display: false },
                     },
                     y: {
                       beginAtZero: true,
-                      ticks: { precision: 0, font: { size: 11 } },
-                      grid: { color: chartGridColor },
+                      ticks: { precision: 0, font: { size: 11 }, color: uiColors.axisText },
+                      grid: { color: uiColors.grid },
                       border: { display: false },
                     },
                   },

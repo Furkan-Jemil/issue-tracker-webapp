@@ -88,6 +88,22 @@ export function AppShell({
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const themeTransitionTimeoutRef = useRef<number | null>(null);
+
+  function applyTheme(nextTheme: "light" | "dark", animated: boolean) {
+    const root = document.documentElement;
+    if (animated) {
+      root.classList.add("theme-transition");
+      if (themeTransitionTimeoutRef.current !== null) {
+        window.clearTimeout(themeTransitionTimeoutRef.current);
+      }
+      themeTransitionTimeoutRef.current = window.setTimeout(() => {
+        root.classList.remove("theme-transition");
+        themeTransitionTimeoutRef.current = null;
+      }, 220);
+    }
+    root.classList.toggle("dark", nextTheme === "dark");
+  }
 
   useEffect(() => {
     const stored = window.localStorage.getItem("app-shell-sidebar-expanded");
@@ -113,7 +129,16 @@ export function AppShell({
         : "light";
 
     setTheme(nextTheme);
-    document.documentElement.classList.toggle("dark", nextTheme === "dark");
+    applyTheme(nextTheme, false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (themeTransitionTimeoutRef.current !== null) {
+        window.clearTimeout(themeTransitionTimeoutRef.current);
+      }
+      document.documentElement.classList.remove("theme-transition");
+    };
   }, []);
 
   useEffect(() => {
@@ -143,7 +168,7 @@ export function AppShell({
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
     window.localStorage.setItem("app-theme", nextTheme);
-    document.documentElement.classList.toggle("dark", nextTheme === "dark");
+    applyTheme(nextTheme, true);
   }
 
   const shellContext = getShellContext(pathname);
