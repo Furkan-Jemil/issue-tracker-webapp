@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   LogOut,
   Moon,
-  Settings2,
   Shield,
   SunMedium,
   ChevronsLeft,
@@ -22,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type NavIcon = "dashboard" | "issues" | "admin" | "settings" | "audit";
+type NavIcon = "dashboard" | "issues" | "admin" | "audit";
 
 export type AppNavItem = {
   href: string;
@@ -38,11 +37,28 @@ function getIcon(icon: NavIcon) {
       return ListChecks;
     case "admin":
       return Shield;
-    case "settings":
-      return Settings2;
     case "audit":
       return FileClock;
   }
+}
+
+function getShellContext(pathname: string) {
+  if (pathname.startsWith("/dashboard")) {
+    return { title: "Dashboard", description: "Compact issue trends and activity." };
+  }
+  if (pathname.startsWith("/issues")) {
+    return { title: "Issues", description: "Browse, filter, and resolve work items." };
+  }
+  if (pathname.startsWith("/admin/users")) {
+    return { title: "Admin", description: "User access and role management." };
+  }
+  if (pathname.startsWith("/admin/audit-log")) {
+    return { title: "Audit Log", description: "System activity and change history." };
+  }
+  if (pathname.startsWith("/admin/settings")) {
+    return { title: "Activity", description: "Exports and system records." };
+  }
+  return { title: "Issue Tracker", description: "Current page activity and navigation." };
 }
 
 function isActive(pathname: string, href: string) {
@@ -130,6 +146,8 @@ export function AppShell({
     document.documentElement.classList.toggle("dark", nextTheme === "dark");
   }
 
+  const shellContext = getShellContext(pathname);
+
   const sidebarWidthClass = sidebarExpanded
     ? "w-52 md:w-56"
     : "w-16 md:w-20";
@@ -207,14 +225,19 @@ export function AppShell({
       <div
         className={cn("min-h-screen transition-[padding-left] duration-200 ease-out", contentOffsetClass)}>
         <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-md">
-          <div className="page-shell flex min-h-14 items-center justify-between gap-3 px-3 py-2 md:px-4 lg:px-5">
+          <div className="page-shell flex min-h-12 items-center justify-between gap-3 px-2.5 py-1.5 md:px-3 lg:px-4">
             <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-                Workspace
-              </p>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">
+                  {shellContext.title}
+                </p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  {shellContext.description}
+                </p>
+              </div>
             </div>
 
-              <div className="flex items-center gap-2 md:gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
               <button
                 type="button"
                 aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
@@ -227,7 +250,7 @@ export function AppShell({
                 )}
               </button>
               <NotificationBell className="h-10 w-10 shrink-0" />
-                <div ref={profileMenuRef} className="relative">
+              <div ref={profileMenuRef} className="relative">
                   <button
                     type="button"
                     aria-label={`Profile menu for ${profileName}`}

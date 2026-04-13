@@ -14,6 +14,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { SlidersHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,25 +58,25 @@ type DashboardData = {
 };
 
 const palette = {
-  open: "#1d4ed8",
-  inProgress: "#0f766e",
-  resolved: "#15803d",
-  closed: "#64748b",
-  low: "#0ea5e9",
-  medium: "#f59e0b",
-  high: "#dc2626",
+  open: "hsl(221 83% 53%)",
+  inProgress: "hsl(173 58% 39%)",
+  resolved: "hsl(221 39% 11%)",
+  closed: "hsl(215 16% 47%)",
+  low: "hsl(221 83% 53%)",
+  medium: "hsl(173 58% 39%)",
+  high: "hsl(262 62% 58%)",
 };
 
 const chartGridColor = "rgba(100, 116, 139, 0.2)";
 const fallbackChartColors = {
-  total: "hsl(262 62% 58%)",
-  open: "hsl(173 58% 39%)",
-  inProgress: "hsl(210 62% 52%)",
-  resolved: "hsl(37 92% 50%)",
-  closed: "hsl(222 12% 46%)",
-  low: "hsl(210 62% 52%)",
-  medium: "hsl(37 92% 50%)",
-  high: "hsl(8 78% 58%)",
+  total: "hsl(221 83% 53%)",
+  open: "hsl(221 83% 53%)",
+  inProgress: "hsl(173 58% 39%)",
+  resolved: "hsl(262 62% 58%)",
+  closed: "hsl(215 16% 47%)",
+  low: "hsl(221 83% 53%)",
+  medium: "hsl(173 58% 39%)",
+  high: "hsl(262 62% 58%)",
 };
 
 function getThemeColor(variableName: string, alpha?: number) {
@@ -99,6 +100,7 @@ export default function DashboardCharts() {
   const [priorityFilter, setPriorityFilter] = useState("");
   const [severityFilter, setSeverityFilter] = useState("");
   const [timeRange, setTimeRange] = useState("30d");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const hasActiveFilters = Boolean(statusFilter || priorityFilter || severityFilter);
 
   const chartColors = {
@@ -144,13 +146,43 @@ export default function DashboardCharts() {
 
   const statusData = useMemo(
     () => ({
-      labels: ["Open", "In Progress", "Resolved", "Closed"],
+      labels: ["Issues"],
       datasets: [
         {
-          label: "Issues",
-          data: data ? [data.open, data.inProgress, data.resolved, data.closed] : [],
-          backgroundColor: [chartColors.open, chartColors.inProgress, chartColors.resolved, chartColors.closed],
-          borderRadius: 8,
+          label: "Open",
+          data: data ? [data.open] : [],
+          backgroundColor: chartColors.open,
+          borderRadius: 999,
+          borderSkipped: false,
+          barThickness: 12,
+          stack: "status",
+        },
+        {
+          label: "In Progress",
+          data: data ? [data.inProgress] : [],
+          backgroundColor: chartColors.inProgress,
+          borderRadius: 999,
+          borderSkipped: false,
+          barThickness: 12,
+          stack: "status",
+        },
+        {
+          label: "Resolved",
+          data: data ? [data.resolved] : [],
+          backgroundColor: chartColors.resolved,
+          borderRadius: 999,
+          borderSkipped: false,
+          barThickness: 12,
+          stack: "status",
+        },
+        {
+          label: "Closed",
+          data: data ? [data.closed] : [],
+          backgroundColor: chartColors.closed,
+          borderRadius: 999,
+          borderSkipped: false,
+          barThickness: 12,
+          stack: "status",
         },
       ],
     }),
@@ -287,79 +319,68 @@ export default function DashboardCharts() {
         </Link>
       </div>
 
-      <Card className="border-border/70 bg-card/95">
-        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
-          <CardTitle className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Filters</CardTitle>
-          <Badge variant="outline">Range: {timeRange}</Badge>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,1fr))_auto_auto]">
-          <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">All Statuses</option>
-            <option value="OPEN">Open</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="RESOLVED">Resolved</option>
-            <option value="CLOSED">Closed</option>
-          </Select>
-          <Select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
-            <option value="">All Priorities</option>
-            <option value="LOW">Low</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">High</option>
-          </Select>
-          <Select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}>
-            <option value="">All Severities</option>
-            <option value="MINOR">Minor</option>
-            <option value="MAJOR">Major</option>
-            <option value="CRITICAL">Critical</option>
-          </Select>
-          <Select value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-            <option value="365d">Last year</option>
-          </Select>
-          <Button
-            variant="ghost"
-            className="justify-center"
-            disabled={!hasActiveFilters}
-            onClick={() => {
-              setStatusFilter("");
-              setPriorityFilter("");
-              setSeverityFilter("");
-            }}>
-            Clear
-          </Button>
-          <Button
-            variant="outline"
-            className="justify-center"
-            onClick={() => {
-              if (!data) return;
-              const byLabel = new Map(data.trend.datasets.map((set) => [set.label, set.data]));
-              const csv = [
-                ["Date", "Open", "In Progress", "Resolved", "Closed"].join(","),
-                ...data.trend.labels.map((label, i) =>
-                  [
-                    label,
-                    byLabel.get("Open")?.[i] ?? 0,
-                    byLabel.get("In Progress")?.[i] ?? 0,
-                    byLabel.get("Resolved")?.[i] ?? 0,
-                    byLabel.get("Closed")?.[i] ?? 0,
-                  ].join(","),
-                ),
-              ].join("\n");
+      <div className="flex items-center justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-9 w-9 rounded-full p-0"
+          aria-label="Toggle dashboard filters"
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen((current) => !current)}>
+          <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+        </Button>
+        <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
+          {timeRange}
+        </Badge>
+      </div>
 
-              const blob = new Blob([csv], { type: "text/csv" });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = "issue-trends.csv";
-              a.click();
-              URL.revokeObjectURL(url);
-            }}>
-            Export CSV
-          </Button>
-        </CardContent>
-      </Card>
+      {filtersOpen && (
+        <Card className="border-border/70 bg-card/95">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
+            <CardTitle className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Filters</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              disabled={!hasActiveFilters}
+              onClick={() => {
+                setStatusFilter("");
+                setPriorityFilter("");
+                setSeverityFilter("");
+              }}>
+              Clear
+            </Button>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-2">
+            <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All Statuses</option>
+              <option value="OPEN">Open</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
+            </Select>
+            <Select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
+              <option value="">All Priorities</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+            </Select>
+            <Select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}>
+              <option value="">All Severities</option>
+              <option value="MINOR">Minor</option>
+              <option value="MAJOR">Major</option>
+              <option value="CRITICAL">Critical</option>
+            </Select>
+            <Select value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+              <option value="365d">Last year</option>
+            </Select>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="border-border/70 bg-card/95">
         <CardHeader className="pb-2">
@@ -456,16 +477,28 @@ export default function DashboardCharts() {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Status Distribution</CardTitle>
         </CardHeader>
-        <CardContent className="h-[220px] p-3">
+        <CardContent className="h-[96px] p-3">
           <Bar
             data={statusData}
             options={{
               responsive: true,
               maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
+              indexAxis: "y",
+              plugins: {
+                legend: {
+                  display: true,
+                  position: "bottom",
+                  labels: {
+                    usePointStyle: true,
+                    boxWidth: 8,
+                    padding: 8,
+                    font: { size: 10, weight: 600 },
+                  },
+                },
+              },
               scales: {
-                y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: chartGridColor } },
-                x: { grid: { display: false } },
+                x: { stacked: true, beginAtZero: true, ticks: { display: false }, grid: { display: false } },
+                y: { stacked: true, ticks: { display: false }, grid: { display: false } },
               },
             }}
           />
@@ -479,19 +512,21 @@ export default function DashboardCharts() {
         <CardContent>
           <ul className="space-y-2">
             {data.recentIssues?.slice(0, 4).map((issue) => (
-              <li key={issue.id} className="rounded-lg border border-border/70 bg-background/70 p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Link href={`/issues/${issue.id}`} className="font-semibold text-primary hover:underline">
-                    {issue.title}
-                  </Link>
-                  <Badge variant="outline">{issue.status}</Badge>
-                </div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {issue.creator?.name || issue.creator?.email || "Unknown reporter"}
-                </div>
-                <div className="mt-2">
-                  <Badge variant="secondary">Priority: {issue.priority}</Badge>
-                </div>
+              <li key={issue.id}>
+                <Link href={`/issues/${issue.id}`} className="block rounded-lg border border-border/70 bg-background/70 p-3 transition hover:border-border hover:bg-background">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-semibold text-primary hover:underline">
+                      {issue.title}
+                    </span>
+                    <Badge variant="outline">{issue.status}</Badge>
+                  </div>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    {issue.creator?.name || issue.creator?.email || "Unknown reporter"}
+                  </div>
+                  <div className="mt-2">
+                    <Badge variant="secondary">Priority: {issue.priority}</Badge>
+                  </div>
+                </Link>
               </li>
             ))}
             {(!data.recentIssues || data.recentIssues.length === 0) && (
