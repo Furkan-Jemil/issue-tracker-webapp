@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -98,12 +99,6 @@ export default function AdminUsersPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const adminCount = users.filter((user) => user.role === "ADMIN").length;
   const testerCount = users.filter((user) => user.role === "TESTER").length;
-
-  function roleVariant(role: string) {
-    if (role === "ADMIN") return "destructive" as const;
-    if (role === "TESTER") return "secondary" as const;
-    return "outline" as const;
-  }
 
   return (
     <div className="page-stack">
@@ -244,46 +239,22 @@ export default function AdminUsersPage() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-col gap-2">
-                      <Badge variant={roleVariant(user.role)}>{user.role}</Badge>
-                      <div className="flex flex-wrap gap-1.5">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={user.role === "USER" ? "default" : "outline"}
-                          className="h-7 rounded-full px-2.5 text-[10px] uppercase tracking-[0.12em]"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            void updateSingleRole(user.id, "USER");
-                          }}
-                        >
-                          User
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={user.role === "TESTER" ? "default" : "outline"}
-                          className="h-7 rounded-full px-2.5 text-[10px] uppercase tracking-[0.12em]"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            void updateSingleRole(user.id, "TESTER");
-                          }}
-                        >
-                          Tester
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={user.role === "ADMIN" ? "default" : "outline"}
-                          className="h-7 rounded-full px-2.5 text-[10px] uppercase tracking-[0.12em]"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            void updateSingleRole(user.id, "ADMIN");
-                          }}
-                        >
-                          Admin
-                        </Button>
-                      </div>
+                    <div className="relative inline-flex w-32 items-center">
+                      <Select
+                        aria-label={`Change role for ${user.email}`}
+                        value={user.role}
+                        onClick={(event) => event.stopPropagation()}
+                        onChange={(event) => {
+                          event.stopPropagation();
+                          void updateSingleRole(user.id, event.target.value);
+                        }}
+                        className="h-8 rounded-full border-border/70 bg-background/80 pl-3 pr-8 text-[11px] font-semibold uppercase tracking-[0.12em]"
+                      >
+                        <option value="USER">User</option>
+                        <option value="TESTER">Tester</option>
+                        <option value="ADMIN">Admin</option>
+                      </Select>
+                      <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
                     </div>
                   </TableCell>
                   <TableCell>{new Date(user.createdAt).toLocaleString()}</TableCell>
