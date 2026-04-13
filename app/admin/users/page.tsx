@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,8 +34,8 @@ export default function AdminUsersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [bulkRole, setBulkRole] = useState("");
+  const [updatingRoleUserId, setUpdatingRoleUserId] = useState<string | null>(null);
+  const [roleNotice, setRoleNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const pageSize = 20;
 
@@ -68,31 +67,51 @@ export default function AdminUsersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, roleFilter, page]);
 
-  function toggleSelect(id: string) {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id],
-    );
-  }
-
-  async function handleBulkRole() {
-    if (!bulkRole || selected.length === 0) return;
-    await fetch("/api/admin/users/bulk-role", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: selected, role: bulkRole }),
-    });
-    setSelected([]);
-    setBulkRole("");
-    void loadUsers();
-  }
+  useEffect(() => {
+    if (!roleNotice) return;
+    const timer = window.setTimeout(() => setRoleNotice(null), 2200);
+    return () => window.clearTimeout(timer);
+  }, [roleNotice]);
 
   async function updateSingleRole(userId: string, role: string) {
-    await fetch("/api/admin/users/bulk-role", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: [userId], role }),
-    });
-    void loadUsers();
+    const previousRole = users.find((user) => user.id === userId)?.role;
+    if (!previousRole || previousRole === role) return;
+
+    setUpdatingRoleUserId(userId);
+    setUsers((current) =>
+      current.map((user) => (user.id === userId ? { ...user, role } : user)),
+    );
+
+    try {
+      const res = await fetch("/api/admin/users/bulk-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [userId], role }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Failed to update role");
+      }
+
+      setRoleNotice({
+        type: "success",
+        text: `Role updated for ${users.find((user) => user.id === userId)?.email || "user"}.`,
+      });
+    } catch (error) {
+      setUsers((current) =>
+        current.map((user) =>
+          user.id === userId ? { ...user, role: previousRole } : user,
+        ),
+      );
+      setRoleNotice({
+        type: "error",
+        text: error instanceof Error ? error.message : "Failed to update role",
+      });
+    } finally {
+      setUpdatingRoleUserId(null);
+      void loadUsers();
+    }
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -163,17 +182,6 @@ export default function AdminUsersPage() {
             </Select>
             <Button
               type="button"
-              onClick={() => {
-                const nextSearch = search.trim();
-                setDebouncedSearch(nextSearch);
-                setPage(1);
-                void loadUsers(1, nextSearch, roleFilter);
-              }}
-            >
-              Apply filters
-            </Button>
-            <Button
-              type="button"
               variant="outline"
               onClick={() => {
                 setSearch("");
@@ -187,37 +195,24 @@ export default function AdminUsersPage() {
             </Button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-border/70 bg-background/70 p-2">
-            <Select
-              aria-label="Select role for bulk update"
-              value={bulkRole}
-              onChange={(event) => setBulkRole(event.target.value)}
-              className="max-w-52"
+          {roleNotice && (
+            <div
+              className={`rounded-lg border px-3 py-2 text-sm ${
+                roleNotice.type === "success"
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                  : "border-red-500/40 bg-red-500/10 text-red-300"
+              }`}
+              role="status"
+              aria-live="polite"
             >
-              <option value="">Set role...</option>
-              <option value="USER">User</option>
-              <option value="TESTER">Tester</option>
-              <option value="ADMIN">Admin</option>
-            </Select>
-            <Button onClick={handleBulkRole} disabled={!bulkRole || selected.length === 0}>
-              Apply role
-            </Button>
-            <Badge variant="secondary">{selected.length} selected</Badge>
-          </div>
+              {roleNotice.text}
+            </div>
+          )}
 
           <Table className="rounded-xl border border-border/70 bg-card/40">
-            <caption className="sr-only">Admin users table with bulk selection</caption>
+            <caption className="sr-only">Admin users table</caption>
             <TableHeader>
               <TableRow>
-                <TableHead>
-                  <input
-                    aria-label="Select all users on page"
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    checked={selected.length === users.length && users.length > 0}
-                    onChange={(event) => setSelected(event.target.checked ? users.map((user) => user.id) : [])}
-                  />
-                </TableHead>
                 <TableHead scope="col">Name</TableHead>
                 <TableHead scope="col">Email</TableHead>
                 <TableHead scope="col">Role</TableHead>
@@ -240,16 +235,6 @@ export default function AdminUsersPage() {
                   }}
                 >
                   <TableCell>
-                    <input
-                      aria-label={`Select user ${user.email}`}
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      checked={selected.includes(user.id)}
-                      onClick={(event) => event.stopPropagation()}
-                      onChange={() => toggleSelect(user.id)}
-                    />
-                  </TableCell>
-                  <TableCell>
                     <Link href={`/admin/users/${user.id}`} className="font-medium text-primary hover:underline">
                       {user.name || "Unnamed user"}
                     </Link>
@@ -263,6 +248,9 @@ export default function AdminUsersPage() {
                     <Select
                       aria-label={`Change role for ${user.email}`}
                       value={user.role}
+                      disabled={updatingRoleUserId === user.id}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onMouseDown={(event) => event.stopPropagation()}
                       onClick={(event) => event.stopPropagation()}
                       onChange={(event) => {
                         event.stopPropagation();
@@ -289,7 +277,7 @@ export default function AdminUsersPage() {
               ))}
               {users.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
                     No users found for this search.
                   </TableCell>
                 </TableRow>
