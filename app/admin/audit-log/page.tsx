@@ -1,8 +1,11 @@
 import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/PageHeader";
+import ExportDataButton from "../settings/ExportDataButton";
 import {
   Table,
   TableBody,
@@ -19,12 +22,12 @@ type AuditLogEntry = {
   eventType: string;
   description: string;
   actor: { name: string; email: string } | null;
-  issue: { title: string } | null;
+  issue: { id: string; title: string } | null;
 };
 
 const auditLogInclude = {
   actor: { select: { name: true, email: true } },
-  issue: { select: { title: true } },
+  issue: { select: { id: true, title: true } },
 };
 
 function formatDate(d: Date | string): string {
@@ -61,25 +64,55 @@ export default async function AdminAuditLogPage() {
         description="Review system changes, comments, and status updates."
       />
       <div className="grid gap-3 sm:grid-cols-3">
-        <Card>
+        <Link href="/issues" className="block">
+          <Card className="transition hover:-translate-y-0.5 hover:shadow-md">
           <CardContent className="p-4">
             <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Created</p>
             <p className="mt-1 text-2xl font-semibold">{createdCount}</p>
           </CardContent>
-        </Card>
-        <Card>
+          </Card>
+        </Link>
+        <Link href="/issues?view=details" className="block">
+          <Card className="transition hover:-translate-y-0.5 hover:shadow-md">
           <CardContent className="p-4">
             <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Status changes</p>
             <p className="mt-1 text-2xl font-semibold">{statusCount}</p>
           </CardContent>
-        </Card>
-        <Card>
+          </Card>
+        </Link>
+        <Link href="/issues?view=details&status=OPEN" className="block">
+          <Card className="transition hover:-translate-y-0.5 hover:shadow-md">
           <CardContent className="p-4">
             <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Comments</p>
             <p className="mt-1 text-2xl font-semibold">{commentedCount}</p>
           </CardContent>
-        </Card>
+          </Card>
+        </Link>
       </div>
+
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border/60 bg-muted/20">
+          <CardTitle className="text-xl">Activity Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 lg:grid-cols-2">
+          <div className="space-y-2 rounded-xl border border-border/70 bg-background/70 p-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Export Data</h3>
+            <p className="text-sm text-muted-foreground">
+              Download a full JSON export of all issues, comments, history, and notifications.
+            </p>
+            <ExportDataButton />
+          </div>
+          <div className="space-y-2 rounded-xl border border-border/70 bg-background/70 p-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">System Records</h3>
+            <p className="text-sm text-muted-foreground">
+              The audit log is the primary record for system changes, comments, and user actions.
+            </p>
+            <Button asChild variant="outline" size="sm" className="w-fit">
+              <Link href="/issues">Go to issues</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="overflow-hidden">
         <CardHeader className="border-b border-border/60 bg-muted/20">
@@ -99,7 +132,7 @@ export default async function AdminAuditLogPage() {
             </TableHeader>
             <TableBody>
               {logs.map((log) => (
-                <TableRow key={log.id}>
+                <TableRow key={log.id} className="transition hover:bg-muted/30">
                   <TableCell>
                     {formatDate(log.createdAt)}
                   </TableCell>
@@ -112,7 +145,11 @@ export default async function AdminAuditLogPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>{log.description}</TableCell>
-                  <TableCell>{log.issue?.title}</TableCell>
+                  <TableCell>
+                    <Link className="text-primary hover:underline" href={log.issue ? `/issues/${log.issue.id}` : "/issues"}>
+                      {log.issue?.title || "View issue"}
+                    </Link>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
