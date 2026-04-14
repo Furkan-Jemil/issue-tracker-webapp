@@ -45,10 +45,14 @@ export function PageHeader({
         </nav>
       ) : null}
 
-      <div className="flex flex-col gap-2.5 rounded-2xl border border-border/60 bg-card/70 px-3 py-2.5 shadow-sm shadow-black/5 md:flex-row md:items-center md:justify-between md:px-4 md:py-3">
+      <div className="premium-panel relative isolate flex flex-col gap-2.5 overflow-hidden rounded-2xl px-3 py-2.5 md:flex-row md:items-center md:justify-between md:px-4 md:py-3">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-16 top-0 h-24 w-40 rounded-full bg-primary/15 blur-2xl"
+        />
         <div className="flex min-w-0 items-start gap-3">
           {Icon ? (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground shadow-sm">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-gradient-to-br from-background to-muted/35 text-muted-foreground shadow-sm">
               <Icon className={ICON_STYLE.header} strokeWidth={ICON_STROKE.header} aria-hidden={true} />
             </div>
           ) : null}

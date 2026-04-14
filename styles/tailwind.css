@@ -193,9 +193,20 @@
   .page-enter {
     animation: fadeIn 0.2s ease-out;
   }
+  .premium-panel {
+    @apply border border-border/70 bg-card/85 backdrop-blur-md;
+    box-shadow:
+      0 14px 36px rgba(2, 8, 23, 0.07),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
 }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes softFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-2px); }
 }
