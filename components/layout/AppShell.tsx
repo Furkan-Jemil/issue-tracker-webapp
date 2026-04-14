@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import {
   FileClock,
   LayoutDashboard,
-  LogOut,
   Moon,
   Shield,
   SunMedium,
@@ -16,9 +15,6 @@ import {
   ListChecks,
 } from "lucide-react";
 
-import NotificationBell from "@/components/notifications/NotificationBell";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type NavIcon = "dashboard" | "issues" | "admin" | "audit";
@@ -52,23 +48,13 @@ function isActive(pathname: string, href: string) {
 export function AppShell({
   children,
   navItems,
-  profileName,
-  profileInitials,
-  profileEmail,
-  role,
 }: {
   children: React.ReactNode;
   navItems: AppNavItem[];
-  profileName: string;
-  profileInitials: string;
-  profileEmail: string;
-  role?: string;
 }) {
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const themeTransitionTimeoutRef = useRef<number | null>(null);
 
   function applyTheme(nextTheme: "light" | "dark", animated: boolean) {
@@ -121,28 +107,6 @@ export function AppShell({
   }, []);
 
   useEffect(() => {
-    function onPointerDown(event: PointerEvent) {
-      if (!profileMenuOpen) return;
-      const target = event.target as Node | null;
-      if (target && profileMenuRef.current && !profileMenuRef.current.contains(target)) {
-        setProfileMenuOpen(false);
-      }
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setProfileMenuOpen(false);
-      }
-    }
-
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [profileMenuOpen]);
-
   function toggleTheme() {
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
@@ -226,9 +190,10 @@ export function AppShell({
       </aside>
 
       <div className={cn("min-h-screen transition-[padding-left] duration-200 ease-out", contentOffsetClass)}>
-        <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-md">
-          <div className="page-shell flex min-h-12 items-center justify-end gap-3 px-2.5 py-1.5 md:px-3 lg:px-4">
-            <div className="flex items-center gap-2 md:gap-3">
+        <header className="sticky top-0 z-30 bg-transparent pt-2">
+          <div className="page-shell flex min-h-12 items-start justify-end px-2.5 py-1.5 md:px-3 lg:px-4">
+            <div className="relative">
+              <div className="flex items-center rounded-l-full rounded-r-2xl border border-border/70 bg-background/90 px-1.5 py-1 shadow-sm backdrop-blur-md">
               <button
                 type="button"
                 aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
@@ -241,48 +206,11 @@ export function AppShell({
                   <Moon className="h-4 w-4" aria-hidden="true" />
                 )}
               </button>
-              <NotificationBell className="h-10 w-10 shrink-0" />
-              <div ref={profileMenuRef} className="relative">
-                <button
-                  type="button"
-                  aria-label={`Profile menu for ${profileName}`}
-                  aria-expanded={profileMenuOpen}
-                  onClick={() => setProfileMenuOpen((current) => !current)}
-                  className="flex h-9 items-center gap-2 rounded-full border border-border/70 bg-card/80 px-2.5 text-left transition-colors hover:bg-accent"
-                >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
-                    {profileInitials}
-                  </span>
-                  <span className="hidden max-w-[120px] truncate text-xs font-medium text-foreground sm:block">
-                    {profileName}
-                  </span>
-                </button>
-
-                {profileMenuOpen && (
-                  <div className="absolute right-0 top-11 z-50 w-64 rounded-xl border border-border/70 bg-card p-2 shadow-lg shadow-black/10">
-                    <div className="space-y-1 rounded-lg border border-border/60 bg-muted/20 p-3">
-                      <p className="truncate text-sm font-medium text-foreground">{profileName}</p>
-                      <p className="truncate text-xs text-muted-foreground">{profileEmail}</p>
-                      {role && (
-                        <Badge
-                          variant="outline"
-                          className="mt-1 rounded-full px-2 py-0 text-[10px] font-semibold uppercase tracking-wide"
-                        >
-                          {role}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="mt-2 grid gap-1">
-                      <Button asChild variant="ghost" size="sm" className="justify-start">
-                        <Link href="/logout">
-                          <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
-                          Logout
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </div>
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-2 top-1/2 h-5 w-5 -translate-y-1/2 rounded-br-2xl border-b border-r border-border/70"
+              />
             </div>
           </div>
         </header>
