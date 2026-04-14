@@ -53,7 +53,7 @@ export function IssueActions({
             type="button"
             variant={open ? "secondary" : "outline"}
             onClick={() => setOpen((v) => !v)}>
-            {open ? "Close editor" : "Edit issue"}
+            {open ? "Close editor" : "Update issue"}
           </Button>
         ) : null}
         {canDelete ? (
@@ -81,7 +81,7 @@ export function IssueActions({
       {canEdit && open ? (
         <Card className="overflow-hidden">
           <CardHeader className="border-b border-border/60 bg-muted/20">
-            <CardTitle className="text-lg">Edit issue</CardTitle>
+            <CardTitle className="text-lg">Update issue</CardTitle>
           </CardHeader>
           <CardContent>
             <form
@@ -183,7 +183,7 @@ export function IssueActions({
                     <Input
                       id="edit-sourceNotes"
                       name="sourceNotes"
-                      placeholder="Where was the issue logged"
+                      placeholder="Add extra context for reviewers"
                       defaultValue={initial.sourceNotes ?? ""}
                     />
                   </div>

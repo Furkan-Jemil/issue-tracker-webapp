@@ -103,6 +103,22 @@ export default async function IssueDetailPage({
         }
       />
 
+      <Card tone="soft" density="dense" className="sticky top-[4.25rem] z-20 border-border/70 bg-background/95 backdrop-blur">
+        <CardContent className="flex flex-wrap items-center justify-between gap-2 p-3">
+          <p className="text-sm text-muted-foreground">
+            Keep this issue moving: update status, assign owner, then add context in comments.
+          </p>
+          <div className="flex items-center gap-2">
+            <Badge variant={statusVariant(issue.status)} className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.16em]">
+              {issue.status}
+            </Badge>
+            <Button asChild variant="outline" size="sm">
+              <Link href="#comments-heading">Jump to comments</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
         {[
           {
@@ -155,12 +171,12 @@ export default async function IssueDetailPage({
         <CardContent className="grid gap-4 p-4 md:p-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:gap-5">
           <section className="space-y-4">
             <div>
-              <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Description</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Issue summary</h2>
               <p className="mt-2 text-sm leading-6 text-foreground/95">{issue.description}</p>
             </div>
             {issue.url && (
               <p className="text-sm">
-                <span className="font-semibold">URL:</span>{" "}
+                <span className="font-semibold">Page or feature:</span>{" "}
                 <a href={issue.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   {issue.url}
                 </a>
@@ -168,14 +184,14 @@ export default async function IssueDetailPage({
             )}
             {issue.sourceNotes && (
               <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">Source notes:</span>{" "}
+                <span className="font-semibold text-foreground">Context note:</span>{" "}
                 {issue.sourceNotes}
               </p>
             )}
           </section>
 
           <aside className="rounded-xl border border-border/70 bg-muted/20 p-3 md:p-4">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Properties</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Issue details</h2>
             <dl className="mt-3 space-y-2 text-sm">
               <div className="flex items-start justify-between gap-3">
                 <dt className="text-muted-foreground">Type</dt>

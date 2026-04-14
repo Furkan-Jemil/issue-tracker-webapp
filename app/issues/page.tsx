@@ -256,7 +256,7 @@ export default async function IssuesListPage({
     <div className="page-stack">
       <PageHeader
         title="Issues"
-        description="Browse, search, and manage reported issues."
+        description="Track, prioritize, and move issues through the workflow."
         icon={ClipboardList}
         actions={
           <>
@@ -296,11 +296,16 @@ export default async function IssuesListPage({
               onResetHref={buildClearFiltersHref()}
             />
             <Button asChild>
-              <Link href="/issues/new">Report Issue</Link>
+              <Link href="/issues/new">Create Issue</Link>
             </Button>
           </>
         }
       />
+      <Card tone="soft" density="dense" className="border-border/70 bg-card/75">
+        <CardContent className="p-3 text-sm text-muted-foreground md:p-4">
+          Use Compact for fast scanning, Detailed for ownership context, and Board for triage by status.
+        </CardContent>
+      </Card>
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
         {[
           { label: "Filtered", value: total, href: buildClearFiltersHref() },
@@ -337,7 +342,7 @@ export default async function IssuesListPage({
           {isBoard ? (
             <div className="space-y-3">
               <div className="rounded-xl border border-border/70 bg-background/70 px-3 py-2 text-sm text-muted-foreground">
-                Board view groups the current page by status so triage feels more like a real workflow tool.
+                Board view groups the current filtered page by status so handoff and triage stay simple.
               </div>
               <div className="grid gap-3 xl:grid-cols-4">
                 {boardColumns.map((column) => (
@@ -376,7 +381,7 @@ export default async function IssuesListPage({
                         ))
                       ) : (
                         <div className="rounded-xl border border-dashed border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
-                          No issues in this status on the current page.
+                          No issues in this lane for the current filters.
                         </div>
                       )}
                     </div>
