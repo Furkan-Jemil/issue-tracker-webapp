@@ -106,7 +106,6 @@ export function AppShell({
     };
   }, []);
 
-  useEffect(() => {
   function toggleTheme() {
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
