@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Bell, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +26,7 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   async function loadNotifications() {
     try {
@@ -60,6 +61,9 @@ export default function NotificationsPage() {
   }
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const view = searchParams.get("view") === "unread" ? "unread" : "all";
+  const visibleNotifications =
+    view === "unread" ? notifications.filter((n) => !n.isRead) : notifications;
 
   return (
     <div className="page-stack">
@@ -74,28 +78,34 @@ export default function NotificationsPage() {
         </Button>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Card className="border-border/70 bg-card/95 shadow-sm">
-          <CardContent className="flex items-center justify-between gap-3 p-3.5">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Unread</p>
-              <p className="mt-1 text-2xl font-semibold">{unreadCount}</p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 bg-background text-muted-foreground">
-              <Bell className="h-5 w-5" aria-hidden="true" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-border/70 bg-card/95 shadow-sm">
-          <CardContent className="flex items-center justify-between gap-3 p-3.5">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Total shown</p>
-              <p className="mt-1 text-2xl font-semibold">{notifications.length}</p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 bg-background text-muted-foreground">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em]">All</span>
-            </div>
-          </CardContent>
-        </Card>
+        <Link href="/notifications?view=unread" className="block">
+          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+            <CardContent className="flex items-center justify-between gap-3 p-3.5">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Unread</p>
+                <p className="mt-1 text-2xl font-semibold">{unreadCount}</p>
+                <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 group-hover:text-foreground">View unread</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+                <Bell className="h-5 w-5" aria-hidden="true" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/notifications?view=all" className="block">
+          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+            <CardContent className="flex items-center justify-between gap-3 p-3.5">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Total shown</p>
+                <p className="mt-1 text-2xl font-semibold">{notifications.length}</p>
+                <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 group-hover:text-foreground">View all</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+                <ArrowUpRight className="h-4.5 w-4.5" aria-hidden="true" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
       {error && (
         <div
@@ -110,13 +120,13 @@ export default function NotificationsPage() {
             Loading notifications...
           </CardContent>
         </Card>
-      ) : notifications.length === 0 ? (
+      ) : visibleNotifications.length === 0 ? (
         <Card>
-          <CardContent className="p-5">No new notifications.</CardContent>
+          <CardContent className="p-5">No notifications for this view.</CardContent>
         </Card>
       ) : (
         <ul aria-live="polite" aria-busy={loading} className="space-y-2">
-          {notifications.map((n) => (
+          {visibleNotifications.map((n) => (
             <li key={n.id}>
               <Link
                 href={n.issue ? `/issues/${n.issue.id}` : "#"}

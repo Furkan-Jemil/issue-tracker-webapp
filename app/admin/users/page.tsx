@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { UsersRound } from "lucide-react";
+import { UsersRound, UserCog, UserCheck, ArrowUpRight } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -124,29 +124,80 @@ export default function AdminUsersPage() {
       <PageHeader title="Users" description="Manage user accounts, roles, and permissions." icon={UsersRound} />
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-3.5">
-            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Visible users</p>
-            <p className="mt-1 text-2xl font-semibold">{users.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3.5">
-            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Admins on page</p>
-            <p className="mt-1 text-2xl font-semibold">{adminCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3.5">
-            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Testers on page</p>
-            <p className="mt-1 text-2xl font-semibold">{testerCount}</p>
-          </CardContent>
-        </Card>
+        <button
+          type="button"
+          onClick={() => {
+            setRoleFilter("");
+            setPage(1);
+          }}
+          className="text-left"
+        >
+          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+            <CardContent className="flex items-center justify-between gap-3 p-3.5">
+              <div>
+                <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Visible users</p>
+                <p className="mt-1 text-2xl font-semibold">{users.length}</p>
+                <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 group-hover:text-foreground">Show all</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+                <UsersRound className="h-5 w-5" aria-hidden="true" />
+              </div>
+            </CardContent>
+          </Card>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setRoleFilter("ADMIN");
+            setPage(1);
+          }}
+          className="text-left"
+        >
+          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+            <CardContent className="flex items-center justify-between gap-3 p-3.5">
+              <div>
+                <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Admins on page</p>
+                <p className="mt-1 text-2xl font-semibold">{adminCount}</p>
+                <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 group-hover:text-foreground">Filter admins</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+                <UserCog className="h-5 w-5" aria-hidden="true" />
+              </div>
+            </CardContent>
+          </Card>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setRoleFilter("TESTER");
+            setPage(1);
+          }}
+          className="text-left"
+        >
+          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+            <CardContent className="flex items-center justify-between gap-3 p-3.5">
+              <div>
+                <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Testers on page</p>
+                <p className="mt-1 text-2xl font-semibold">{testerCount}</p>
+                <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 group-hover:text-foreground">Filter testers</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+                <UserCheck className="h-5 w-5" aria-hidden="true" />
+              </div>
+            </CardContent>
+          </Card>
+        </button>
       </div>
 
       <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border/60 bg-muted/20">
-          <CardTitle className="text-xl">User Management</CardTitle>
+        <CardHeader className="border-b border-border/60 bg-muted/20 py-3">
+          <CardTitle className="flex items-center justify-between text-lg">
+            <span>User Management</span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Select row
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap gap-2.5">

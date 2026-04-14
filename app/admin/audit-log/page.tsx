@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import Link from "next/link";
-import { History } from "lucide-react";
+import { History, FilePlus2, RefreshCcw, MessageSquareText, ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,26 +67,44 @@ export default async function AdminAuditLogPage() {
       />
       <div className="grid gap-3 sm:grid-cols-3">
         <Link href="/issues" className="block">
-          <Card className="transition hover:-translate-y-0.5 hover:shadow-md">
-          <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Created</p>
-            <p className="mt-1 text-2xl font-semibold">{createdCount}</p>
+          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+          <CardContent className="flex items-center justify-between gap-3 p-3.5">
+            <div>
+              <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Created</p>
+              <p className="mt-1 text-2xl font-semibold">{createdCount}</p>
+              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 group-hover:text-foreground">View issues</p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+              <FilePlus2 className="h-5 w-5" aria-hidden="true" />
+            </div>
           </CardContent>
           </Card>
         </Link>
         <Link href="/issues?view=details" className="block">
-          <Card className="transition hover:-translate-y-0.5 hover:shadow-md">
-          <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Status changes</p>
-            <p className="mt-1 text-2xl font-semibold">{statusCount}</p>
+          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+          <CardContent className="flex items-center justify-between gap-3 p-3.5">
+            <div>
+              <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Status changes</p>
+              <p className="mt-1 text-2xl font-semibold">{statusCount}</p>
+              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 group-hover:text-foreground">Open details</p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+              <RefreshCcw className="h-5 w-5" aria-hidden="true" />
+            </div>
           </CardContent>
           </Card>
         </Link>
         <Link href="/issues?view=details&status=OPEN" className="block">
-          <Card className="transition hover:-translate-y-0.5 hover:shadow-md">
-          <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Comments</p>
-            <p className="mt-1 text-2xl font-semibold">{commentedCount}</p>
+          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+          <CardContent className="flex items-center justify-between gap-3 p-3.5">
+            <div>
+              <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Comments</p>
+              <p className="mt-1 text-2xl font-semibold">{commentedCount}</p>
+              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 group-hover:text-foreground">Open comment flow</p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+              <MessageSquareText className="h-5 w-5" aria-hidden="true" />
+            </div>
           </CardContent>
           </Card>
         </Link>
@@ -117,8 +135,14 @@ export default async function AdminAuditLogPage() {
       </Card>
 
       <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border/60 bg-muted/20">
-          <CardTitle className="text-xl">Audit Log</CardTitle>
+        <CardHeader className="border-b border-border/60 bg-muted/20 py-3">
+          <CardTitle className="flex items-center justify-between text-xl">
+            <span>Audit Log</span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Open issue
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Table className="rounded-xl border border-border/70 bg-card/40">
