@@ -30,6 +30,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await getAppSession();
+  const profileName = session?.user?.name?.trim() || "Signed-in User";
+  const profileEmail = session?.user?.email?.trim() || "No email";
   const navItems = buildNavItems(session?.user?.role);
 
   return (
@@ -40,7 +42,7 @@ export default async function RootLayout({
           className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-card focus:px-3 focus:py-2 focus:text-sm focus:shadow-lg focus:ring-2 focus:ring-ring">
           Skip to main content
         </a>
-        <AppShell navItems={navItems}>
+        <AppShell navItems={navItems} profileName={profileName} profileEmail={profileEmail}>
           {children}
         </AppShell>
       </body>

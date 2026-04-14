@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   FileClock,
   LayoutDashboard,
+  LogOut,
   Moon,
   Shield,
   SunMedium,
@@ -48,13 +49,19 @@ function isActive(pathname: string, href: string) {
 export function AppShell({
   children,
   navItems,
+  profileName,
+  profileEmail,
 }: {
   children: React.ReactNode;
   navItems: AppNavItem[];
+  profileName: string;
+  profileEmail: string;
 }) {
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const themeTransitionTimeoutRef = useRef<number | null>(null);
 
   function applyTheme(nextTheme: "light" | "dark", animated: boolean) {
@@ -105,6 +112,29 @@ export function AppShell({
       document.documentElement.classList.remove("theme-transition");
     };
   }, []);
+
+  useEffect(() => {
+    function onPointerDown(event: PointerEvent) {
+      if (!profileMenuOpen) return;
+      const target = event.target as Node | null;
+      if (target && profileMenuRef.current && !profileMenuRef.current.contains(target)) {
+        setProfileMenuOpen(false);
+      }
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setProfileMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [profileMenuOpen]);
 
   function toggleTheme() {
     const nextTheme = theme === "dark" ? "light" : "dark";
@@ -191,21 +221,47 @@ export function AppShell({
       <div className={cn("min-h-screen transition-[padding-left] duration-200 ease-out", contentOffsetClass)}>
         <header className="sticky top-0 z-30 bg-transparent pt-2">
           <div className="page-shell flex min-h-12 items-start justify-end px-2.5 py-1.5 md:px-3 lg:px-4">
-            <div className="relative">
-              <div className="flex items-center rounded-l-full rounded-r-2xl border border-border/70 bg-background/90 px-1.5 py-1 shadow-sm backdrop-blur-md">
-              <button
-                type="button"
-                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-                onClick={toggleTheme}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-card/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                {theme === "dark" ? (
-                  <SunMedium className="h-4 w-4" aria-hidden="true" />
-                ) : (
-                  <Moon className="h-4 w-4" aria-hidden="true" />
-                )}
-              </button>
+            <div ref={profileMenuRef} className="relative">
+              <div className="flex items-center gap-2 rounded-l-full rounded-r-2xl border border-border/70 bg-background/90 px-1.5 py-1 shadow-sm backdrop-blur-md">
+                <button
+                  type="button"
+                  aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                  onClick={toggleTheme}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-card/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  {theme === "dark" ? (
+                    <SunMedium className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <Moon className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Profile menu for ${profileName}`}
+                  aria-expanded={profileMenuOpen}
+                  onClick={() => setProfileMenuOpen((current) => !current)}
+                  className="inline-flex h-9 items-center rounded-full border border-border/70 bg-card/80 px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  <span className="max-w-[120px] truncate">{profileName}</span>
+                </button>
               </div>
+
+              {profileMenuOpen && (
+                <div className="absolute right-0 top-12 z-50 w-64 rounded-xl border border-border/70 bg-card p-2 shadow-lg shadow-black/10">
+                  <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+                    <p className="truncate text-xs text-muted-foreground">{profileEmail}</p>
+                  </div>
+                  <div className="mt-2">
+                    <Link
+                      href="/logout"
+                      className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <LogOut className="h-4 w-4" aria-hidden="true" />
+                      Logout
+                    </Link>
+                  </div>
+                </div>
+              )}
               <span
                 aria-hidden="true"
                 className="pointer-events-none absolute -right-2 top-1/2 h-5 w-5 -translate-y-1/2 rounded-br-2xl border-b border-r border-border/70"
