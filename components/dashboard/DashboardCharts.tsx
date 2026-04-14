@@ -15,6 +15,7 @@ import {
   Legend,
 } from "chart.js";
 import { SlidersHorizontal } from "lucide-react";
+import { Ticket, CircleDot, LoaderCircle, BadgeCheck, CheckCircle2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -333,47 +334,28 @@ type DashboardData = {
 
     return (
       <div className="space-y-5">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
-          <Link href="/issues">
-            <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="p-3">
-                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Total issues</p>
-                <p className="text-lg font-semibold leading-tight text-foreground">{data.totalIssues}</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/issues/filter?status=OPEN">
-            <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="p-3">
-                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Open</p>
-                <p className="text-lg font-semibold leading-tight text-[hsl(var(--chart-1))]">{data.open}</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/issues/filter?status=IN_PROGRESS">
-            <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="p-3">
-                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">In progress</p>
-                <p className="text-lg font-semibold leading-tight text-[hsl(var(--chart-2))]">{data.inProgress}</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/issues/filter?status=RESOLVED">
-            <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="p-3">
-                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Resolved</p>
-                <p className="text-lg font-semibold leading-tight text-[hsl(var(--chart-3))]">{data.resolved}</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/issues/filter?status=CLOSED">
-            <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="p-3">
-                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Closed</p>
-                <p className="text-lg font-semibold leading-tight text-[hsl(var(--chart-5))]">{data.closed}</p>
-              </CardContent>
-            </Card>
-          </Link>
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+            {[
+              { href: "/issues", label: "Total issues", value: data.totalIssues, icon: Ticket, tone: "text-primary" },
+              { href: "/issues/filter?status=OPEN", label: "Open", value: data.open, icon: CircleDot, tone: "text-[hsl(var(--chart-1))]" },
+              { href: "/issues/filter?status=IN_PROGRESS", label: "In progress", value: data.inProgress, icon: LoaderCircle, tone: "text-[hsl(var(--chart-2))]" },
+              { href: "/issues/filter?status=RESOLVED", label: "Resolved", value: data.resolved, icon: BadgeCheck, tone: "text-[hsl(var(--chart-3))]" },
+              { href: "/issues/filter?status=CLOSED", label: "Closed", value: data.closed, icon: CheckCircle2, tone: "text-[hsl(var(--chart-5))]" },
+            ].map(({ href, label, value, icon: Icon, tone }) => (
+              <Link key={label} href={href}>
+                <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
+                  <CardContent className="flex items-center justify-between gap-3 p-3.5">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
+                      <p className={`text-lg font-semibold leading-tight ${tone}`}>{value}</p>
+                    </div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 bg-background text-muted-foreground">
+                      <Icon className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
         </div>
 
         <div className="flex items-center justify-end gap-2">

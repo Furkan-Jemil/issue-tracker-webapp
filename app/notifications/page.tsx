@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,6 +66,7 @@ export default function NotificationsPage() {
       <PageHeader
         title="Notifications"
         description="Stay on top of issue updates and assignments."
+        icon={Bell}
       />
       <div className="flex flex-wrap items-center justify-end gap-2">
         <Button type="button" onClick={markAllAsRead}>
@@ -72,16 +74,26 @@ export default function NotificationsPage() {
         </Button>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Unread</p>
-            <p className="mt-1 text-2xl font-semibold">{unreadCount}</p>
+        <Card className="border-border/70 bg-card/95 shadow-sm">
+          <CardContent className="flex items-center justify-between gap-3 p-3.5">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Unread</p>
+              <p className="mt-1 text-2xl font-semibold">{unreadCount}</p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 bg-background text-muted-foreground">
+              <Bell className="h-5 w-5" aria-hidden="true" />
+            </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Total shown</p>
-            <p className="mt-1 text-2xl font-semibold">{notifications.length}</p>
+        <Card className="border-border/70 bg-card/95 shadow-sm">
+          <CardContent className="flex items-center justify-between gap-3 p-3.5">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Total shown</p>
+              <p className="mt-1 text-2xl font-semibold">{notifications.length}</p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 bg-background text-muted-foreground">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em]">All</span>
+            </div>
           </CardContent>
         </Card>
       </div>

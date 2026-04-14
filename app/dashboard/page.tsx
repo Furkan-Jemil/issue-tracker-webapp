@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LayoutDashboard } from "lucide-react";
 import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import { getAppSession } from "@/lib/auth/session";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ export default async function DashboardPage() {
       <PageHeader
         title="Dashboard"
         description="Track issue activity, status, and trends."
+        icon={LayoutDashboard}
         actions={
           <Button asChild variant="outline" size="sm" className="shrink-0">
             <Link href="/issues">View all issues</Link>
