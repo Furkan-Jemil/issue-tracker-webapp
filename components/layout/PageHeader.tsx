@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 
+import { Card, CardContent } from "@/components/ui/card";
 import { ICON_STROKE, ICON_STYLE } from "@/lib/uiTokens";
 import { cn } from "@/lib/utils";
 
@@ -55,34 +56,36 @@ export function PageHeader({
         </nav>
       ) : null}
 
-      <div className="premium-panel relative isolate flex flex-col gap-2.5 overflow-hidden rounded-2xl px-3 py-2.5 md:flex-row md:items-center md:justify-between md:px-4 md:py-3">
+      <Card className="premium-panel relative isolate flex flex-col gap-2.5 overflow-hidden rounded-2xl px-3 py-2.5 md:flex-row md:items-center md:justify-between md:px-4 md:py-3">
         <span
           aria-hidden="true"
           className="pointer-events-none absolute -left-16 top-0 h-24 w-40 rounded-full bg-primary/15 blur-2xl"
         />
-        <div className="flex min-w-0 items-start gap-3">
-          {Icon ? (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-gradient-to-br from-background to-muted/35 text-muted-foreground shadow-sm">
-              <Icon
-                className={ICON_STYLE.header}
-                strokeWidth={ICON_STROKE.header}
-                aria-hidden={true}
-              />
+        <CardContent className="flex items-center justify-between gap-2 p-0">
+          <div className="flex min-w-0 items-start gap-3">
+            {Icon ? (
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-gradient-to-br from-background to-muted/35 text-muted-foreground shadow-sm">
+                <Icon
+                  className={ICON_STYLE.header}
+                  strokeWidth={ICON_STROKE.header}
+                  aria-hidden={true}
+                />
+              </div>
+            ) : null}
+            <div className="space-y-1">
+              <h1 className="page-title">{title}</h1>
+              {description ? (
+                <p className="page-subtitle max-w-2xl">{description}</p>
+              ) : null}
+            </div>
+          </div>
+          {actions ? (
+            <div className="flex flex-wrap items-center gap-2 md:justify-end">
+              {actions}
             </div>
           ) : null}
-          <div className="space-y-1">
-            <h1 className="page-title">{title}</h1>
-            {description ? (
-              <p className="page-subtitle max-w-2xl">{description}</p>
-            ) : null}
-          </div>
-        </div>
-        {actions ? (
-          <div className="flex flex-wrap items-center gap-2 md:justify-end">
-            {actions}
-          </div>
-        ) : null}
-      </div>
+        </CardContent>
+      </Card>
     </header>
   );
 }

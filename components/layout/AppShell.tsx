@@ -20,6 +20,8 @@ import {
 
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { CommandPalette } from "@/components/layout/CommandPalette";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { ICON_STROKE, ICON_STYLE } from "@/lib/uiTokens";
 import { cn } from "@/lib/utils";
 
@@ -222,13 +224,15 @@ export function AppShell({
             </span>
           </Link>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="icon"
             aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
             aria-pressed={sidebarExpanded}
             onClick={() => setSidebarExpanded((current) => !current)}
             title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:h-9 md:w-9">
+            className="h-11 w-11 shrink-0 rounded-full border-border/70 bg-background/80 text-muted-foreground md:h-9 md:w-9">
             {sidebarExpanded ? (
               <ChevronsLeft
                 className={ICON_STYLE.control}
@@ -242,7 +246,7 @@ export function AppShell({
                 aria-hidden="true"
               />
             )}
-          </button>
+          </Button>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1.5 p-2 pt-2">
@@ -304,8 +308,10 @@ export function AppShell({
                 className="pointer-events-none absolute inset-x-6 -top-1 -z-10 h-8 rounded-full bg-gradient-to-r from-primary/20 via-sky-400/10 to-primary/20 blur-xl"
               />
               <div className="flex items-center gap-2 rounded-[1.25rem] border border-border/70 bg-gradient-to-br from-card/95 via-card/90 to-muted/40 px-2 py-1.5 shadow-[0_10px_30px_rgba(2,8,23,0.10)] backdrop-blur-xl ring-1 ring-white/35 dark:ring-white/5">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="icon"
                   aria-label={
                     theme === "dark"
                       ? "Switch to light mode"
@@ -317,7 +323,7 @@ export function AppShell({
                       ? "Switch to light mode"
                       : "Switch to dark mode"
                   }
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/75 text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
+                  className="h-11 w-11 rounded-full border-border/70 bg-background/75 text-muted-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
                   {theme === "dark" ? (
                     <SunMedium
                       className={ICON_STYLE.control}
@@ -331,9 +337,11 @@ export function AppShell({
                       aria-hidden="true"
                     />
                   )}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="icon"
                   onClick={toggleDensity}
                   aria-label={
                     density === "compact"
@@ -345,7 +353,7 @@ export function AppShell({
                       ? "Comfortable density"
                       : "Compact density"
                   }
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/75 text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
+                  className="h-11 w-11 rounded-full border-border/70 bg-background/75 text-muted-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
                   {density === "compact" ? (
                     <List
                       className={ICON_STYLE.control}
@@ -359,40 +367,41 @@ export function AppShell({
                       aria-hidden="true"
                     />
                   )}
-                </button>
+                </Button>
                 <NotificationBell className="h-11 w-11 border-border/70 bg-background/75 text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9" />
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   aria-label={`Profile menu for ${profileName}`}
                   aria-expanded={profileMenuOpen}
                   onClick={() => setProfileMenuOpen((current) => !current)}
-                  className="group inline-flex h-11 items-center gap-0 rounded-full border border-border/70 bg-background/75 px-1.5 text-xs font-medium text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:shadow-md focus-visible:bg-accent focus-visible:text-accent-foreground md:h-9">
+                  className="group h-11 gap-0 rounded-full border-border/70 bg-background/75 px-1.5 text-xs font-medium text-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:shadow-md md:h-9">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/25 to-primary/5 text-[10px] font-semibold text-primary ring-1 ring-primary/30">
                     {profileInitials}
                   </span>
                   <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:ml-2 group-hover:max-w-[120px] group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-[120px] group-focus-visible:opacity-100">
                     {profileName}
                   </span>
-                </button>
+                </Button>
                 <CommandPalette />
               </div>
 
               {profileMenuOpen && (
-                <div className="absolute right-0 top-12 z-50 w-64 rounded-xl border border-border/70 bg-card p-2 shadow-lg shadow-black/10">
+                <Card className="absolute right-0 top-12 z-50 w-64 rounded-xl border-border/70 p-2 shadow-lg shadow-black/10">
                   <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
                     <p className="truncate text-xs text-muted-foreground">
                       {profileEmail}
                     </p>
                   </div>
                   <div className="mt-2">
-                    <Link
-                      href="/logout"
-                      className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
-                      <LogOut className="h-4 w-4" aria-hidden="true" />
-                      Logout
-                    </Link>
+                    <Button asChild variant="outline" className="h-9 w-full rounded-full border-border/70 bg-card/80 px-3 text-xs">
+                      <Link href="/logout">
+                        <LogOut className="h-4 w-4" aria-hidden="true" />
+                        Logout
+                      </Link>
+                    </Button>
                   </div>
-                </div>
+                </Card>
               )}
               <span
                 aria-hidden="true"

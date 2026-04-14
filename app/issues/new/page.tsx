@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getAppSession } from "@/lib/auth/session";
 import { defineAbilitiesFor } from "@/lib/casl";
 import { NewIssueForm } from "@/components/issue/NewIssueForm";
+import { Card } from "@/components/ui/card";
 import type { IssueStatus } from "@prisma/client";
 import {
   parseAttachmentMetadata,
@@ -181,15 +182,17 @@ export default async function NewIssuePage({
             : "";
 
   return (
-    <NewIssueForm
-      action={createIssue}
-      errorMessage={errorMessage}
-      isAdmin={session.user.role === "ADMIN"}
-      loggedByLabel={session.user.name || session.user.email}
-      assignees={assignableUsers.map((u) => ({
-        id: u.id,
-        label: u.name || u.email,
-      }))}
-    />
+    <Card className="border-0 bg-transparent shadow-none">
+      <NewIssueForm
+        action={createIssue}
+        errorMessage={errorMessage}
+        isAdmin={session.user.role === "ADMIN"}
+        loggedByLabel={session.user.name || session.user.email}
+        assignees={assignableUsers.map((u) => ({
+          id: u.id,
+          label: u.name || u.email,
+        }))}
+      />
+    </Card>
   );
 }

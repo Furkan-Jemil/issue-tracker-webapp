@@ -2,6 +2,7 @@ import "../styles/tailwind.css";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { getAppSession } from "@/lib/auth/session";
 import { AppShell, type AppNavItem } from "@/components/layout/AppShell";
+import { Button } from "@/components/ui/button";
 
 const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -39,8 +40,10 @@ export default async function RootLayout({
       <body className="font-sans antialiased">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-card focus:px-3 focus:py-2 focus:text-sm focus:shadow-lg focus:ring-2 focus:ring-ring">
-          Skip to main content
+          className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50">
+          <Button asChild size="sm" variant="outline">
+            <span>Skip to main content</span>
+          </Button>
         </a>
         <AppShell navItems={navItems} profileName={profileName} profileEmail={profileEmail}>
           {children}
