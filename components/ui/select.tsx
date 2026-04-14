@@ -25,24 +25,43 @@ function extractOptions(children: React.ReactNode) {
   React.Children.forEach(children, (child) => {
     if (!React.isValidElement(child)) return;
     if (typeof child.type === "string" && child.type === "option") {
-      const value = String(child.props.value ?? "");
-      const rawLabel = child.props.children;
-      const label = typeof rawLabel === "string" ? rawLabel : String(rawLabel ?? value);
+      const optionElement = child as React.ReactElement<{
+        value?: string | number | readonly string[];
+        children?: React.ReactNode;
+        disabled?: boolean;
+      }>;
+      const value = String(optionElement.props.value ?? "");
+      const rawLabel = optionElement.props.children;
+      const label =
+        typeof rawLabel === "string" ? rawLabel : String(rawLabel ?? value);
       options.push({
         value,
         label,
-        disabled: Boolean(child.props.disabled),
+        disabled: Boolean(optionElement.props.disabled),
       });
     }
   });
   return options;
 }
 
-export interface SelectProps
-  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "onChange"> {
+export interface SelectProps {
+  children?: React.ReactNode;
+  className?: string;
+  id?: string;
+  name?: string;
+  value?: string;
+  defaultValue?: string;
+  disabled?: boolean;
+  required?: boolean;
+  placeholder?: string;
+  "aria-label"?: string;
+  "aria-labelledby"?: string;
+  "aria-describedby"?: string;
   onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   onValueChange?: (value: string) => void;
-  placeholder?: string;
+  onPointerDown?: React.PointerEventHandler<HTMLButtonElement>;
+  onMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
@@ -62,9 +81,11 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       onPointerDown,
       onMouseDown,
       onClick,
-      ...props
+      "aria-label": ariaLabel,
+      "aria-labelledby": ariaLabelledBy,
+      "aria-describedby": ariaDescribedBy,
     },
-    ref,
+    _ref,
   ) => {
     const options = React.useMemo(() => extractOptions(children), [children]);
     const selectedValue =
@@ -100,7 +121,9 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             onPointerDown={onPointerDown}
             onMouseDown={onMouseDown}
             onClick={onClick}
-            {...props}>
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledBy}
+            aria-describedby={ariaDescribedBy}>
             <SelectPrimitive.Value placeholder={placeholder ?? "Select an option"} />
             <SelectPrimitive.Icon asChild>
               <ChevronDown className="h-4 w-4 opacity-50" />
@@ -133,7 +156,6 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           </SelectPrimitive.Portal>
         </SelectPrimitive.Root>
         <input
-          ref={ref}
           type="hidden"
           id={id ? `${id}-hidden` : undefined}
           name={name}
