@@ -16,6 +16,7 @@ import {
   ListChecks,
 } from "lucide-react";
 
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { cn } from "@/lib/utils";
 
 type NavIcon = "dashboard" | "issues" | "admin" | "audit";
@@ -235,6 +236,7 @@ export function AppShell({
                     <Moon className="h-4 w-4" aria-hidden="true" />
                   )}
                 </button>
+                <NotificationBell className="h-9 w-9 border-border/70 bg-card/80 text-muted-foreground hover:bg-accent hover:text-accent-foreground" />
                 <button
                   type="button"
                   aria-label={`Profile menu for ${profileName}`}
