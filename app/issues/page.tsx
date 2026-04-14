@@ -27,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
@@ -247,13 +248,13 @@ export default async function IssuesListPage({
                 <TableHead scope="col" className={headPaddingClass}>
                   Title
                 </TableHead>
-                <TableHead scope="col" className={headPaddingClass}>
+                <TableHead scope="col" className={cn(headPaddingClass, "hidden lg:table-cell")}>
                   Type
                 </TableHead>
                 <TableHead scope="col" className={headPaddingClass}>
                   Priority
                 </TableHead>
-                <TableHead scope="col" className={headPaddingClass}>
+                <TableHead scope="col" className={cn(headPaddingClass, "hidden xl:table-cell")}>
                   Severity
                 </TableHead>
                 <TableHead scope="col" className={headPaddingClass}>
@@ -290,14 +291,18 @@ export default async function IssuesListPage({
                       className="font-medium text-primary hover:underline">
                       {issue.title}
                     </Link>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground lg:hidden">
+                      <span className="rounded-full border border-border/70 px-2 py-0.5">{issue.type}</span>
+                      <span className="rounded-full border border-border/70 px-2 py-0.5">{issue.severity}</span>
+                    </div>
                   </TableCell>
-                  <TableCell className={cellPaddingClass}>
+                  <TableCell className={cn(cellPaddingClass, "hidden lg:table-cell")}>
                     {issue.type}
                   </TableCell>
                   <TableCell className={cellPaddingClass}>
                     {issue.priority}
                   </TableCell>
-                  <TableCell className={cellPaddingClass}>
+                  <TableCell className={cn(cellPaddingClass, "hidden xl:table-cell")}>
                     {issue.severity}
                   </TableCell>
                   <TableCell className={cellPaddingClass}>

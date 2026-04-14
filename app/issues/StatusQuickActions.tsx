@@ -81,6 +81,7 @@ export function StatusQuickActions({
         variant="ghost"
         size="sm"
         aria-label="Quick status actions"
+        title="Quick status actions"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
@@ -100,7 +101,7 @@ export function StatusQuickActions({
             setActiveIndex(0);
           }
         }}
-        className="h-8 w-8 rounded-full p-0">
+        className="h-10 w-10 rounded-full p-0 md:h-8 md:w-8">
         <ChevronDown className="h-4 w-4" aria-hidden="true" />
       </Button>
       {open && (

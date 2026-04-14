@@ -35,8 +35,10 @@ export default function AdminUsersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [updatingRoleUserId, setUpdatingRoleUserId] = useState<string | null>(null);
   const [roleNotice, setRoleNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [undoRoleChange, setUndoRoleChange] = useState<{ userId: string; previousRole: string } | null>(null);
 
   const pageSize = 20;
 
@@ -70,7 +72,7 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     if (!roleNotice) return;
-    const timer = window.setTimeout(() => setRoleNotice(null), 2200);
+    const timer = window.setTimeout(() => setRoleNotice(null), 5200);
     return () => window.clearTimeout(timer);
   }, [roleNotice]);
 
@@ -99,6 +101,7 @@ export default function AdminUsersPage() {
         type: "success",
         text: `Role updated for ${users.find((user) => user.id === userId)?.email || "user"}.`,
       });
+      setUndoRoleChange({ userId, previousRole });
     } catch (error) {
       setUsers((current) =>
         current.map((user) =>
@@ -109,10 +112,19 @@ export default function AdminUsersPage() {
         type: "error",
         text: error instanceof Error ? error.message : "Failed to update role",
       });
+      setUndoRoleChange(null);
     } finally {
       setUpdatingRoleUserId(null);
       void loadUsers();
     }
+  }
+
+  async function undoLastRoleUpdate() {
+    if (!undoRoleChange) return;
+    const target = users.find((user) => user.id === undoRoleChange.userId);
+    if (!target) return;
+    await updateSingleRole(undoRoleChange.userId, undoRoleChange.previousRole);
+    setUndoRoleChange(null);
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -200,7 +212,13 @@ export default function AdminUsersPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex items-center justify-end sm:hidden">
+            <Button type="button" variant="soft" size="sm" onClick={() => setMobileFiltersOpen((current) => !current)}>
+              {mobileFiltersOpen ? "Hide filters" : "Show filters"}
+            </Button>
+          </div>
+
+          <div className="hidden flex-wrap gap-2.5 sm:flex">
             <Input
               aria-label="Search users"
               type="text"
@@ -247,6 +265,54 @@ export default function AdminUsersPage() {
             </Button>
           </div>
 
+          {mobileFiltersOpen && (
+            <div className="grid gap-2.5 sm:hidden">
+              <Input
+                aria-label="Search users"
+                type="text"
+                placeholder="Search by name or email..."
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    const nextSearch = search.trim();
+                    setDebouncedSearch(nextSearch);
+                    setPage(1);
+                    void loadUsers(1, nextSearch, roleFilter);
+                  }
+                }}
+                className="w-full"
+              />
+              <Select
+                aria-label="Filter users by role"
+                value={roleFilter}
+                onChange={(event) => {
+                  setRoleFilter(event.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="">All roles</option>
+                <option value="USER">User</option>
+                <option value="TESTER">Tester</option>
+                <option value="ADMIN">Admin</option>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setSearch("");
+                  setRoleFilter("");
+                  setPage(1);
+                  setDebouncedSearch("");
+                  void loadUsers(1, "", "");
+                }}
+              >
+                Clear
+              </Button>
+            </div>
+          )}
+
           {roleNotice && (
             <div
               className={`rounded-lg border px-3 py-2 text-sm ${
@@ -257,7 +323,14 @@ export default function AdminUsersPage() {
               role="status"
               aria-live="polite"
             >
-              {roleNotice.text}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span>{roleNotice.text}</span>
+                {roleNotice.type === "success" && undoRoleChange ? (
+                  <Button type="button" size="dense" variant="soft" onClick={undoLastRoleUpdate}>
+                    Undo
+                  </Button>
+                ) : null}
+              </div>
             </div>
           )}
 
@@ -268,8 +341,8 @@ export default function AdminUsersPage() {
                 <TableHead scope="col">Name</TableHead>
                 <TableHead scope="col">Email</TableHead>
                 <TableHead scope="col">Role</TableHead>
-                <TableHead scope="col">Created</TableHead>
-                <TableHead scope="col">Actions</TableHead>
+                <TableHead scope="col" className="hidden lg:table-cell">Created</TableHead>
+                <TableHead scope="col" className="hidden md:table-cell">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -290,6 +363,9 @@ export default function AdminUsersPage() {
                     <Link href={`/admin/users/${user.id}`} className="font-medium text-primary hover:underline">
                       {user.name || "Unnamed user"}
                     </Link>
+                    <p className="mt-1 text-[11px] text-muted-foreground lg:hidden">
+                      Joined {new Date(user.createdAt).toLocaleDateString()}
+                    </p>
                   </TableCell>
                   <TableCell>
                     <Link href={`/admin/users/${user.id}`} className="text-muted-foreground hover:text-primary hover:underline">
@@ -315,8 +391,8 @@ export default function AdminUsersPage() {
                       <option value="ADMIN">Admin</option>
                     </Select>
                   </TableCell>
-                  <TableCell>{new Date(user.createdAt).toLocaleString()}</TableCell>
-                  <TableCell>
+                  <TableCell className="hidden lg:table-cell">{new Date(user.createdAt).toLocaleString()}</TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <Link
                       href={`/admin/users/${user.id}`}
                       className="text-primary hover:underline"
