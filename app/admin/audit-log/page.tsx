@@ -1,7 +1,13 @@
 import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import Link from "next/link";
-import { History, FilePlus2, RefreshCcw, MessageSquareText, ArrowUpRight } from "lucide-react";
+import {
+  History,
+  FilePlus2,
+  RefreshCcw,
+  MessageSquareText,
+  ArrowUpRight,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,7 +46,11 @@ function formatDate(d: Date | string): string {
 export default async function AdminAuditLogPage() {
   const session = await getAppSession();
   if (!session?.user || session.user.role !== "ADMIN") {
-    return <div className="rounded-xl border border-border/70 bg-card/80 p-4 text-sm">Admin access required.</div>;
+    return (
+      <div className="rounded-xl border border-border/70 bg-card/80 p-4 text-sm">
+        Admin access required.
+      </div>
+    );
   }
   const logs: AuditLogEntry[] = await prisma.issueHistory.findMany({
     orderBy: { createdAt: "desc" },
@@ -48,8 +58,12 @@ export default async function AdminAuditLogPage() {
     include: auditLogInclude,
   });
   const createdCount = logs.filter((log) => log.eventType === "CREATED").length;
-  const statusCount = logs.filter((log) => log.eventType === "STATUS_CHANGED").length;
-  const commentedCount = logs.filter((log) => log.eventType === "COMMENTED").length;
+  const statusCount = logs.filter(
+    (log) => log.eventType === "STATUS_CHANGED",
+  ).length;
+  const commentedCount = logs.filter(
+    (log) => log.eventType === "COMMENTED",
+  ).length;
 
   function eventVariant(eventType: string) {
     if (eventType === "CREATED") return "secondary" as const;
@@ -68,44 +82,56 @@ export default async function AdminAuditLogPage() {
       <div className="grid gap-3 sm:grid-cols-3">
         <Link href="/issues" className="block">
           <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
-          <CardContent className="flex items-center justify-between gap-3 p-3.5">
-            <div>
-              <p className="text-[12px] font-medium text-muted-foreground">Created</p>
-              <p className="mt-1 text-2xl font-semibold">{createdCount}</p>
-              <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">View issues</p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
-              <FilePlus2 className="h-5 w-5" aria-hidden="true" />
-            </div>
-          </CardContent>
+            <CardContent className="flex items-center justify-between gap-3 p-3.5">
+              <div>
+                <p className="text-[12px] font-medium text-muted-foreground">
+                  Created
+                </p>
+                <p className="mt-1 text-2xl font-semibold">{createdCount}</p>
+                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
+                  View issues
+                </p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+                <FilePlus2 className="h-5 w-5" aria-hidden="true" />
+              </div>
+            </CardContent>
           </Card>
         </Link>
         <Link href="/issues?view=details" className="block">
           <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
-          <CardContent className="flex items-center justify-between gap-3 p-3.5">
-            <div>
-              <p className="text-[12px] font-medium text-muted-foreground">Status changes</p>
-              <p className="mt-1 text-2xl font-semibold">{statusCount}</p>
-              <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">Open details</p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
-              <RefreshCcw className="h-5 w-5" aria-hidden="true" />
-            </div>
-          </CardContent>
+            <CardContent className="flex items-center justify-between gap-3 p-3.5">
+              <div>
+                <p className="text-[12px] font-medium text-muted-foreground">
+                  Status changes
+                </p>
+                <p className="mt-1 text-2xl font-semibold">{statusCount}</p>
+                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
+                  Open details
+                </p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+                <RefreshCcw className="h-5 w-5" aria-hidden="true" />
+              </div>
+            </CardContent>
           </Card>
         </Link>
         <Link href="/issues?view=details&status=OPEN" className="block">
           <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
-          <CardContent className="flex items-center justify-between gap-3 p-3.5">
-            <div>
-              <p className="text-[12px] font-medium text-muted-foreground">Comments</p>
-              <p className="mt-1 text-2xl font-semibold">{commentedCount}</p>
-              <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">Open comment flow</p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
-              <MessageSquareText className="h-5 w-5" aria-hidden="true" />
-            </div>
-          </CardContent>
+            <CardContent className="flex items-center justify-between gap-3 p-3.5">
+              <div>
+                <p className="text-[12px] font-medium text-muted-foreground">
+                  Comments
+                </p>
+                <p className="mt-1 text-2xl font-semibold">{commentedCount}</p>
+                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
+                  Open comment flow
+                </p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+                <MessageSquareText className="h-5 w-5" aria-hidden="true" />
+              </div>
+            </CardContent>
           </Card>
         </Link>
       </div>
@@ -116,16 +142,22 @@ export default async function AdminAuditLogPage() {
         </CardHeader>
         <CardContent className="grid gap-4 lg:grid-cols-2">
           <div className="space-y-2 rounded-xl border border-border/70 bg-background/70 p-4">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">Export Data</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Export Data
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Download a full JSON export of all issues, comments, history, and notifications.
+              Download a full JSON export of all issues, comments, history, and
+              notifications.
             </p>
             <ExportDataButton />
           </div>
           <div className="space-y-2 rounded-xl border border-border/70 bg-background/70 p-4">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">System Records</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              System Records
+            </h3>
             <p className="text-sm text-muted-foreground">
-              The audit log is the primary record for system changes, comments, and user actions.
+              The audit log is the primary record for system changes, comments,
+              and user actions.
             </p>
             <Button asChild variant="outline" size="sm" className="w-fit">
               <Link href="/issues">Go to issues</Link>
@@ -159,9 +191,7 @@ export default async function AdminAuditLogPage() {
             <TableBody>
               {logs.map((log) => (
                 <TableRow key={log.id} className="transition hover:bg-muted/30">
-                  <TableCell>
-                    {formatDate(log.createdAt)}
-                  </TableCell>
+                  <TableCell>{formatDate(log.createdAt)}</TableCell>
                   <TableCell>
                     {log.actor?.name} ({log.actor?.email})
                   </TableCell>
@@ -172,7 +202,9 @@ export default async function AdminAuditLogPage() {
                   </TableCell>
                   <TableCell>{log.description}</TableCell>
                   <TableCell>
-                    <Link className="text-primary hover:underline" href={log.issue ? `/issues/${log.issue.id}` : "/issues"}>
+                    <Link
+                      className="text-primary hover:underline"
+                      href={log.issue ? `/issues/${log.issue.id}` : "/issues"}>
                       {log.issue?.title || "View issue"}
                     </Link>
                   </TableCell>

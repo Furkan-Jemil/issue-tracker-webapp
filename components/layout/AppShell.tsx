@@ -65,7 +65,9 @@ export function AppShell({
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
+  const [density, setDensity] = useState<"comfortable" | "compact">(
+    "comfortable",
+  );
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const themeTransitionTimeoutRef = useRef<number | null>(null);
@@ -100,12 +102,17 @@ export function AppShell({
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem("app-shell-sidebar-expanded", String(sidebarExpanded));
+    window.localStorage.setItem(
+      "app-shell-sidebar-expanded",
+      String(sidebarExpanded),
+    );
   }, [sidebarExpanded]);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("app-theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     const nextTheme =
       stored === "dark" || stored === "light"
         ? stored
@@ -126,7 +133,9 @@ export function AppShell({
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove("ui-density-compact", "ui-density-comfortable");
-    root.classList.add(density === "compact" ? "ui-density-compact" : "ui-density-comfortable");
+    root.classList.add(
+      density === "compact" ? "ui-density-compact" : "ui-density-comfortable",
+    );
     window.localStorage.setItem("app-density", density);
   }, [density]);
 
@@ -143,7 +152,11 @@ export function AppShell({
     function onPointerDown(event: PointerEvent) {
       if (!profileMenuOpen) return;
       const target = event.target as Node | null;
-      if (target && profileMenuRef.current && !profileMenuRef.current.contains(target)) {
+      if (
+        target &&
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(target)
+      ) {
         setProfileMenuOpen(false);
       }
     }
@@ -170,11 +183,15 @@ export function AppShell({
   }
 
   function toggleDensity() {
-    setDensity((current) => (current === "compact" ? "comfortable" : "compact"));
+    setDensity((current) =>
+      current === "compact" ? "comfortable" : "compact",
+    );
   }
 
   const sidebarWidthClass = sidebarExpanded ? "w-52 md:w-56" : "w-16 md:w-20";
-  const contentOffsetClass = sidebarExpanded ? "pl-52 md:pl-56" : "pl-16 md:pl-20";
+  const contentOffsetClass = sidebarExpanded
+    ? "pl-52 md:pl-56"
+    : "pl-16 md:pl-20";
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,23 +199,25 @@ export function AppShell({
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border/70 bg-gradient-to-b from-card/97 via-card/94 to-muted/40 shadow-[8px_0_30px_rgba(15,23,42,0.07)] backdrop-blur-md transition-[width] duration-200 ease-out",
           sidebarWidthClass,
-        )}
-      >
+        )}>
         <span
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-2 top-2 h-20 rounded-2xl bg-gradient-to-r from-primary/15 via-sky-400/5 to-primary/10 blur-2xl"
         />
         <div className="flex h-16 items-center justify-between gap-2 border-b border-border/70 px-3">
-          <Link href="/issues" className="flex min-w-0 items-center gap-3 outline-none">
+          <Link
+            href="/issues"
+            className="flex min-w-0 items-center gap-3 outline-none">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-1 ring-primary/10">
               <Ticket className="h-5 w-5" strokeWidth={2.25} aria-hidden />
             </span>
             <span
               className={cn(
                 "min-w-0 overflow-hidden text-sm font-semibold tracking-wide text-foreground transition-all duration-200",
-                sidebarExpanded ? "max-w-[140px] opacity-100" : "max-w-0 opacity-0",
-              )}
-            >
+                sidebarExpanded
+                  ? "max-w-[140px] opacity-100"
+                  : "max-w-0 opacity-0",
+              )}>
               IssueTracker
             </span>
           </Link>
@@ -209,12 +228,19 @@ export function AppShell({
             aria-pressed={sidebarExpanded}
             onClick={() => setSidebarExpanded((current) => !current)}
             title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:h-9 md:w-9"
-          >
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:h-9 md:w-9">
             {sidebarExpanded ? (
-              <ChevronsLeft className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+              <ChevronsLeft
+                className={ICON_STYLE.control}
+                strokeWidth={ICON_STROKE.control}
+                aria-hidden="true"
+              />
             ) : (
-              <ChevronsRight className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+              <ChevronsRight
+                className={ICON_STYLE.control}
+                strokeWidth={ICON_STROKE.control}
+                aria-hidden="true"
+              />
             )}
           </button>
         </div>
@@ -232,20 +258,31 @@ export function AppShell({
                 title={item.label}
                 className={cn(
                   "group relative flex h-10 items-center rounded-xl text-[13px] font-medium transition-all duration-200",
-                  sidebarExpanded ? "justify-start gap-3 px-3" : "justify-center px-2",
+                  sidebarExpanded
+                    ? "justify-start gap-3 px-3"
+                    : "justify-center px-2",
                   active
                     ? "bg-gradient-to-r from-primary to-primary/85 text-primary-foreground shadow-md shadow-primary/25"
                     : "text-muted-foreground hover:bg-accent/85 hover:text-accent-foreground",
-                )}
-              >
-                {active ? <span aria-hidden="true" className="absolute left-0 top-2 h-6 w-1 rounded-r-full bg-white/90" /> : null}
-                <Icon className={ICON_STYLE.nav} strokeWidth={ICON_STROKE.nav} aria-hidden="true" />
+                )}>
+                {active ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-0 top-2 h-6 w-1 rounded-r-full bg-white/90"
+                  />
+                ) : null}
+                <Icon
+                  className={ICON_STYLE.nav}
+                  strokeWidth={ICON_STROKE.nav}
+                  aria-hidden="true"
+                />
                 <span
                   className={cn(
                     "min-w-0 overflow-hidden whitespace-nowrap transition-all duration-200",
-                    sidebarExpanded ? "max-w-[160px] opacity-100" : "max-w-0 opacity-0",
-                  )}
-                >
+                    sidebarExpanded
+                      ? "max-w-[160px] opacity-100"
+                      : "max-w-0 opacity-0",
+                  )}>
                   {item.label}
                 </span>
               </Link>
@@ -254,7 +291,11 @@ export function AppShell({
         </nav>
       </aside>
 
-      <div className={cn("min-h-screen transition-[padding-left] duration-200 ease-out", contentOffsetClass)}>
+      <div
+        className={cn(
+          "min-h-screen transition-[padding-left] duration-200 ease-out",
+          contentOffsetClass,
+        )}>
         <header className="sticky top-0 z-30 bg-transparent pt-2">
           <div className="page-shell flex min-h-12 items-start justify-end px-2.5 py-1.5 md:px-3 lg:px-4">
             <div ref={profileMenuRef} className="relative">
@@ -265,28 +306,58 @@ export function AppShell({
               <div className="flex items-center gap-2 rounded-[1.25rem] border border-border/70 bg-gradient-to-br from-card/95 via-card/90 to-muted/40 px-2 py-1.5 shadow-[0_10px_30px_rgba(2,8,23,0.10)] backdrop-blur-xl ring-1 ring-white/35 dark:ring-white/5">
                 <button
                   type="button"
-                  aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                  aria-label={
+                    theme === "dark"
+                      ? "Switch to light mode"
+                      : "Switch to dark mode"
+                  }
                   onClick={toggleTheme}
-                  title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/75 text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9"
-                >
+                  title={
+                    theme === "dark"
+                      ? "Switch to light mode"
+                      : "Switch to dark mode"
+                  }
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/75 text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
                   {theme === "dark" ? (
-                    <SunMedium className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+                    <SunMedium
+                      className={ICON_STYLE.control}
+                      strokeWidth={ICON_STROKE.control}
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <Moon className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+                    <Moon
+                      className={ICON_STYLE.control}
+                      strokeWidth={ICON_STROKE.control}
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={toggleDensity}
-                  aria-label={density === "compact" ? "Switch to comfortable density" : "Switch to compact density"}
-                  title={density === "compact" ? "Comfortable density" : "Compact density"}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/75 text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9"
-                >
+                  aria-label={
+                    density === "compact"
+                      ? "Switch to comfortable density"
+                      : "Switch to compact density"
+                  }
+                  title={
+                    density === "compact"
+                      ? "Comfortable density"
+                      : "Compact density"
+                  }
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/75 text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
                   {density === "compact" ? (
-                    <List className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+                    <List
+                      className={ICON_STYLE.control}
+                      strokeWidth={ICON_STROKE.control}
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <Rows3 className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+                    <Rows3
+                      className={ICON_STYLE.control}
+                      strokeWidth={ICON_STROKE.control}
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
                 <NotificationBell className="h-11 w-11 border-border/70 bg-background/75 text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9" />
@@ -295,8 +366,7 @@ export function AppShell({
                   aria-label={`Profile menu for ${profileName}`}
                   aria-expanded={profileMenuOpen}
                   onClick={() => setProfileMenuOpen((current) => !current)}
-                  className="group inline-flex h-11 items-center gap-0 rounded-full border border-border/70 bg-background/75 px-1.5 text-xs font-medium text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:shadow-md focus-visible:bg-accent focus-visible:text-accent-foreground md:h-9"
-                >
+                  className="group inline-flex h-11 items-center gap-0 rounded-full border border-border/70 bg-background/75 px-1.5 text-xs font-medium text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:shadow-md focus-visible:bg-accent focus-visible:text-accent-foreground md:h-9">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/25 to-primary/5 text-[10px] font-semibold text-primary ring-1 ring-primary/30">
                     {profileInitials}
                   </span>
@@ -310,13 +380,14 @@ export function AppShell({
               {profileMenuOpen && (
                 <div className="absolute right-0 top-12 z-50 w-64 rounded-xl border border-border/70 bg-card p-2 shadow-lg shadow-black/10">
                   <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
-                    <p className="truncate text-xs text-muted-foreground">{profileEmail}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {profileEmail}
+                    </p>
                   </div>
                   <div className="mt-2">
                     <Link
                       href="/logout"
-                      className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                    >
+                      className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
                       <LogOut className="h-4 w-4" aria-hidden="true" />
                       Logout
                     </Link>
@@ -337,8 +408,7 @@ export function AppShell({
           style={{
             paddingInline: "var(--space-page-x)",
             paddingBlock: "var(--space-page-y)",
-          }}
-        >
+          }}>
           {children}
         </main>
       </div>

@@ -36,9 +36,17 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [updatingRoleUserId, setUpdatingRoleUserId] = useState<string | null>(null);
-  const [roleNotice, setRoleNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [undoRoleChange, setUndoRoleChange] = useState<{ userId: string; previousRole: string } | null>(null);
+  const [updatingRoleUserId, setUpdatingRoleUserId] = useState<string | null>(
+    null,
+  );
+  const [roleNotice, setRoleNotice] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [undoRoleChange, setUndoRoleChange] = useState<{
+    userId: string;
+    previousRole: string;
+  } | null>(null);
 
   const pageSize = 20;
 
@@ -51,7 +59,11 @@ export default function AdminUsersPage() {
     return () => window.clearTimeout(timer);
   }, [search]);
 
-  async function loadUsers(nextPage = page, nextSearch = debouncedSearch, nextRole = roleFilter) {
+  async function loadUsers(
+    nextPage = page,
+    nextSearch = debouncedSearch,
+    nextRole = roleFilter,
+  ) {
     const params = new URLSearchParams({
       search: nextSearch,
       role: nextRole,
@@ -133,7 +145,11 @@ export default function AdminUsersPage() {
 
   return (
     <div className="page-stack">
-      <PageHeader title="Users" description="Manage user accounts, access roles, and operational permissions." icon={UsersRound} />
+      <PageHeader
+        title="Users"
+        description="Manage user accounts, access roles, and operational permissions."
+        icon={UsersRound}
+      />
 
       <div className="grid gap-3 sm:grid-cols-3">
         <button
@@ -142,14 +158,17 @@ export default function AdminUsersPage() {
             setRoleFilter("");
             setPage(1);
           }}
-          className="text-left"
-        >
+          className="text-left">
           <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
             <CardContent className="flex items-center justify-between gap-3 p-3.5">
               <div>
-                <p className="text-[12px] font-medium text-muted-foreground">Visible users</p>
+                <p className="text-[12px] font-medium text-muted-foreground">
+                  Visible users
+                </p>
                 <p className="mt-1 text-2xl font-semibold">{users.length}</p>
-                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">Show all</p>
+                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
+                  Show all
+                </p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
                 <UsersRound className="h-5 w-5" aria-hidden="true" />
@@ -163,14 +182,17 @@ export default function AdminUsersPage() {
             setRoleFilter("ADMIN");
             setPage(1);
           }}
-          className="text-left"
-        >
+          className="text-left">
           <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
             <CardContent className="flex items-center justify-between gap-3 p-3.5">
               <div>
-                <p className="text-[12px] font-medium text-muted-foreground">Admins on page</p>
+                <p className="text-[12px] font-medium text-muted-foreground">
+                  Admins on page
+                </p>
                 <p className="mt-1 text-2xl font-semibold">{adminCount}</p>
-                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">Filter admins</p>
+                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
+                  Filter admins
+                </p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
                 <UserCog className="h-5 w-5" aria-hidden="true" />
@@ -184,14 +206,17 @@ export default function AdminUsersPage() {
             setRoleFilter("TESTER");
             setPage(1);
           }}
-          className="text-left"
-        >
+          className="text-left">
           <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
             <CardContent className="flex items-center justify-between gap-3 p-3.5">
               <div>
-                <p className="text-[12px] font-medium text-muted-foreground">Testers on page</p>
+                <p className="text-[12px] font-medium text-muted-foreground">
+                  Testers on page
+                </p>
                 <p className="mt-1 text-2xl font-semibold">{testerCount}</p>
-                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">Filter testers</p>
+                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
+                  Filter testers
+                </p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
                 <UserCheck className="h-5 w-5" aria-hidden="true" />
@@ -213,7 +238,11 @@ export default function AdminUsersPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-end sm:hidden">
-            <Button type="button" variant="soft" size="sm" onClick={() => setMobileFiltersOpen((current) => !current)}>
+            <Button
+              type="button"
+              variant="soft"
+              size="sm"
+              onClick={() => setMobileFiltersOpen((current) => !current)}>
               {mobileFiltersOpen ? "Hide filters" : "Show filters"}
             </Button>
           </div>
@@ -243,8 +272,7 @@ export default function AdminUsersPage() {
                 setRoleFilter(event.target.value);
                 setPage(1);
               }}
-              className="max-w-44"
-            >
+              className="max-w-44">
               <option value="">All roles</option>
               <option value="USER">User</option>
               <option value="TESTER">Tester</option>
@@ -259,8 +287,7 @@ export default function AdminUsersPage() {
                 setPage(1);
                 setDebouncedSearch("");
                 void loadUsers(1, "", "");
-              }}
-            >
+              }}>
               Clear
             </Button>
           </div>
@@ -290,8 +317,7 @@ export default function AdminUsersPage() {
                 onChange={(event) => {
                   setRoleFilter(event.target.value);
                   setPage(1);
-                }}
-              >
+                }}>
                 <option value="">All roles</option>
                 <option value="USER">User</option>
                 <option value="TESTER">Tester</option>
@@ -306,8 +332,7 @@ export default function AdminUsersPage() {
                   setPage(1);
                   setDebouncedSearch("");
                   void loadUsers(1, "", "");
-                }}
-              >
+                }}>
                 Clear
               </Button>
             </div>
@@ -321,12 +346,15 @@ export default function AdminUsersPage() {
                   : "border-red-500/40 bg-red-500/10 text-red-300"
               }`}
               role="status"
-              aria-live="polite"
-            >
+              aria-live="polite">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span>{roleNotice.text}</span>
                 {roleNotice.type === "success" && undoRoleChange ? (
-                  <Button type="button" size="dense" variant="soft" onClick={undoLastRoleUpdate}>
+                  <Button
+                    type="button"
+                    size="dense"
+                    variant="soft"
+                    onClick={undoLastRoleUpdate}>
                     Undo
                   </Button>
                 ) : null}
@@ -341,8 +369,12 @@ export default function AdminUsersPage() {
                 <TableHead scope="col">Name</TableHead>
                 <TableHead scope="col">Email</TableHead>
                 <TableHead scope="col">Role</TableHead>
-                <TableHead scope="col" className="hidden lg:table-cell">Created</TableHead>
-                <TableHead scope="col" className="hidden md:table-cell">Actions</TableHead>
+                <TableHead scope="col" className="hidden lg:table-cell">
+                  Created
+                </TableHead>
+                <TableHead scope="col" className="hidden md:table-cell">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -357,10 +389,11 @@ export default function AdminUsersPage() {
                       event.preventDefault();
                       router.push(`/admin/users/${user.id}`);
                     }
-                  }}
-                >
+                  }}>
                   <TableCell>
-                    <Link href={`/admin/users/${user.id}`} className="font-medium text-primary hover:underline">
+                    <Link
+                      href={`/admin/users/${user.id}`}
+                      className="font-medium text-primary hover:underline">
                       {user.name || "Unnamed user"}
                     </Link>
                     <p className="mt-1 text-[11px] text-muted-foreground lg:hidden">
@@ -368,7 +401,9 @@ export default function AdminUsersPage() {
                     </p>
                   </TableCell>
                   <TableCell>
-                    <Link href={`/admin/users/${user.id}`} className="text-muted-foreground hover:text-primary hover:underline">
+                    <Link
+                      href={`/admin/users/${user.id}`}
+                      className="text-muted-foreground hover:text-primary hover:underline">
                       {user.email}
                     </Link>
                   </TableCell>
@@ -384,20 +419,20 @@ export default function AdminUsersPage() {
                         event.stopPropagation();
                         void updateSingleRole(user.id, event.target.value);
                       }}
-                      className="h-8 w-32 rounded-full border-border/70 bg-background/80 px-3 text-[11px] font-semibold"
-                    >
+                      className="h-8 w-32 rounded-full border-border/70 bg-background/80 px-3 text-[11px] font-semibold">
                       <option value="USER">User</option>
                       <option value="TESTER">Tester</option>
                       <option value="ADMIN">Admin</option>
                     </Select>
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">{new Date(user.createdAt).toLocaleString()}</TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    {new Date(user.createdAt).toLocaleString()}
+                  </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <Link
                       href={`/admin/users/${user.id}`}
                       className="text-primary hover:underline"
-                      onClick={(event) => event.stopPropagation()}
-                    >
+                      onClick={(event) => event.stopPropagation()}>
                       Edit
                     </Link>
                   </TableCell>
@@ -405,7 +440,9 @@ export default function AdminUsersPage() {
               ))}
               {users.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                  <TableCell
+                    colSpan={5}
+                    className="py-8 text-center text-sm text-muted-foreground">
                     No users found for this search.
                   </TableCell>
                 </TableRow>
@@ -414,22 +451,24 @@ export default function AdminUsersPage() {
           </Table>
 
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-sm text-muted-foreground">Page {page} / {totalPages}</span>
+            <span className="text-sm text-muted-foreground">
+              Page {page} / {totalPages}
+            </span>
             <div className="flex gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
-                disabled={page <= 1}
-              >
+                disabled={page <= 1}>
                 Previous
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                disabled={page >= totalPages}
-              >
+                onClick={() =>
+                  setPage((current) => Math.min(totalPages, current + 1))
+                }
+                disabled={page >= totalPages}>
                 Next
               </Button>
             </div>

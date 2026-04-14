@@ -115,8 +115,16 @@
     @apply bg-background text-foreground;
     background-attachment: fixed;
     background-image:
-      radial-gradient(circle at top left, hsl(173 58% 39% / 0.09), transparent 28%),
-      radial-gradient(circle at top right, hsl(221 83% 53% / 0.08), transparent 24%),
+      radial-gradient(
+        circle at top left,
+        hsl(173 58% 39% / 0.09),
+        transparent 28%
+      ),
+      radial-gradient(
+        circle at top right,
+        hsl(221 83% 53% / 0.08),
+        transparent 24%
+      ),
       linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));
     background-repeat: no-repeat;
     background-size: cover;
@@ -124,8 +132,16 @@
 
   .dark body {
     background-image:
-      radial-gradient(circle at top left, hsl(172 56% 46% / 0.14), transparent 26%),
-      radial-gradient(circle at top right, hsl(225 78% 58% / 0.12), transparent 22%),
+      radial-gradient(
+        circle at top left,
+        hsl(172 56% 46% / 0.14),
+        transparent 26%
+      ),
+      radial-gradient(
+        circle at top right,
+        hsl(225 78% 58% / 0.12),
+        transparent 22%
+      ),
       linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));
   }
 
@@ -202,11 +218,22 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes softFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-2px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
 }

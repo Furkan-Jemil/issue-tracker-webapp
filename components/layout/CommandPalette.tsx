@@ -67,7 +67,8 @@ export function CommandPalette() {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      const isPaletteShortcut = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k";
+      const isPaletteShortcut =
+        (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k";
       if (isPaletteShortcut) {
         event.preventDefault();
         setOpen(true);
@@ -94,7 +95,9 @@ export function CommandPalette() {
     if (!value) return PALETTE_ITEMS;
 
     return PALETTE_ITEMS.filter((item) => {
-      const haystack = [item.label, item.description, ...item.keywords].join(" ").toLowerCase();
+      const haystack = [item.label, item.description, ...item.keywords]
+        .join(" ")
+        .toLowerCase();
       return haystack.includes(value);
     });
   }, [query]);
@@ -106,8 +109,7 @@ export function CommandPalette() {
         variant="outline"
         size="sm"
         className="group h-11 gap-2 rounded-full border-border/70 bg-gradient-to-r from-background to-muted/40 px-2.5 text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:from-background hover:to-background hover:shadow-md md:h-9"
-        onClick={() => setOpen(true)}
-      >
+        onClick={() => setOpen(true)}>
         <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors group-hover:text-foreground">
           <Command className="h-3.5 w-3.5" aria-hidden="true" />
         </span>
@@ -123,10 +125,12 @@ export function CommandPalette() {
             className="w-full max-w-2xl overflow-hidden rounded-3xl border border-border/70 bg-card shadow-2xl shadow-black/20"
             role="dialog"
             aria-modal="true"
-            aria-label="Command palette"
-          >
+            aria-label="Command palette">
             <div className="flex items-center gap-3 border-b border-border/60 px-4 py-3">
-              <Search className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <Search
+                className="h-4 w-4 text-muted-foreground"
+                aria-hidden="true"
+              />
               <Input
                 ref={inputRef}
                 value={query}
@@ -140,8 +144,7 @@ export function CommandPalette() {
                 size="icon"
                 className="h-9 w-9 rounded-full"
                 onClick={() => setOpen(false)}
-                aria-label="Close command palette"
-              >
+                aria-label="Close command palette">
                 <X className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
@@ -155,11 +158,12 @@ export function CommandPalette() {
                     className={cn(
                       "flex items-center justify-between gap-4 rounded-2xl px-4 py-3 transition hover:bg-accent hover:text-accent-foreground",
                     )}
-                    onClick={() => setOpen(false)}
-                  >
+                    onClick={() => setOpen(false)}>
                     <div>
                       <div className="text-sm font-semibold">{item.label}</div>
-                      <div className="text-sm text-muted-foreground">{item.description}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {item.description}
+                      </div>
                     </div>
                     <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                       Open

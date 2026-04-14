@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { BookmarkPlus, Trash2 } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -96,38 +97,38 @@ export function IssueViewPresets() {
 
   return (
     <Card tone="soft" density="dense" className="border-border/70 bg-card/80">
-      <CardContent className="flex flex-col gap-3 p-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Saved views</p>
-          <p className="text-sm text-muted-foreground">
-            Pin a filtered view and jump back to it instantly.
-          </p>
+      <CardContent className="flex flex-col gap-2.5 p-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-foreground/90">Saved views</p>
+          <Badge variant="outline" className="rounded-full px-2.5 py-0 text-[10px] font-semibold uppercase tracking-[0.14em]">
+            {savedViews.length} saved
+          </Badge>
         </div>
-        <Button type="button" variant="outline" size="sm" className="gap-2" onClick={saveCurrentView} disabled={!currentHref}>
+        <Button type="button" variant="outline" size="sm" className="gap-2 md:ml-auto" onClick={saveCurrentView} disabled={!currentHref}>
           <BookmarkPlus className="h-4 w-4" aria-hidden="true" />
-          Save current view
+          Save view
         </Button>
       </CardContent>
 
       {hasSavedViews ? (
-        <div className="flex flex-wrap gap-2 border-t border-border/60 px-3 py-3">
+        <div className="flex flex-wrap gap-1.5 border-t border-border/60 px-3 py-2.5">
           {savedViews.map((view) => (
             <div
               key={view.id}
               className={cn(
-                "flex items-center gap-1 rounded-full border border-border/70 bg-background/80 pl-3 pr-1 py-1",
+                "flex items-center gap-1 rounded-full border border-border/70 bg-background/80 pl-2.5 pr-1 py-0.5",
               )}
             >
-              <Link href={view.href} className="text-sm font-medium hover:underline">
+              <Link href={view.href} className="max-w-[180px] truncate text-xs font-medium hover:underline">
                 {view.name}
               </Link>
               <button
                 type="button"
                 onClick={() => removeView(view.id)}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
                 aria-label={`Remove saved view ${view.name}`}
               >
-                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
           ))}

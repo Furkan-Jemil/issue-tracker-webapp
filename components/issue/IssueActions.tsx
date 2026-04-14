@@ -179,7 +179,9 @@ export function IssueActions({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="edit-sourceNotes">Source notes (optional)</Label>
+                    <Label htmlFor="edit-sourceNotes">
+                      Source notes (optional)
+                    </Label>
                     <Input
                       id="edit-sourceNotes"
                       name="sourceNotes"
@@ -219,7 +221,10 @@ export function IssueActions({
                 <Button type="submit" disabled={pending}>
                   {pending ? "Saving..." : "Save changes"}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
               </div>

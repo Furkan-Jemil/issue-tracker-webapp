@@ -9,7 +9,11 @@ type BreadcrumbItem = {
   href?: string;
 };
 
-type PageHeaderIcon = ComponentType<{ className?: string; strokeWidth?: number; "aria-hidden"?: boolean }>;
+type PageHeaderIcon = ComponentType<{
+  className?: string;
+  strokeWidth?: number;
+  "aria-hidden"?: boolean;
+}>;
 
 export function PageHeader({
   title,
@@ -29,12 +33,18 @@ export function PageHeader({
   return (
     <header className={cn("space-y-1.5", className)}>
       {breadcrumbs?.length ? (
-        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex flex-wrap items-center gap-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
           {breadcrumbs.map((item, index) => (
-            <span key={`${item.label}-${index}`} className="flex items-center gap-1">
+            <span
+              key={`${item.label}-${index}`}
+              className="flex items-center gap-1">
               {index > 0 && <span aria-hidden="true">/</span>}
               {item.href ? (
-                <Link href={item.href} className="transition-colors hover:text-foreground">
+                <Link
+                  href={item.href}
+                  className="transition-colors hover:text-foreground">
                   {item.label}
                 </Link>
               ) : (
@@ -53,15 +63,25 @@ export function PageHeader({
         <div className="flex min-w-0 items-start gap-3">
           {Icon ? (
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-gradient-to-br from-background to-muted/35 text-muted-foreground shadow-sm">
-              <Icon className={ICON_STYLE.header} strokeWidth={ICON_STROKE.header} aria-hidden={true} />
+              <Icon
+                className={ICON_STYLE.header}
+                strokeWidth={ICON_STROKE.header}
+                aria-hidden={true}
+              />
             </div>
           ) : null}
           <div className="space-y-1">
             <h1 className="page-title">{title}</h1>
-            {description ? <p className="page-subtitle max-w-2xl">{description}</p> : null}
+            {description ? (
+              <p className="page-subtitle max-w-2xl">{description}</p>
+            ) : null}
           </div>
         </div>
-        {actions ? <div className="flex flex-wrap items-center gap-2 md:justify-end">{actions}</div> : null}
+        {actions ? (
+          <div className="flex flex-wrap items-center gap-2 md:justify-end">
+            {actions}
+          </div>
+        ) : null}
       </div>
     </header>
   );

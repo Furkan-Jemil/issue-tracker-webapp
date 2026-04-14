@@ -6,7 +6,7 @@ import {
   parseSeverity,
 } from "@/lib/issueFilters";
 import Link from "next/link";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IssuesFilterPopover } from "@/app/issues/IssuesFilterPopover";
@@ -303,11 +303,24 @@ export default async function IssuesListPage({
           </>
         }
       />
-      <Card tone="soft" density="dense" className="border-border/70 bg-card/75 shadow-sm">
-        <CardContent className="p-3 text-sm text-muted-foreground md:p-4">
-          Use Compact for fast scanning, Detailed for ownership context, and Board for triage by status.
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card/80 px-3 py-2.5 shadow-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-foreground/90">View modes</span>
+          <div className="group relative inline-flex items-center">
+            <button
+              type="button"
+              aria-label="How issue views work"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <Info className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <div className="pointer-events-none absolute left-1/2 top-9 z-20 w-max max-w-[240px] -translate-x-1/2 rounded-lg border border-border/70 bg-popover px-3 py-2 text-[11px] text-popover-foreground opacity-0 shadow-lg transition group-hover:opacity-100">
+              Compact is for fast scanning, Detailed is for ownership context, and Board is for triage by status.
+            </div>
+          </div>
+        </div>
+        <span className="text-xs text-muted-foreground">Hover the icon for help</span>
+      </div>
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
         {[
           { label: "Filtered", value: total, href: buildClearFiltersHref() },
