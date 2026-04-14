@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Bar, Doughnut, Line } from "react-chartjs-2";
+import dynamic from "next/dynamic";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -21,6 +21,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
+
+const Line = dynamic(() => import("react-chartjs-2").then((mod) => mod.Line), { ssr: false });
+const Bar = dynamic(() => import("react-chartjs-2").then((mod) => mod.Bar), { ssr: false });
+const Doughnut = dynamic(() => import("react-chartjs-2").then((mod) => mod.Doughnut), { ssr: false });
 
 ChartJS.register(
   CategoryScale,

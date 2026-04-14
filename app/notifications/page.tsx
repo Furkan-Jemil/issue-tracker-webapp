@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Bell, ArrowUpRight } from "lucide-react";
@@ -24,9 +24,13 @@ type NotificationItem = {
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [markAllPending, setMarkAllPending] = useState(false);
+  const [inlineNotice, setInlineNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [undoCandidateId, setUndoCandidateId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pendingReadTimersRef = useRef<Map<string, number>>(new Map());
 
   async function loadNotifications() {
     try {
@@ -46,18 +50,80 @@ export default function NotificationsPage() {
     loadNotifications();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      pendingReadTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+      pendingReadTimersRef.current.clear();
+    };
+  }, []);
+
   async function markAllAsRead() {
-    await fetch("/api/notifications", { method: "PATCH" });
-    await loadNotifications();
-    router.refresh();
+    setMarkAllPending(true);
+    setInlineNotice(null);
+    try {
+      const res = await fetch("/api/notifications", { method: "PATCH" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Failed to mark notifications as read.");
+      }
+      await loadNotifications();
+      setInlineNotice({ type: "success", text: "All notifications marked as read." });
+      router.refresh();
+    } catch (err) {
+      setInlineNotice({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to mark notifications as read.",
+      });
+    } finally {
+      setMarkAllPending(false);
+    }
   }
 
   async function markOneAsRead(id: string) {
-    await fetch(`/api/notifications/${id}`, { method: "PATCH" });
+    const existing = pendingReadTimersRef.current.get(id);
+    if (existing) {
+      window.clearTimeout(existing);
+    }
+
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
     );
-    router.refresh();
+    setUndoCandidateId(id);
+    setInlineNotice({ type: "success", text: "Notification marked read. Undo?" });
+
+    const timerId = window.setTimeout(async () => {
+      pendingReadTimersRef.current.delete(id);
+      try {
+        const res = await fetch(`/api/notifications/${id}`, { method: "PATCH" });
+        if (!res.ok) {
+          throw new Error("Failed to save notification state.");
+        }
+      } catch {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, isRead: false } : n)),
+        );
+        setInlineNotice({ type: "error", text: "Could not mark notification as read." });
+      } finally {
+        setUndoCandidateId((current) => (current === id ? null : current));
+        router.refresh();
+      }
+    }, 4200);
+
+    pendingReadTimersRef.current.set(id, timerId);
+  }
+
+  function undoMarkRead() {
+    if (!undoCandidateId) return;
+    const timerId = pendingReadTimersRef.current.get(undoCandidateId);
+    if (timerId) {
+      window.clearTimeout(timerId);
+      pendingReadTimersRef.current.delete(undoCandidateId);
+    }
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === undoCandidateId ? { ...n, isRead: false } : n)),
+    );
+    setInlineNotice({ type: "success", text: "Read action undone." });
+    setUndoCandidateId(null);
   }
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -73,10 +139,30 @@ export default function NotificationsPage() {
         icon={Bell}
       />
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <Button type="button" onClick={markAllAsRead}>
-          Mark all read
+        <Button type="button" onClick={markAllAsRead} disabled={markAllPending}>
+          {markAllPending ? "Marking..." : "Mark all read"}
         </Button>
       </div>
+      {inlineNotice && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`rounded-lg border px-3 py-2 text-sm ${
+            inlineNotice.type === "success"
+              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+              : "border-red-500/40 bg-red-500/10 text-red-300"
+          }`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span>{inlineNotice.text}</span>
+            {undoCandidateId && inlineNotice.type === "success" ? (
+              <Button type="button" size="dense" variant="soft" onClick={undoMarkRead}>
+                Undo
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      )}
       <div className="grid gap-3 sm:grid-cols-2">
         <Link href="/notifications?view=unread" className="block">
           <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
@@ -128,13 +214,7 @@ export default function NotificationsPage() {
         <ul aria-live="polite" aria-busy={loading} className="space-y-2">
           {visibleNotifications.map((n) => (
             <li key={n.id}>
-              <Link
-                href={n.issue ? `/issues/${n.issue.id}` : "#"}
-                onClick={() => {
-                  if (!n.isRead) {
-                    void markOneAsRead(n.id);
-                  }
-                }}>
+              <Link href={n.issue ? `/issues/${n.issue.id}` : "#"}>
                 <Card className={n.isRead ? "opacity-85" : "border-primary/30 shadow-sm shadow-primary/10"}>
                   <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
                     <CardTitle className="text-base leading-6">{n.message}</CardTitle>
