@@ -120,13 +120,13 @@ export function CommandPalette() {
       </Button>
 
       {open ? (
-        <div className="fixed inset-0 z-[80] flex items-start justify-center bg-black/40 px-4 pt-24 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[80] flex items-start justify-center bg-black/40 px-4 pt-16 backdrop-blur-sm md:pt-20">
           <div
-            className="w-full max-w-2xl overflow-hidden rounded-3xl border border-border/70 bg-card shadow-2xl shadow-black/20"
+            className="w-full max-w-2xl overflow-hidden rounded-2xl border border-border/70 bg-card shadow-2xl shadow-black/20"
             role="dialog"
             aria-modal="true"
             aria-label="Command palette">
-            <div className="flex items-center gap-3 border-b border-border/60 px-4 py-3">
+            <div className="flex items-center gap-2.5 border-b border-border/60 px-3 py-2.5">
               <Search
                 className="h-4 w-4 text-muted-foreground"
                 aria-hidden="true"
@@ -149,14 +149,14 @@ export function CommandPalette() {
               </Button>
             </div>
 
-            <div className="max-h-[60vh] overflow-auto p-2">
+            <div className="max-h-[60vh] overflow-auto p-1.5">
               {filteredItems.length > 0 ? (
                 filteredItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "flex items-center justify-between gap-4 rounded-2xl px-4 py-3 transition hover:bg-accent hover:text-accent-foreground",
+                      "flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 transition hover:bg-accent hover:text-accent-foreground",
                     )}
                     onClick={() => setOpen(false)}>
                     <div>
@@ -171,7 +171,7 @@ export function CommandPalette() {
                   </Link>
                 ))
               ) : (
-                <div className="px-4 py-10 text-center text-sm text-muted-foreground">
+                <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                   No matching command found.
                 </div>
               )}

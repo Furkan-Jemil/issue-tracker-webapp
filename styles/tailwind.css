@@ -31,10 +31,10 @@
     --chart-5: 224 76% 36%;
     --radius: 0.625rem;
     --density-scale: 1;
-    --space-page-y: 1rem;
-    --space-page-x: 0.75rem;
-    --space-stack: 1rem;
-    --card-pad: 1rem;
+    --space-page-y: 0.875rem;
+    --space-page-x: 0.625rem;
+    --space-stack: 0.875rem;
+    --card-pad: 0.875rem;
     --card-gap: 0.75rem;
     --header-pad-y: 0.75rem;
     --header-pad-x: 1rem;
@@ -147,10 +147,10 @@
 
   html.ui-density-compact {
     --density-scale: 0.88;
-    --space-page-y: 0.75rem;
-    --space-page-x: 0.625rem;
-    --space-stack: 0.75rem;
-    --card-pad: 0.75rem;
+    --space-page-y: 0.625rem;
+    --space-page-x: 0.5rem;
+    --space-stack: 0.625rem;
+    --card-pad: 0.625rem;
     --card-gap: 0.5rem;
     --header-pad-y: 0.625rem;
     --header-pad-x: 0.875rem;

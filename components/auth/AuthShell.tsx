@@ -6,8 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div className="relative min-h-[calc(100vh-8rem)] w-full lg:min-h-[calc(100vh-6rem)]">
-      <div className="mx-auto grid w-full max-w-5xl gap-6 px-4 py-8 md:py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:items-center lg:gap-8">
-        <div className="relative hidden overflow-hidden rounded-3xl border border-border/50 bg-card/70 p-6 shadow-lg shadow-primary/5 backdrop-blur-sm lg:block lg:p-8">
+      <div className="mx-auto grid w-full max-w-5xl gap-4 px-4 py-6 md:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:items-center lg:gap-6">
+        <div className="relative hidden overflow-hidden rounded-2xl border border-border/50 bg-card/70 p-5 shadow-lg shadow-primary/5 backdrop-blur-sm lg:block lg:p-6">
           <div
             aria-hidden
             className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-primary/15 blur-3xl"
@@ -16,7 +16,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
             aria-hidden
             className="pointer-events-none absolute -bottom-32 -left-16 h-72 w-72 rounded-full bg-[hsl(198_78%_64%/0.14)] blur-3xl"
           />
-          <div className="relative space-y-5">
+          <div className="relative space-y-4">
             <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md">
               <Ticket className="h-5 w-5" strokeWidth={2} aria-hidden />
             </div>
