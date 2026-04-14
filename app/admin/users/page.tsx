@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { UsersRound } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -120,7 +121,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="page-stack">
-      <PageHeader title="Users" description="Manage user accounts, roles, and permissions." />
+      <PageHeader title="Users" description="Manage user accounts, roles, and permissions." icon={UsersRound} />
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Card>

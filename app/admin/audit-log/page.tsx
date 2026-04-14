@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import Link from "next/link";
+import { History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,6 +63,7 @@ export default async function AdminAuditLogPage() {
       <PageHeader
         title="Audit Log"
         description="Review system changes, comments, and status updates."
+        icon={History}
       />
       <div className="grid gap-3 sm:grid-cols-3">
         <Link href="/issues" className="block">
