@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Ticket } from "lucide-react";
 import { CommentThread } from "@/components/issue/CommentThread";
 import { IssueActions } from "@/components/issue/IssueActions";
+import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,8 @@ export default async function IssueDetailPage({
   }
 
   const isAdmin = session.user.role === "ADMIN";
+  const canQuickStatus =
+    session.user.role === "ADMIN" || session.user.role === "TESTER";
 
   const [issue, assignableUsers] = await Promise.all([
     prisma.issue.findUnique({
@@ -112,6 +115,9 @@ export default async function IssueDetailPage({
             <Badge variant={statusVariant(issue.status)} className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.16em]">
               {issue.status}
             </Badge>
+            {canQuickStatus && (
+              <StatusQuickActions issueId={issue.id} currentStatus={issue.status} />
+            )}
             <Button asChild variant="outline" size="sm">
               <Link href="#comments-heading">Jump to comments</Link>
             </Button>

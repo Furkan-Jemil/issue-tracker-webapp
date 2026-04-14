@@ -62,6 +62,9 @@ export function AttachmentUpload({
   return (
     <div className="space-y-2.5 rounded-lg border border-dashed border-input bg-secondary/25 p-3 md:p-4">
       <Label htmlFor="attachments">Associated files</Label>
+      <p className="text-xs text-muted-foreground">
+        Add documents or exports that help explain the issue (up to 10MB each).
+      </p>
       <input
         id="attachments"
         type="file"
@@ -73,7 +76,7 @@ export function AttachmentUpload({
         type="button"
         variant="outline"
         onClick={() => document.getElementById("attachments")?.click()}>
-        Add attachments
+        Add files
       </Button>
       {error && (
         <div role="alert" className="text-sm text-destructive">

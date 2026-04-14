@@ -70,12 +70,15 @@ export function ScreenshotUpload({
         onChange={(e) => handleFiles(e.target.files)}
       />
       <Label htmlFor="screenshots">Screenshots</Label>
+      <p className="text-xs text-muted-foreground">
+        Upload JPEG, PNG, GIF, or WebP (max 5MB each).
+      </p>
       <Button
         type="button"
         variant="outline"
         className="mb-1"
         onClick={() => inputRef.current?.click()}>
-        Add Screenshots
+        Add screenshots
       </Button>
       {error && (
         <div role="alert" className="mb-2 text-sm text-destructive">

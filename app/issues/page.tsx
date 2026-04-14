@@ -159,6 +159,8 @@ export default async function IssuesListPage({
   const hasActiveFilters = Boolean(
     query || status || priority || severity || reporter || assignee,
   );
+  const tableColumnCount =
+    5 + (showDetails ? 2 : 0) + (isAdmin && showDetails ? 2 : 0);
   const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${total} total issues), ${view} view`;
   const cellPaddingClass = showDetails ? "py-2.5" : "py-1.5";
   const headPaddingClass = showDetails ? "h-10 py-1.5" : "h-9 py-1";
@@ -432,73 +434,94 @@ export default async function IssuesListPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {issues.map((issue) => (
-                  <TableRow key={issue.id}>
-                    <TableCell className={cellPaddingClass}>
-                      <Link
-                        href={`/issues/${issue.id}`}
-                        className="font-medium text-primary hover:underline">
-                        {issue.title}
-                      </Link>
-                      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground lg:hidden">
-                        <span className="rounded-full border border-border/70 px-2 py-0.5">{issue.type}</span>
-                        <span className="rounded-full border border-border/70 px-2 py-0.5">{issue.severity}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className={cn(cellPaddingClass, "hidden lg:table-cell")}>
-                      {issue.type}
-                    </TableCell>
-                    <TableCell className={cellPaddingClass}>
-                      {issue.priority}
-                    </TableCell>
-                    <TableCell className={cn(cellPaddingClass, "hidden xl:table-cell")}>
-                      {issue.severity}
-                    </TableCell>
-                    <TableCell className={cellPaddingClass}>
-                      <div className="flex items-center gap-1.5">
-                        <Badge variant={statusVariant(issue.status)}>
-                          {issue.status}
-                        </Badge>
-                        {canQuickStatus && (
-                          <StatusQuickActions
-                            issueId={issue.id}
-                            currentStatus={issue.status}
-                          />
-                        )}
-                      </div>
-                    </TableCell>
-                    {isAdmin && showDetails && (
+                {issues.length > 0 ? (
+                  issues.map((issue) => (
+                    <TableRow key={issue.id}>
                       <TableCell className={cellPaddingClass}>
-                        {issue.assigneeId ? (
-                          <div className="flex items-center gap-2">
-                            <span>{getUserLabel(issue.assigneeId, "Unknown assignee")}</span>
-                            {getUserRoleChip(reporterById.get(issue.assigneeId)?.role)}
-                          </div>
-                        ) : (
-                          "Unassigned"
-                        )}
-                      </TableCell>
-                    )}
-                    {isAdmin && showDetails && (
-                      <TableCell className={cellPaddingClass}>
-                        <div className="flex items-center gap-2">
-                          <span>{getUserLabel(issue.createdBy, "Unknown reporter")}</span>
-                          {getUserRoleChip(reporterById.get(issue.createdBy)?.role)}
+                        <Link
+                          href={`/issues/${issue.id}`}
+                          className="font-medium text-primary hover:underline">
+                          {issue.title}
+                        </Link>
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground lg:hidden">
+                          <span className="rounded-full border border-border/70 px-2 py-0.5">{issue.type}</span>
+                          <span className="rounded-full border border-border/70 px-2 py-0.5">{issue.severity}</span>
                         </div>
                       </TableCell>
-                    )}
-                    {showDetails && (
-                      <TableCell className={cellPaddingClass}>
-                        {issue.reportedAt ? formatDate(issue.reportedAt) : "-"}
+                      <TableCell className={cn(cellPaddingClass, "hidden lg:table-cell")}>
+                        {issue.type}
                       </TableCell>
-                    )}
-                    {showDetails && (
                       <TableCell className={cellPaddingClass}>
-                        {formatDate(issue.createdAt)}
+                        {issue.priority}
                       </TableCell>
-                    )}
+                      <TableCell className={cn(cellPaddingClass, "hidden xl:table-cell")}>
+                        {issue.severity}
+                      </TableCell>
+                      <TableCell className={cellPaddingClass}>
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant={statusVariant(issue.status)}>
+                            {issue.status}
+                          </Badge>
+                          {canQuickStatus && (
+                            <StatusQuickActions
+                              issueId={issue.id}
+                              currentStatus={issue.status}
+                            />
+                          )}
+                        </div>
+                      </TableCell>
+                      {isAdmin && showDetails && (
+                        <TableCell className={cellPaddingClass}>
+                          {issue.assigneeId ? (
+                            <div className="flex items-center gap-2">
+                              <span>{getUserLabel(issue.assigneeId, "Unknown assignee")}</span>
+                              {getUserRoleChip(reporterById.get(issue.assigneeId)?.role)}
+                            </div>
+                          ) : (
+                            "Unassigned"
+                          )}
+                        </TableCell>
+                      )}
+                      {isAdmin && showDetails && (
+                        <TableCell className={cellPaddingClass}>
+                          <div className="flex items-center gap-2">
+                            <span>{getUserLabel(issue.createdBy, "Unknown reporter")}</span>
+                            {getUserRoleChip(reporterById.get(issue.createdBy)?.role)}
+                          </div>
+                        </TableCell>
+                      )}
+                      {showDetails && (
+                        <TableCell className={cellPaddingClass}>
+                          {issue.reportedAt ? formatDate(issue.reportedAt) : "-"}
+                        </TableCell>
+                      )}
+                      {showDetails && (
+                        <TableCell className={cellPaddingClass}>
+                          {formatDate(issue.createdAt)}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={tableColumnCount} className="py-10">
+                      <div className="mx-auto max-w-md rounded-xl border border-dashed border-border/70 bg-background/80 px-4 py-5 text-center">
+                        <p className="text-sm font-medium text-foreground">No issues match this view</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Clear filters or create a new issue to get started.
+                        </p>
+                        <div className="mt-3 flex justify-center gap-2">
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={buildClearFiltersHref()}>Clear filters</Link>
+                          </Button>
+                          <Button asChild size="sm">
+                            <Link href="/issues/new">Create issue</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           )}
