@@ -64,6 +64,13 @@ export function AppShell({
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const themeTransitionTimeoutRef = useRef<number | null>(null);
+  const profileInitials =
+    profileName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || "U";
 
   function applyTheme(nextTheme: "light" | "dark", animated: boolean) {
     const root = document.documentElement;
@@ -242,9 +249,14 @@ export function AppShell({
                   aria-label={`Profile menu for ${profileName}`}
                   aria-expanded={profileMenuOpen}
                   onClick={() => setProfileMenuOpen((current) => !current)}
-                  className="inline-flex h-9 items-center rounded-full border border-border/70 bg-card/80 px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                  className="group inline-flex h-9 items-center gap-0 rounded-full border border-border/70 bg-card/80 px-1.5 text-xs font-medium text-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground"
                 >
-                  <span className="max-w-[120px] truncate">{profileName}</span>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
+                    {profileInitials}
+                  </span>
+                  <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:ml-2 group-hover:max-w-[120px] group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-[120px] group-focus-visible:opacity-100">
+                    {profileName}
+                  </span>
                 </button>
               </div>
 
