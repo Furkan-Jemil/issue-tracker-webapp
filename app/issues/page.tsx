@@ -6,6 +6,7 @@ import {
   parseSeverity,
 } from "@/lib/issueFilters";
 import Link from "next/link";
+import { ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IssuesFilterPopover } from "@/app/issues/IssuesFilterPopover";
@@ -195,6 +196,7 @@ export default async function IssuesListPage({
       <PageHeader
         title="Issues"
         description="Browse, search, and manage reported issues."
+        icon={ClipboardList}
         actions={
           <>
             <IssuesFilterPopover

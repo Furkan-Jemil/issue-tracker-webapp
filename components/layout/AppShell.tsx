@@ -4,16 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ClipboardList,
   FileClock,
+  History,
   LayoutDashboard,
   LogOut,
   Moon,
-  Shield,
+  UsersRound,
   SunMedium,
   ChevronsLeft,
   ChevronsRight,
   Ticket,
-  ListChecks,
 } from "lucide-react";
 
 import NotificationBell from "@/components/notifications/NotificationBell";
@@ -32,11 +33,11 @@ function getIcon(icon: NavIcon) {
     case "dashboard":
       return LayoutDashboard;
     case "issues":
-      return ListChecks;
+      return ClipboardList;
     case "admin":
-      return Shield;
+      return UsersRound;
     case "audit":
-      return FileClock;
+      return History;
   }
 }
 

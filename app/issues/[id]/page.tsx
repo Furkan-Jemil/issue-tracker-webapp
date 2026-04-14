@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Ticket } from "lucide-react";
 import { CommentThread } from "@/components/issue/CommentThread";
 import { IssueActions } from "@/components/issue/IssueActions";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -81,6 +82,7 @@ export default async function IssueDetailPage({
       <PageHeader
         title={issue.title}
         description={issue.description}
+        icon={Ticket}
         breadcrumbs={[
           { label: "Issues", href: "/issues" },
           { label: "Details" },
