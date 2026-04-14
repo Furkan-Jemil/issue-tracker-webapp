@@ -41,6 +41,7 @@ export default async function IssueDetailPage({
     prisma.issue.findUnique({
       where: { id },
       include: {
+        creator: { select: { id: true, name: true, email: true } },
         assignee: { select: { id: true, name: true, email: true } },
         screenshots: { orderBy: { createdAt: "desc" } },
         attachments: {
@@ -101,6 +102,54 @@ export default async function IssueDetailPage({
           </>
         }
       />
+
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
+        {[
+          {
+            label: "Status",
+            value: issue.status,
+            tone: "status",
+          },
+          {
+            label: "Priority",
+            value: issue.priority,
+            tone: "default",
+          },
+          {
+            label: "Severity",
+            value: issue.severity,
+            tone: "default",
+          },
+          {
+            label: "Assignee",
+            value: issue.assignee ? issue.assignee.name || issue.assignee.email : "Unassigned",
+            tone: "default",
+          },
+          {
+            label: "Reporter",
+            value: issue.creator.name || issue.creator.email,
+            tone: "default",
+          },
+          {
+            label: "Reported",
+            value: issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified",
+            tone: "default",
+          },
+        ].map((item) => (
+          <Card key={item.label} tone="soft" density="dense" className="border-border/70 bg-card/80">
+            <CardContent className="p-3">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
+              {item.tone === "status" ? (
+                <Badge variant={statusVariant(issue.status)} className="mt-2 rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.16em]">
+                  {item.value}
+                </Badge>
+              ) : (
+                <p className="mt-2 text-sm font-semibold text-foreground">{item.value}</p>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       <Card className="overflow-hidden">
         <CardContent className="grid gap-4 p-4 md:p-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:gap-5">

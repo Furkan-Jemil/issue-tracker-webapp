@@ -29,7 +29,7 @@ export function IssuesFilterPopover({
   onSubmitHref,
   onResetHref,
 }: {
-  view: "compact" | "details";
+  view: "compact" | "details" | "board";
   isAdmin: boolean;
   hasActiveFilters: boolean;
   query: string;
@@ -100,14 +100,17 @@ export function IssuesFilterPopover({
       {open && (
         <div
           id="issues-filter-popover"
-          className="absolute left-0 top-11 z-30 w-[min(92vw,380px)] rounded-xl border border-border/70 bg-card p-3 shadow-lg md:left-auto md:right-0">
+          className="absolute left-0 top-11 z-30 w-[min(92vw,420px)] rounded-2xl border border-border/70 bg-card p-4 shadow-xl shadow-black/10 md:left-auto md:right-0">
           <form method="get" action={onSubmitHref} className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <Button type="button" variant={selectedView === "compact" ? "default" : "outline"} size="sm" onClick={() => setSelectedView("compact")} className="justify-center">
                 Compact
               </Button>
               <Button type="button" variant={selectedView === "details" ? "default" : "outline"} size="sm" onClick={() => setSelectedView("details")} className="justify-center">
                 Detailed
+              </Button>
+              <Button type="button" variant={selectedView === "board" ? "default" : "outline"} size="sm" onClick={() => setSelectedView("board")} className="justify-center">
+                Board
               </Button>
             </div>
             <input type="hidden" name="view" value={selectedView} />

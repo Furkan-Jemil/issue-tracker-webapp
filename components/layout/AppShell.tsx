@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import NotificationBell from "@/components/notifications/NotificationBell";
+import { CommandPalette } from "@/components/layout/CommandPalette";
 import { ICON_STROKE, ICON_STYLE } from "@/lib/uiTokens";
 import { cn } from "@/lib/utils";
 
@@ -294,6 +295,7 @@ export function AppShell({
                     {profileName}
                   </span>
                 </button>
+                <CommandPalette />
               </div>
 
               {profileMenuOpen && (
