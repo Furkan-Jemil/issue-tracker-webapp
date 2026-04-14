@@ -14,7 +14,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, ArrowUpRight } from "lucide-react";
 import { Ticket, CircleDot, LoaderCircle, BadgeCheck, CheckCircle2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -334,7 +334,7 @@ type DashboardData = {
 
     return (
       <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3 xl:grid-cols-5">
             {[
               { href: "/issues", label: "Total issues", value: data.totalIssues, icon: Ticket, tone: "text-primary" },
               { href: "/issues/filter?status=OPEN", label: "Open", value: data.open, icon: CircleDot, tone: "text-[hsl(var(--chart-1))]" },
@@ -343,13 +343,14 @@ type DashboardData = {
               { href: "/issues/filter?status=CLOSED", label: "Closed", value: data.closed, icon: CheckCircle2, tone: "text-[hsl(var(--chart-5))]" },
             ].map(({ href, label, value, icon: Icon, tone }) => (
               <Link key={label} href={href}>
-                <Card className="h-full border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md">
-                  <CardContent className="flex items-center justify-between gap-3 p-3.5">
+                <Card className="group h-full cursor-pointer border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+                  <CardContent className="flex items-center justify-between gap-3 p-3">
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
                       <p className={`text-lg font-semibold leading-tight ${tone}`}>{value}</p>
+                      <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 transition-colors group-hover:text-foreground">Open list</p>
                     </div>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 bg-background text-muted-foreground">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </div>
                   </CardContent>
@@ -421,12 +422,12 @@ type DashboardData = {
           </Card>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Analytics</p>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)]">
+          <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
             <Card className="border-border/70 bg-card/95 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-border/60 pb-4">
+              <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-border/60 pb-3">
                 <div>
                   <CardTitle className="text-base font-semibold">Issue Trend</CardTitle>
                   <CardDescription>Open and in-progress issues across the selected range.</CardDescription>
@@ -438,7 +439,7 @@ type DashboardData = {
                   <option value="365d">Last year</option>
                 </Select>
               </CardHeader>
-              <CardContent className="h-[360px] p-4">
+              <CardContent className="h-[clamp(220px,34vh,320px)] p-3.5">
                 <Line
                   key={`trend-${themeMode}`}
                   data={trendData}
@@ -497,12 +498,12 @@ type DashboardData = {
             </Card>
 
             <Card className="border-border/70 bg-card/95 shadow-sm">
-              <CardHeader className="border-b border-border/60 pb-4">
+              <CardHeader className="border-b border-border/60 pb-3">
                 <CardTitle className="text-base font-semibold">Status Mix</CardTitle>
                 <CardDescription>Current issue distribution by workflow state.</CardDescription>
               </CardHeader>
-              <CardContent className="flex h-[360px] items-center justify-center p-4">
-                <div className="h-[270px] w-full">
+              <CardContent className="flex h-[clamp(220px,34vh,320px)] items-center justify-center p-3.5">
+                <div className="h-[clamp(170px,28vh,250px)] w-full">
                   <Doughnut
                     key={`status-${themeMode}`}
                     data={statusData}
@@ -543,11 +544,11 @@ type DashboardData = {
           </div>
 
           <Card className="border-border/70 bg-card/95 shadow-sm">
-            <CardHeader className="border-b border-border/60 pb-4">
+            <CardHeader className="border-b border-border/60 pb-3">
               <CardTitle className="text-base font-semibold">Monthly Comparison</CardTitle>
               <CardDescription>Open and closed issue volume grouped into shadcn-style buckets.</CardDescription>
             </CardHeader>
-            <CardContent className="h-[320px] p-4">
+            <CardContent className="h-[clamp(220px,30vh,280px)] p-3.5">
               <Bar
                 key={`comparison-${themeMode}`}
                 data={comparisonData}
@@ -600,8 +601,12 @@ type DashboardData = {
 
         <Card className="border-border/70 bg-card/95">
           <CardHeader>
-            <CardTitle className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Recent Issues
+            <CardTitle className="flex items-center justify-between text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              <span>Recent Issues</span>
+              <Link href="/issues" className="inline-flex items-center gap-1 text-[10px] tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground">
+                View all
+                <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </Link>
             </CardTitle>
           </CardHeader>
           <CardContent>

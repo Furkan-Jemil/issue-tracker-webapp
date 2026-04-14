@@ -26,7 +26,7 @@ export function PageHeader({
   icon?: PageHeaderIcon;
 }) {
   return (
-    <header className={cn("space-y-2", className)}>
+    <header className={cn("space-y-1.5", className)}>
       {breadcrumbs?.length ? (
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
           {breadcrumbs.map((item, index) => (
@@ -44,10 +44,10 @@ export function PageHeader({
         </nav>
       ) : null}
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/70 p-3 shadow-sm shadow-black/5 md:flex-row md:items-center md:justify-between md:p-4">
+      <div className="flex flex-col gap-2.5 rounded-2xl border border-border/60 bg-card/70 px-3 py-2.5 shadow-sm shadow-black/5 md:flex-row md:items-center md:justify-between md:px-4 md:py-3">
         <div className="flex min-w-0 items-start gap-3">
           {Icon ? (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background text-muted-foreground shadow-sm">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground shadow-sm">
               <Icon className="h-5 w-5" aria-hidden={true} />
             </div>
           ) : null}
@@ -56,7 +56,7 @@ export function PageHeader({
             {description ? <p className="page-subtitle max-w-2xl">{description}</p> : null}
           </div>
         </div>
-        {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+        {actions ? <div className="flex flex-wrap items-center gap-2 md:justify-end">{actions}</div> : null}
       </div>
     </header>
   );
