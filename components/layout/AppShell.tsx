@@ -5,11 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ClipboardList,
-  FileClock,
   History,
   LayoutDashboard,
   LogOut,
+  List,
   Moon,
+  Rows3,
   UsersRound,
   SunMedium,
   ChevronsLeft,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 import NotificationBell from "@/components/notifications/NotificationBell";
+import { ICON_STROKE, ICON_STYLE } from "@/lib/uiTokens";
 import { cn } from "@/lib/utils";
 
 type NavIcon = "dashboard" | "issues" | "admin" | "audit";
@@ -62,6 +64,7 @@ export function AppShell({
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const themeTransitionTimeoutRef = useRef<number | null>(null);
@@ -114,6 +117,19 @@ export function AppShell({
   }, []);
 
   useEffect(() => {
+    const stored = window.localStorage.getItem("app-density");
+    const nextDensity = stored === "compact" ? "compact" : "comfortable";
+    setDensity(nextDensity);
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("ui-density-compact", "ui-density-comfortable");
+    root.classList.add(density === "compact" ? "ui-density-compact" : "ui-density-comfortable");
+    window.localStorage.setItem("app-density", density);
+  }, [density]);
+
+  useEffect(() => {
     return () => {
       if (themeTransitionTimeoutRef.current !== null) {
         window.clearTimeout(themeTransitionTimeoutRef.current);
@@ -152,6 +168,10 @@ export function AppShell({
     applyTheme(nextTheme, true);
   }
 
+  function toggleDensity() {
+    setDensity((current) => (current === "compact" ? "comfortable" : "compact"));
+  }
+
   const sidebarWidthClass = sidebarExpanded ? "w-52 md:w-56" : "w-16 md:w-20";
   const contentOffsetClass = sidebarExpanded ? "pl-52 md:pl-56" : "pl-16 md:pl-20";
 
@@ -183,12 +203,13 @@ export function AppShell({
             aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
             aria-pressed={sidebarExpanded}
             onClick={() => setSidebarExpanded((current) => !current)}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:h-9 md:w-9"
           >
             {sidebarExpanded ? (
-              <ChevronsLeft className="h-4 w-4" aria-hidden="true" />
+              <ChevronsLeft className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
             ) : (
-              <ChevronsRight className="h-4 w-4" aria-hidden="true" />
+              <ChevronsRight className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
             )}
           </button>
         </div>
@@ -212,7 +233,7 @@ export function AppShell({
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 )}
               >
-                <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                <Icon className={ICON_STYLE.nav} strokeWidth={ICON_STROKE.nav} aria-hidden="true" />
                 <span
                   className={cn(
                     "min-w-0 overflow-hidden whitespace-nowrap transition-all duration-200",
@@ -236,21 +257,35 @@ export function AppShell({
                   type="button"
                   aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
                   onClick={toggleTheme}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-card/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                  title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-card/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:h-9 md:w-9"
                 >
                   {theme === "dark" ? (
-                    <SunMedium className="h-4 w-4" aria-hidden="true" />
+                    <SunMedium className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
                   ) : (
-                    <Moon className="h-4 w-4" aria-hidden="true" />
+                    <Moon className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
                   )}
                 </button>
-                <NotificationBell className="h-9 w-9 border-border/70 bg-card/80 text-muted-foreground hover:bg-accent hover:text-accent-foreground" />
+                <button
+                  type="button"
+                  onClick={toggleDensity}
+                  aria-label={density === "compact" ? "Switch to comfortable density" : "Switch to compact density"}
+                  title={density === "compact" ? "Comfortable density" : "Compact density"}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-card/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:h-9 md:w-9"
+                >
+                  {density === "compact" ? (
+                    <List className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+                  ) : (
+                    <Rows3 className={ICON_STYLE.control} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+                  )}
+                </button>
+                <NotificationBell className="h-11 w-11 border-border/70 bg-card/80 text-muted-foreground hover:bg-accent hover:text-accent-foreground md:h-9 md:w-9" />
                 <button
                   type="button"
                   aria-label={`Profile menu for ${profileName}`}
                   aria-expanded={profileMenuOpen}
                   onClick={() => setProfileMenuOpen((current) => !current)}
-                  className="group inline-flex h-9 items-center gap-0 rounded-full border border-border/70 bg-card/80 px-1.5 text-xs font-medium text-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground"
+                  className="group inline-flex h-11 items-center gap-0 rounded-full border border-border/70 bg-card/80 px-1.5 text-xs font-medium text-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground md:h-9"
                 >
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
                     {profileInitials}
@@ -285,7 +320,14 @@ export function AppShell({
           </div>
         </header>
 
-        <main id="main-content" className="page-enter page-shell w-full px-3 py-3 md:px-4 md:py-4 lg:px-5 lg:py-5">
+        <main
+          id="main-content"
+          className="page-enter page-shell w-full"
+          style={{
+            paddingInline: "var(--space-page-x)",
+            paddingBlock: "var(--space-page-y)",
+          }}
+        >
           {children}
         </main>
       </div>

@@ -30,6 +30,20 @@
     --chart-4: 225 78% 48%;
     --chart-5: 224 76% 36%;
     --radius: 0.625rem;
+    --density-scale: 1;
+    --space-page-y: 1rem;
+    --space-page-x: 0.75rem;
+    --space-stack: 1rem;
+    --card-pad: 1rem;
+    --card-gap: 0.75rem;
+    --header-pad-y: 0.75rem;
+    --header-pad-x: 1rem;
+    --table-head-h: 2.5rem;
+    --table-cell-py: 0.65rem;
+    --table-cell-px: 0.75rem;
+    --interactive-min: 2.75rem;
+    --surface-radius: 0.875rem;
+    --surface-shadow: 0 2px 10px rgba(2, 6, 23, 0.06);
   }
 
   .dark {
@@ -67,14 +81,59 @@
   }
   html,
   body {
-    @apply text-sm leading-[1.45];
+    @apply text-sm;
+    line-height: 1.4286;
   }
   html {
     scroll-padding-top: 140px;
   }
   body {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  h1,
+  .h1 {
+    font-size: 28px;
+    line-height: 32px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+  h2,
+  .h2 {
+    font-size: 22px;
+    line-height: 28px;
+    font-weight: 630;
+    letter-spacing: -0.015em;
+  }
+  h3,
+  .h3 {
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 620;
+  }
+  body {
     @apply bg-background text-foreground;
     background-attachment: fixed;
+  }
+
+  html.ui-density-compact {
+    --density-scale: 0.88;
+    --space-page-y: 0.75rem;
+    --space-page-x: 0.625rem;
+    --space-stack: 0.75rem;
+    --card-pad: 0.75rem;
+    --card-gap: 0.5rem;
+    --header-pad-y: 0.625rem;
+    --header-pad-x: 0.875rem;
+    --table-head-h: 2.2rem;
+    --table-cell-py: 0.5rem;
+    --table-cell-px: 0.625rem;
+    --interactive-min: 2.5rem;
+    --surface-radius: 0.75rem;
+  }
+
+  html.ui-density-comfortable {
+    --density-scale: 1;
   }
 
   html.theme-transition *,
@@ -91,19 +150,32 @@
 
 @layer components {
   .surface {
-    @apply border border-border/70 bg-card/90 shadow-md shadow-black/5 backdrop-blur-md;
+    @apply border border-border/70 bg-card/90 backdrop-blur-md;
+    border-radius: var(--surface-radius);
+    box-shadow: var(--surface-shadow);
   }
   .page-shell {
     @apply mx-auto w-full max-w-[1480px];
   }
   .page-stack {
-    @apply space-y-4 md:space-y-5;
+    display: grid;
+    gap: var(--space-stack);
   }
   .page-title {
-    @apply text-[1.35rem] font-semibold leading-tight tracking-tight md:text-[1.55rem];
+    @apply h1;
   }
   .page-subtitle {
     @apply text-[13px] text-muted-foreground md:text-sm;
+  }
+  .section-block {
+    @apply rounded-2xl border border-border/60 bg-card/80;
+    padding: var(--card-pad);
+  }
+  .summary-block {
+    @apply grid gap-3;
+  }
+  .data-block {
+    @apply rounded-2xl border border-border/60 bg-card/95;
   }
   .page-enter {
     animation: fadeIn 0.2s ease-out;

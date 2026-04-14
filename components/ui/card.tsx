@@ -1,15 +1,36 @@
 import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+const cardVariants = cva(
+  "text-card-foreground",
+  {
+    variants: {
+      tone: {
+        default: "border border-border/75 bg-card/95 shadow-sm shadow-black/[0.05] backdrop-blur-[2px]",
+        soft: "border border-border/60 bg-muted/25 shadow-sm shadow-black/[0.04]",
+      },
+      density: {
+        default: "rounded-2xl",
+        dense: "rounded-xl",
+      },
+    },
+    defaultVariants: {
+      tone: "default",
+      density: "default",
+    },
+  },
+);
+
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof cardVariants>
+>(({ className, tone, density, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "rounded-2xl border border-border/75 bg-card/95 text-card-foreground shadow-sm shadow-black/[0.05] backdrop-blur-[2px]",
+      cardVariants({ tone, density }),
       className,
     )}
     {...props}
@@ -23,7 +44,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-4 md:p-5", className)}
+    className={cn("flex flex-col space-y-[var(--card-gap)] px-[var(--card-pad)] pb-[calc(var(--card-pad)-0.125rem)] pt-[var(--card-pad)]", className)}
     {...props}
   />
 ));
@@ -60,7 +81,7 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-4 pt-0 md:p-5 md:pt-0", className)} {...props} />
+  <div ref={ref} className={cn("px-[var(--card-pad)] pb-[var(--card-pad)] pt-0", className)} {...props} />
 ));
 CardContent.displayName = "CardContent";
 
@@ -70,7 +91,7 @@ const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-4 pt-0 md:p-5 md:pt-0", className)}
+    className={cn("flex items-center px-[var(--card-pad)] pb-[var(--card-pad)] pt-0", className)}
     {...props}
   />
 ));

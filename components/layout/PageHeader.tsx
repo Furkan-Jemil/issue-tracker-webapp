@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 
+import { ICON_STROKE, ICON_STYLE } from "@/lib/uiTokens";
 import { cn } from "@/lib/utils";
 
 type BreadcrumbItem = {
@@ -8,7 +9,7 @@ type BreadcrumbItem = {
   href?: string;
 };
 
-type PageHeaderIcon = ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+type PageHeaderIcon = ComponentType<{ className?: string; strokeWidth?: number; "aria-hidden"?: boolean }>;
 
 export function PageHeader({
   title,
@@ -48,7 +49,7 @@ export function PageHeader({
         <div className="flex min-w-0 items-start gap-3">
           {Icon ? (
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground shadow-sm">
-              <Icon className="h-5 w-5" aria-hidden={true} />
+              <Icon className={ICON_STYLE.header} strokeWidth={ICON_STROKE.header} aria-hidden={true} />
             </div>
           ) : null}
           <div className="space-y-1">
