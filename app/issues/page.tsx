@@ -262,7 +262,7 @@ export default async function IssuesListPage({
         icon={ClipboardList}
         actions={
           <>
-            <div className="flex flex-wrap items-center gap-1 rounded-full border border-border/70 bg-background/80 p-1">
+            <div className="flex flex-wrap items-center gap-1 rounded-full border border-border/70 bg-background/80 p-1 shadow-sm">
               {[
                 { label: "Compact", href: buildViewHref("compact"), active: view === "compact" },
                 { label: "Detailed", href: buildViewHref("details"), active: view === "details" },
@@ -273,7 +273,7 @@ export default async function IssuesListPage({
                   asChild
                   size="dense"
                   variant={item.active ? "default" : "ghost"}
-                  className="rounded-full px-3"
+                  className="rounded-full px-3 font-medium"
                 >
                   <Link href={item.href}>{item.label}</Link>
                 </Button>
@@ -303,7 +303,7 @@ export default async function IssuesListPage({
           </>
         }
       />
-      <Card tone="soft" density="dense" className="border-border/70 bg-card/75">
+      <Card tone="soft" density="dense" className="border-border/70 bg-card/75 shadow-sm">
         <CardContent className="p-3 text-sm text-muted-foreground md:p-4">
           Use Compact for fast scanning, Detailed for ownership context, and Board for triage by status.
         </CardContent>
@@ -317,8 +317,8 @@ export default async function IssuesListPage({
             href: buildStatusHref(item.key),
           })),
         ].map((item) => (
-          <Link key={item.label} href={item.href} className="group rounded-2xl border border-border/70 bg-card/80 px-3 py-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-border hover:bg-card">
-            <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground group-hover:text-foreground">{item.label}</div>
+          <Link key={item.label} href={item.href} className="group rounded-2xl border border-border/70 bg-card/80 px-3 py-2.5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-md">
+            <div className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground">{item.label}</div>
             <div className="mt-1 text-lg font-semibold text-foreground">{item.value}</div>
           </Link>
         ))}

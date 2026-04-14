@@ -133,7 +133,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="page-stack">
-      <PageHeader title="Users" description="Manage user accounts, roles, and permissions." icon={UsersRound} />
+      <PageHeader title="Users" description="Manage user accounts, access roles, and operational permissions." icon={UsersRound} />
 
       <div className="grid gap-3 sm:grid-cols-3">
         <button
@@ -144,12 +144,12 @@ export default function AdminUsersPage() {
           }}
           className="text-left"
         >
-          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
             <CardContent className="flex items-center justify-between gap-3 p-3.5">
               <div>
-                <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Visible users</p>
+                <p className="text-[12px] font-medium text-muted-foreground">Visible users</p>
                 <p className="mt-1 text-2xl font-semibold">{users.length}</p>
-                <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 group-hover:text-foreground">Show all</p>
+                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">Show all</p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
                 <UsersRound className="h-5 w-5" aria-hidden="true" />
@@ -165,12 +165,12 @@ export default function AdminUsersPage() {
           }}
           className="text-left"
         >
-          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
             <CardContent className="flex items-center justify-between gap-3 p-3.5">
               <div>
-                <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Admins on page</p>
+                <p className="text-[12px] font-medium text-muted-foreground">Admins on page</p>
                 <p className="mt-1 text-2xl font-semibold">{adminCount}</p>
-                <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 group-hover:text-foreground">Filter admins</p>
+                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">Filter admins</p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
                 <UserCog className="h-5 w-5" aria-hidden="true" />
@@ -186,12 +186,12 @@ export default function AdminUsersPage() {
           }}
           className="text-left"
         >
-          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
             <CardContent className="flex items-center justify-between gap-3 p-3.5">
               <div>
-                <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Testers on page</p>
+                <p className="text-[12px] font-medium text-muted-foreground">Testers on page</p>
                 <p className="mt-1 text-2xl font-semibold">{testerCount}</p>
-                <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 group-hover:text-foreground">Filter testers</p>
+                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">Filter testers</p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
                 <UserCheck className="h-5 w-5" aria-hidden="true" />
@@ -205,7 +205,7 @@ export default function AdminUsersPage() {
         <CardHeader className="border-b border-border/60 bg-muted/20 py-3">
           <CardTitle className="flex items-center justify-between text-lg">
             <span>User Management</span>
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
               Select row
               <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
@@ -218,7 +218,7 @@ export default function AdminUsersPage() {
             </Button>
           </div>
 
-          <div className="hidden flex-wrap gap-2.5 sm:flex">
+          <div className="hidden flex-wrap gap-2.5 rounded-xl border border-border/70 bg-background/70 p-3 sm:flex">
             <Input
               aria-label="Search users"
               type="text"
@@ -266,7 +266,7 @@ export default function AdminUsersPage() {
           </div>
 
           {mobileFiltersOpen && (
-            <div className="grid gap-2.5 sm:hidden">
+            <div className="grid gap-2.5 rounded-xl border border-border/70 bg-background/70 p-3 sm:hidden">
               <Input
                 aria-label="Search users"
                 type="text"
@@ -384,7 +384,7 @@ export default function AdminUsersPage() {
                         event.stopPropagation();
                         void updateSingleRole(user.id, event.target.value);
                       }}
-                      className="h-8 w-32 rounded-full border-border/70 bg-background/80 px-3 text-[11px] font-semibold uppercase tracking-[0.12em]"
+                      className="h-8 w-32 rounded-full border-border/70 bg-background/80 px-3 text-[11px] font-semibold"
                     >
                       <option value="USER">User</option>
                       <option value="TESTER">Tester</option>

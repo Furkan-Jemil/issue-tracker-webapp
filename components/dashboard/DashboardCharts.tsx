@@ -337,7 +337,14 @@ type DashboardData = {
     }
 
     return (
-      <div className="space-y-5">
+      <div className="space-y-6">
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-foreground/90">Performance Snapshot</h2>
+            <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] font-medium">
+              Live data
+            </Badge>
+          </div>
           <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3 xl:grid-cols-5">
             {[
               { href: "/issues", label: "Total issues", value: data.totalIssues, icon: Ticket, tone: "text-primary" },
@@ -347,21 +354,22 @@ type DashboardData = {
               { href: "/issues/filter?status=CLOSED", label: "Closed", value: data.closed, icon: CheckCircle2, tone: "text-[hsl(var(--chart-5))]" },
             ].map(({ href, label, value, icon: Icon, tone }) => (
               <Link key={label} href={href}>
-                <Card className="group h-full cursor-pointer border-border/70 bg-card/95 transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+                <Card className="group h-full cursor-pointer border-border/70 bg-card/95 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
                   <CardContent className="flex items-center justify-between gap-3 p-3">
                     <div>
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
-                      <p className={`text-lg font-semibold leading-tight ${tone}`}>{value}</p>
-                      <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 transition-colors group-hover:text-foreground">Open list</p>
+                      <p className="text-[12px] font-medium text-muted-foreground">{label}</p>
+                      <p className={`text-2xl font-semibold leading-tight ${tone}`}>{value}</p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground transition-colors group-hover:text-foreground">Open list</p>
                     </div>
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-gradient-to-br from-background to-muted/25 text-muted-foreground">
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </div>
                   </CardContent>
                 </Card>
               </Link>
             ))}
-        </div>
+          </div>
+        </section>
 
         <div className="flex items-center justify-end gap-2">
           <Button
@@ -426,8 +434,11 @@ type DashboardData = {
           </Card>
         )}
 
-        <div className="space-y-3.5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Analytics</p>
+        <section className="space-y-3.5">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-foreground/90">Analytics</h2>
+            <p className="text-xs text-muted-foreground">Trend, mix, and throughput</p>
+          </div>
 
           <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
             <Card className="border-border/70 bg-card/95 shadow-sm">
@@ -550,7 +561,7 @@ type DashboardData = {
           <Card className="border-border/70 bg-card/95 shadow-sm">
             <CardHeader className="border-b border-border/60 pb-3">
               <CardTitle className="text-base font-semibold">Monthly Comparison</CardTitle>
-              <CardDescription>Open and closed issue volume grouped into shadcn-style buckets.</CardDescription>
+              <CardDescription>Open versus closed issue volume by grouped date buckets.</CardDescription>
             </CardHeader>
             <CardContent className="h-[clamp(220px,30vh,280px)] p-3.5">
               <Bar
@@ -601,13 +612,13 @@ type DashboardData = {
               />
             </CardContent>
           </Card>
-        </div>
+        </section>
 
         <Card className="border-border/70 bg-card/95">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            <CardTitle className="flex items-center justify-between text-base font-semibold text-foreground/90">
               <span>Recent Issues</span>
-              <Link href="/issues" className="inline-flex items-center gap-1 text-[10px] tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground">
+              <Link href="/issues" className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
                 View all
                 <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
