@@ -37,8 +37,7 @@ export default async function IssueDetailPage({
   }
 
   const isAdmin = session.user.role === "ADMIN";
-  const canQuickStatus =
-    session.user.role === "ADMIN" || session.user.role === "TESTER";
+  const canQuickStatus = session.user.role === "ADMIN";
 
   const [issue, assignableUsers] = await Promise.all([
     prisma.issue.findUnique({

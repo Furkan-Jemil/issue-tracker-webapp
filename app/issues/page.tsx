@@ -71,8 +71,7 @@ export default async function IssuesListPage({
   }
 
   const isAdmin = session.user.role === "ADMIN";
-  const canQuickStatus =
-    session.user.role === "ADMIN" || session.user.role === "TESTER";
+  const canQuickStatus = session.user.role === "ADMIN";
 
   const view =
     params?.view === "board"
@@ -100,6 +99,7 @@ export default async function IssuesListPage({
   const skip = (currentPage - 1) * pageSize;
 
   const where = {
+    ...(!isAdmin ? { createdBy: session.user.id } : {}),
     ...(isAdmin && reporter ? { createdBy: reporter } : {}),
     ...(isAdmin && assignee ? { assigneeId: assignee } : {}),
     ...(query
