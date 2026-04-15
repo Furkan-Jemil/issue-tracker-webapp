@@ -65,7 +65,7 @@ export function PageHeader({
           aria-hidden="true"
           className="pointer-events-none absolute right-8 top-0 h-16 w-28 rounded-full bg-chart-2/20 blur-2xl"
         />
-        <CardContent className="flex items-center justify-between gap-2 p-0">
+        <CardContent className="flex w-full items-center justify-between gap-2 p-0">
           <div className="flex min-w-0 items-start gap-3">
             {Icon ? (
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border/75 bg-gradient-to-br from-background/95 to-accent/35 text-muted-foreground shadow-sm">

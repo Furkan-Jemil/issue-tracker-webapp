@@ -96,16 +96,22 @@ type BucketSummary = {
   closed: number;
 };
 
-const fallbackChartColors = {
-  total: "hsl(221 83% 53%)",
-  open: "hsl(221 83% 53%)",
-  inProgress: "hsl(214 95% 68%)",
-  resolved: "hsl(217 91% 60%)",
-  closed: "hsl(224 76% 48%)",
-  low: "hsl(221 83% 53%)",
-  medium: "hsl(214 95% 68%)",
-  high: "hsl(217 91% 60%)",
-};
+const SHADCN_BLUE_CHARTS = {
+  light: {
+    c1: "hsl(210 90% 74%)",
+    c2: "hsl(211 86% 66%)",
+    c3: "hsl(216 82% 57%)",
+    c4: "hsl(222 77% 49%)",
+    c5: "hsl(229 67% 41%)",
+  },
+  dark: {
+    c1: "hsl(210 90% 72%)",
+    c2: "hsl(211 86% 64%)",
+    c3: "hsl(216 82% 56%)",
+    c4: "hsl(222 77% 52%)",
+    c5: "hsl(229 67% 46%)",
+  },
+} as const;
 
 function getThemeColor(variableName: string, alpha?: number) {
   if (typeof window === "undefined") return "";
@@ -179,22 +185,25 @@ export default function DashboardCharts() {
   }, []);
 
   const chartColors = useMemo(
-    () => ({
-      total: resolveColor("--chart-4", fallbackChartColors.total),
-      open: resolveColor("--chart-1", fallbackChartColors.open),
-      inProgress: resolveColor("--chart-2", fallbackChartColors.inProgress),
-      resolved: resolveColor("--chart-3", fallbackChartColors.resolved),
-      closed: resolveColor("--chart-5", fallbackChartColors.closed),
-      low: resolveColor("--chart-1", fallbackChartColors.low),
-      medium: resolveColor("--chart-2", fallbackChartColors.medium),
-      high: resolveColor("--chart-3", fallbackChartColors.high),
-      openSoft: resolveColor("--chart-1", fallbackChartColors.open, 0.16),
-      inProgressSoft: resolveColor(
-        "--chart-2",
-        fallbackChartColors.inProgress,
-        0.16,
-      ),
-    }),
+    () => {
+      const palette =
+        themeMode === "dark"
+          ? SHADCN_BLUE_CHARTS.dark
+          : SHADCN_BLUE_CHARTS.light;
+
+      return {
+        total: resolveColor("--chart-1", palette.c1),
+        open: resolveColor("--chart-2", palette.c2),
+        inProgress: resolveColor("--chart-3", palette.c3),
+        resolved: resolveColor("--chart-4", palette.c4),
+        closed: resolveColor("--chart-5", palette.c5),
+        low: resolveColor("--chart-2", palette.c2),
+        medium: resolveColor("--chart-3", palette.c3),
+        high: resolveColor("--chart-4", palette.c4),
+        openSoft: resolveColor("--chart-2", palette.c2, 0.22),
+        inProgressSoft: resolveColor("--chart-3", palette.c3, 0.2),
+      };
+    },
     [themeMode],
   );
 
@@ -349,8 +358,10 @@ export default function DashboardCharts() {
             chartColors.closed,
           ],
           borderWidth: 0,
+          borderRadius: 10,
           hoverOffset: 4,
           spacing: 2,
+          offset: [14, 0, 0, 0],
         },
       ],
     }),
@@ -544,7 +555,7 @@ export default function DashboardCharts() {
         </Card>
       )}
 
-      <section className="space-y-3.5">
+      <section className="space-y-3">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground/90">
             Analytics
@@ -554,7 +565,7 @@ export default function DashboardCharts() {
           </p>
         </div>
 
-        <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
           <Card className="border-border/70 bg-card/95 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-border/60 pb-3">
               <div>
@@ -575,7 +586,7 @@ export default function DashboardCharts() {
                 <option value="365d">Last year</option>
               </Select>
             </CardHeader>
-            <CardContent className="h-[clamp(220px,34vh,320px)] p-3.5">
+            <CardContent className="h-[clamp(230px,33vh,300px)] p-3">
               <Line
                 key={`trend-${themeMode}`}
                 data={trendData}
@@ -589,10 +600,10 @@ export default function DashboardCharts() {
                       position: "bottom",
                       labels: {
                         usePointStyle: true,
-                        pointStyle: "line",
-                        boxWidth: 18,
-                        boxHeight: 3,
-                        padding: 18,
+                        pointStyle: "rectRounded",
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        padding: 14,
                         font: { size: 11, weight: 600 },
                         color: uiColors.legendText,
                       },
@@ -652,8 +663,8 @@ export default function DashboardCharts() {
                 Current issue distribution by workflow state.
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex h-[clamp(220px,34vh,320px)] items-center justify-center p-3.5">
-              <div className="h-[clamp(170px,28vh,250px)] w-full">
+            <CardContent className="space-y-3 p-3">
+              <div className="mx-auto h-[220px] w-full max-w-[260px]">
                 <Doughnut
                   key={`status-${themeMode}`}
                   data={statusData}
@@ -661,15 +672,17 @@ export default function DashboardCharts() {
                     responsive: true,
                     maintainAspectRatio: false,
                     animation: { duration: 220, easing: "easeOutCubic" },
-                    cutout: "72%",
+                    cutout: "62%",
                     rotation: -90,
                     plugins: {
                       legend: {
                         position: "bottom",
                         labels: {
                           usePointStyle: true,
-                          pointStyle: "circle",
-                          padding: 14,
+                          pointStyle: "rectRounded",
+                          boxWidth: 10,
+                          boxHeight: 10,
+                          padding: 12,
                           font: { size: 11, weight: 600 },
                           color: uiColors.legendText,
                         },
@@ -690,6 +703,14 @@ export default function DashboardCharts() {
                   }}
                 />
               </div>
+              <div className="border-t border-border/60 pt-2 text-center">
+                <p className="text-sm font-medium text-foreground">
+                  Trending up by 5.2% this month
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Showing total status distribution for the selected range.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -703,7 +724,8 @@ export default function DashboardCharts() {
               Open versus closed issue volume by grouped date buckets.
             </CardDescription>
           </CardHeader>
-          <CardContent className="h-[clamp(220px,30vh,280px)] p-3.5">
+          <CardContent className="space-y-3 p-3">
+            <div className="h-[230px]">
             <Bar
               key={`comparison-${themeMode}`}
               data={comparisonData}
@@ -711,13 +733,16 @@ export default function DashboardCharts() {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: { duration: 220, easing: "easeOutCubic" },
+                indexAxis: "y",
                 plugins: {
                   legend: {
                     position: "bottom",
                     labels: {
                       usePointStyle: true,
-                      pointStyle: "circle",
-                      padding: 14,
+                      pointStyle: "rectRounded",
+                      boxWidth: 10,
+                      boxHeight: 10,
+                      padding: 12,
                       font: { size: 11, weight: 600 },
                       color: uiColors.legendText,
                     },
@@ -737,10 +762,11 @@ export default function DashboardCharts() {
                 },
                 scales: {
                   x: {
-                    grid: { display: false },
+                    grid: { color: uiColors.grid },
                     ticks: {
                       maxRotation: 0,
-                      autoSkip: false,
+                      autoSkip: true,
+                      maxTicksLimit: 6,
                       font: { size: 11 },
                       color: uiColors.axisText,
                     },
@@ -749,16 +775,24 @@ export default function DashboardCharts() {
                   y: {
                     beginAtZero: true,
                     ticks: {
-                      precision: 0,
                       font: { size: 11 },
                       color: uiColors.axisText,
                     },
-                    grid: { color: uiColors.grid },
+                    grid: { display: false },
                     border: { display: false },
                   },
                 },
               }}
             />
+            </div>
+            <div className="border-t border-border/60 pt-2 text-center">
+              <p className="text-sm font-medium text-foreground">
+                Trending up by 5.2% this month
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Showing grouped issue throughput for the last 6 intervals.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </section>

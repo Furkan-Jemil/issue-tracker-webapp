@@ -273,8 +273,8 @@ export function AppShell({
           "min-h-screen transition-[padding-left] duration-200 ease-out",
           contentOffsetClass,
         )}>
-        <header className="sticky top-0 z-30 bg-transparent pt-2">
-          <div className="page-shell flex min-h-12 items-start justify-end px-2.5 py-1.5 md:px-3 lg:px-4">
+        <header className="sticky top-1 z-30 bg-transparent">
+          <div className="page-shell flex justify-end px-2.5 py-0.5 md:px-3 lg:px-4">
             <div ref={profileMenuRef} className="relative">
               <span
                 aria-hidden="true"
@@ -358,7 +358,8 @@ export function AppShell({
           className="page-enter page-shell w-full"
           style={{
             paddingInline: "var(--space-page-x)",
-            paddingBlock: "var(--space-page-y)",
+            paddingTop: "0.45rem",
+            paddingBottom: "var(--space-page-y)",
           }}>
           {children}
         </main>

@@ -97,14 +97,17 @@ export function IssueViewPresets() {
 
   return (
     <Card tone="soft" density="dense" className="border-border/70 bg-card/80">
-      <CardContent className="flex flex-col gap-2.5 p-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-2">
+      <CardContent className="grid gap-2.5 p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <p className="text-sm font-medium text-foreground/90">Saved views</p>
           <Badge variant="outline" className="rounded-full px-2.5 py-0 text-[10px] font-semibold uppercase tracking-[0.14em]">
             {savedViews.length} saved
           </Badge>
+          <span className="text-xs text-muted-foreground">
+            Keep your most-used filter combinations one click away.
+          </span>
         </div>
-        <Button type="button" variant="outline" size="sm" className="gap-2 md:ml-auto" onClick={saveCurrentView} disabled={!currentHref}>
+        <Button type="button" variant="outline" size="sm" className="gap-2" onClick={saveCurrentView} disabled={!currentHref}>
           <BookmarkPlus className="h-4 w-4" aria-hidden="true" />
           Save view
         </Button>
