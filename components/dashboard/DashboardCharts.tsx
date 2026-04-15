@@ -96,21 +96,14 @@ type BucketSummary = {
   closed: number;
 };
 
-const SHADCN_BLUE_CHARTS = {
-  light: {
-    c1: "hsl(210 90% 74%)",
-    c2: "hsl(211 86% 66%)",
-    c3: "hsl(216 82% 57%)",
-    c4: "hsl(222 77% 49%)",
-    c5: "hsl(229 67% 41%)",
-  },
-  dark: {
-    c1: "hsl(210 90% 72%)",
-    c2: "hsl(211 86% 64%)",
-    c3: "hsl(216 82% 56%)",
-    c4: "hsl(222 77% 52%)",
-    c5: "hsl(229 67% 46%)",
-  },
+const SHADCN_CHART_COLORS = {
+  total: "hsl(210 66% 70%)",
+  open: "hsl(214 74% 62%)",
+  inProgress: "hsl(216 83% 56%)",
+  resolved: "hsl(225 73% 48%)",
+  closed: "hsl(230 68% 42%)",
+  openSoft: "hsl(214 74% 62% / 0.22)",
+  inProgressSoft: "hsl(216 83% 56% / 0.2)",
 } as const;
 
 function getThemeColor(variableName: string, alpha?: number) {
@@ -185,26 +178,19 @@ export default function DashboardCharts() {
   }, []);
 
   const chartColors = useMemo(
-    () => {
-      const palette =
-        themeMode === "dark"
-          ? SHADCN_BLUE_CHARTS.dark
-          : SHADCN_BLUE_CHARTS.light;
-
-      return {
-        total: resolveColor("--chart-1", palette.c1),
-        open: resolveColor("--chart-2", palette.c2),
-        inProgress: resolveColor("--chart-3", palette.c3),
-        resolved: resolveColor("--chart-4", palette.c4),
-        closed: resolveColor("--chart-5", palette.c5),
-        low: resolveColor("--chart-2", palette.c2),
-        medium: resolveColor("--chart-3", palette.c3),
-        high: resolveColor("--chart-4", palette.c4),
-        openSoft: resolveColor("--chart-2", palette.c2, 0.22),
-        inProgressSoft: resolveColor("--chart-3", palette.c3, 0.2),
-      };
-    },
-    [themeMode],
+    () => ({
+      total: SHADCN_CHART_COLORS.total,
+      open: SHADCN_CHART_COLORS.open,
+      inProgress: SHADCN_CHART_COLORS.inProgress,
+      resolved: SHADCN_CHART_COLORS.resolved,
+      closed: SHADCN_CHART_COLORS.closed,
+      low: SHADCN_CHART_COLORS.open,
+      medium: SHADCN_CHART_COLORS.inProgress,
+      high: SHADCN_CHART_COLORS.resolved,
+      openSoft: SHADCN_CHART_COLORS.openSoft,
+      inProgressSoft: SHADCN_CHART_COLORS.inProgressSoft,
+    }),
+    [],
   );
 
   const uiColors = useMemo(() => {
@@ -555,7 +541,7 @@ export default function DashboardCharts() {
         </Card>
       )}
 
-      <section className="space-y-3">
+      <section className="space-y-2.5">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground/90">
             Analytics
@@ -565,7 +551,7 @@ export default function DashboardCharts() {
           </p>
         </div>
 
-        <div className="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
+        <div className="grid gap-3">
           <Card className="border-border/70 bg-card/95 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-border/60 pb-3">
               <div>
@@ -586,7 +572,7 @@ export default function DashboardCharts() {
                 <option value="365d">Last year</option>
               </Select>
             </CardHeader>
-            <CardContent className="h-[clamp(230px,33vh,300px)] p-3">
+            <CardContent className="h-[clamp(190px,26vh,240px)] p-3">
               <Line
                 key={`trend-${themeMode}`}
                 data={trendData}
@@ -603,7 +589,7 @@ export default function DashboardCharts() {
                         pointStyle: "rectRounded",
                         boxWidth: 10,
                         boxHeight: 10,
-                        padding: 14,
+                        padding: 12,
                         font: { size: 11, weight: 600 },
                         color: uiColors.legendText,
                       },
@@ -663,8 +649,8 @@ export default function DashboardCharts() {
                 Current issue distribution by workflow state.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 p-3">
-              <div className="mx-auto h-[220px] w-full max-w-[260px]">
+            <CardContent className="space-y-2.5 p-3">
+              <div className="mx-auto h-[190px] w-full max-w-[220px]">
                 <Doughnut
                   key={`status-${themeMode}`}
                   data={statusData}
@@ -672,7 +658,7 @@ export default function DashboardCharts() {
                     responsive: true,
                     maintainAspectRatio: false,
                     animation: { duration: 220, easing: "easeOutCubic" },
-                    cutout: "62%",
+                    cutout: "66%",
                     rotation: -90,
                     plugins: {
                       legend: {
@@ -682,7 +668,7 @@ export default function DashboardCharts() {
                           pointStyle: "rectRounded",
                           boxWidth: 10,
                           boxHeight: 10,
-                          padding: 12,
+                          padding: 10,
                           font: { size: 11, weight: 600 },
                           color: uiColors.legendText,
                         },
@@ -713,19 +699,17 @@ export default function DashboardCharts() {
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        <Card className="border-border/70 bg-card/95 shadow-sm">
-          <CardHeader className="border-b border-border/60 pb-3">
-            <CardTitle className="text-base font-semibold">
-              Monthly Comparison
-            </CardTitle>
-            <CardDescription>
-              Open versus closed issue volume by grouped date buckets.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 p-3">
-            <div className="h-[230px]">
+          <Card className="border-border/70 bg-card/95 shadow-sm">
+            <CardHeader className="border-b border-border/60 pb-3">
+              <CardTitle className="text-base font-semibold">
+                Monthly Comparison
+              </CardTitle>
+              <CardDescription>
+                Open versus closed issue volume by grouped date buckets.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2.5 p-3">
+              <div className="h-[clamp(170px,23vh,220px)]">
             <Bar
               key={`comparison-${themeMode}`}
               data={comparisonData}
@@ -733,7 +717,6 @@ export default function DashboardCharts() {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: { duration: 220, easing: "easeOutCubic" },
-                indexAxis: "y",
                 plugins: {
                   legend: {
                     position: "bottom",
@@ -762,7 +745,7 @@ export default function DashboardCharts() {
                 },
                 scales: {
                   x: {
-                    grid: { color: uiColors.grid },
+                    grid: { display: false },
                     ticks: {
                       maxRotation: 0,
                       autoSkip: true,
@@ -775,26 +758,28 @@ export default function DashboardCharts() {
                   y: {
                     beginAtZero: true,
                     ticks: {
+                      precision: 0,
                       font: { size: 11 },
                       color: uiColors.axisText,
                     },
-                    grid: { display: false },
+                    grid: { color: uiColors.grid },
                     border: { display: false },
                   },
                 },
               }}
             />
-            </div>
-            <div className="border-t border-border/60 pt-2 text-center">
-              <p className="text-sm font-medium text-foreground">
-                Trending up by 5.2% this month
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Showing grouped issue throughput for the last 6 intervals.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+              <div className="border-t border-border/60 pt-2 text-center">
+                <p className="text-sm font-medium text-foreground">
+                  Trending up by 5.2% this month
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Showing grouped issue throughput for the last 6 intervals.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </section>
 
       <Card className="border-border/70 bg-card/95">

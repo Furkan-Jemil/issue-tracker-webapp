@@ -270,12 +270,12 @@ export function AppShell({
 
       <div
         className={cn(
-          "min-h-screen transition-[padding-left] duration-200 ease-out",
+          "relative min-h-screen transition-[padding-left] duration-200 ease-out",
           contentOffsetClass,
         )}>
-        <header className="sticky top-1 z-30 bg-transparent">
-          <div className="page-shell flex justify-end px-2.5 py-0.5 md:px-3 lg:px-4">
-            <div ref={profileMenuRef} className="relative">
+        <header className="pointer-events-none absolute inset-x-0 top-1 z-30 bg-transparent">
+          <div className="page-shell flex justify-end px-2.5 py-0 md:px-3 lg:px-4">
+            <div ref={profileMenuRef} className="pointer-events-auto relative">
               <span
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-x-6 -top-1 -z-10 h-8 rounded-full bg-gradient-to-r from-primary/25 via-chart-2/10 to-chart-4/20 blur-xl"
@@ -358,7 +358,7 @@ export function AppShell({
           className="page-enter page-shell w-full"
           style={{
             paddingInline: "var(--space-page-x)",
-            paddingTop: "0.45rem",
+            paddingTop: "0.1rem",
             paddingBottom: "var(--space-page-y)",
           }}>
           {children}
