@@ -551,8 +551,9 @@ export default function DashboardCharts() {
           </p>
         </div>
 
-        <div className="grid gap-3">
-          <Card className="border-border/70 bg-card/95 shadow-sm">
+        <div className="overflow-x-auto pb-1">
+          <div className="flex min-w-max gap-3 pr-1">
+          <Card className="min-w-[620px] border-border/70 bg-card/95 shadow-sm lg:min-w-[760px]">
             <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-border/60 pb-3">
               <div>
                 <CardTitle className="text-base font-semibold">
@@ -640,7 +641,7 @@ export default function DashboardCharts() {
             </CardContent>
           </Card>
 
-          <Card className="border-border/70 bg-card/95 shadow-sm">
+          <Card className="min-w-[360px] border-border/70 bg-card/95 shadow-sm lg:min-w-[420px]">
             <CardHeader className="border-b border-border/60 pb-3">
               <CardTitle className="text-base font-semibold">
                 Status Mix
@@ -699,7 +700,7 @@ export default function DashboardCharts() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/70 bg-card/95 shadow-sm">
+          <Card className="min-w-[620px] border-border/70 bg-card/95 shadow-sm lg:min-w-[760px]">
             <CardHeader className="border-b border-border/60 pb-3">
               <CardTitle className="text-base font-semibold">
                 Monthly Comparison
@@ -779,6 +780,7 @@ export default function DashboardCharts() {
               </div>
             </CardContent>
           </Card>
+          </div>
         </div>
       </section>
 
