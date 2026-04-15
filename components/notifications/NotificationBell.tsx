@@ -39,14 +39,14 @@ export default function NotificationBell({ className }: { className?: string }) 
       aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ""}`}
       title="Open notifications"
       className={cn(
-        "relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:h-10 md:w-10",
+        "relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:h-8 md:w-8",
         className,
       )}>
-      <Bell className="h-5 w-5" />
+      <Bell className="h-4 w-4" />
       {unread > 0 && (
         <Badge
           variant="destructive"
-          className="absolute -right-1 -top-1 min-w-5 justify-center px-1 py-0 text-[10px]">
+          className="absolute -right-1 -top-1 min-w-4 justify-center px-1 py-0 text-[10px]">
           {unread}
         </Badge>
       )}

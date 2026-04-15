@@ -13,7 +13,6 @@ import { IssuesFilterPopover } from "@/app/issues/IssuesFilterPopover";
 import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import { IssueViewPresets } from "@/components/issue/IssueViewPresets";
 import { IssueSemanticBadge } from "@/components/issue/IssueSemanticBadge";
-import { DesignReferenceGallery } from "@/components/layout/DesignReferenceGallery";
 import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Card,
@@ -305,7 +304,6 @@ export default async function IssuesListPage({
           </>
         }
       />
-      <DesignReferenceGallery />
       <div className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card/80 px-3 py-2.5 shadow-sm">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground/90">View modes</span>

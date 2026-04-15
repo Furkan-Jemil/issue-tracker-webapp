@@ -8,9 +8,7 @@ import {
   History,
   LayoutDashboard,
   LogOut,
-  List,
   Moon,
-  Rows3,
   UsersRound,
   SunMedium,
   ChevronsLeft,
@@ -19,7 +17,6 @@ import {
 } from "lucide-react";
 
 import NotificationBell from "@/components/notifications/NotificationBell";
-import { CommandPalette } from "@/components/layout/CommandPalette";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ICON_STROKE, ICON_STYLE } from "@/lib/uiTokens";
@@ -67,9 +64,6 @@ export function AppShell({
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [density, setDensity] = useState<"comfortable" | "compact">(
-    "comfortable",
-  );
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const themeTransitionTimeoutRef = useRef<number | null>(null);
@@ -127,21 +121,6 @@ export function AppShell({
   }, []);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("app-density");
-    const nextDensity = stored === "compact" ? "compact" : "comfortable";
-    setDensity(nextDensity);
-  }, []);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove("ui-density-compact", "ui-density-comfortable");
-    root.classList.add(
-      density === "compact" ? "ui-density-compact" : "ui-density-comfortable",
-    );
-    window.localStorage.setItem("app-density", density);
-  }, [density]);
-
-  useEffect(() => {
     return () => {
       if (themeTransitionTimeoutRef.current !== null) {
         window.clearTimeout(themeTransitionTimeoutRef.current);
@@ -182,12 +161,6 @@ export function AppShell({
     setTheme(nextTheme);
     window.localStorage.setItem("app-theme", nextTheme);
     applyTheme(nextTheme, true);
-  }
-
-  function toggleDensity() {
-    setDensity((current) =>
-      current === "compact" ? "comfortable" : "compact",
-    );
   }
 
   const sidebarWidthClass = sidebarExpanded ? "w-52 md:w-56" : "w-16 md:w-20";
@@ -307,7 +280,7 @@ export function AppShell({
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-x-6 -top-1 -z-10 h-8 rounded-full bg-gradient-to-r from-primary/25 via-chart-2/10 to-chart-4/20 blur-xl"
               />
-              <div className="flex items-center gap-2 rounded-[1.25rem] border border-border/80 bg-gradient-to-br from-card/95 via-card/90 to-muted/30 px-2 py-1.5 shadow-[0_14px_34px_rgba(15,23,42,0.11)] backdrop-blur-xl ring-1 ring-white/35 dark:ring-white/5">
+              <div className="flex items-center gap-1.5 rounded-[1.1rem] border border-border/80 bg-gradient-to-br from-card/95 via-card/90 to-muted/30 px-1.5 py-1 shadow-[0_10px_26px_rgba(15,23,42,0.1)] backdrop-blur-xl ring-1 ring-white/35 dark:ring-white/5">
                 <Button
                   type="button"
                   variant="outline"
@@ -323,7 +296,7 @@ export function AppShell({
                       ? "Switch to light mode"
                       : "Switch to dark mode"
                   }
-                  className="h-11 w-11 rounded-full border-border/80 bg-background/75 text-muted-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/35 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
+                  className="h-9 w-9 rounded-full border-border/80 bg-background/75 text-muted-foreground shadow-sm hover:border-primary/35 hover:bg-background hover:text-foreground md:h-8 md:w-8">
                   {theme === "dark" ? (
                     <SunMedium
                       className={ICON_STYLE.control}
@@ -338,52 +311,21 @@ export function AppShell({
                     />
                   )}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={toggleDensity}
-                  aria-label={
-                    density === "compact"
-                      ? "Switch to comfortable density"
-                      : "Switch to compact density"
-                  }
-                  title={
-                    density === "compact"
-                      ? "Comfortable density"
-                      : "Compact density"
-                  }
-                  className="h-11 w-11 rounded-full border-border/80 bg-background/75 text-muted-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/35 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
-                  {density === "compact" ? (
-                    <List
-                      className={ICON_STYLE.control}
-                      strokeWidth={ICON_STROKE.control}
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <Rows3
-                      className={ICON_STYLE.control}
-                      strokeWidth={ICON_STROKE.control}
-                      aria-hidden="true"
-                    />
-                  )}
-                </Button>
-                <NotificationBell className="h-11 w-11 border-border/80 bg-background/75 text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9" />
+                <NotificationBell className="h-9 w-9 border-border/80 bg-background/75 text-muted-foreground shadow-sm hover:border-primary/35 hover:bg-background hover:text-foreground md:h-8 md:w-8" />
                 <Button
                   type="button"
                   variant="outline"
                   aria-label={`Profile menu for ${profileName}`}
                   aria-expanded={profileMenuOpen}
                   onClick={() => setProfileMenuOpen((current) => !current)}
-                  className="group h-11 gap-0 rounded-full border-border/80 bg-background/75 px-1.5 text-xs font-medium text-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/35 hover:bg-background hover:shadow-md md:h-9">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/35 to-chart-2/10 text-[10px] font-semibold text-primary ring-1 ring-primary/35">
+                  className="group h-9 gap-0 rounded-full border-border/80 bg-background/75 px-1 text-xs font-medium text-foreground shadow-sm hover:border-primary/35 hover:bg-background md:h-8">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/35 to-chart-2/10 text-[10px] font-semibold text-primary ring-1 ring-primary/35">
                     {profileInitials}
                   </span>
                   <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:ml-2 group-hover:max-w-[120px] group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-[120px] group-focus-visible:opacity-100">
                     {profileName}
                   </span>
                 </Button>
-                <CommandPalette />
               </div>
 
               {profileMenuOpen && (
