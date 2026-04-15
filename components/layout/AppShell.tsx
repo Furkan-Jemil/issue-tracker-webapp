@@ -274,7 +274,7 @@ export function AppShell({
           contentOffsetClass,
         )}>
         <header className="pointer-events-none fixed inset-x-0 top-1 z-30 bg-transparent">
-          <div className={cn("page-shell flex justify-end px-2.5 py-0 md:px-3 lg:px-4", contentOffsetClass)}>
+          <div className="page-shell flex justify-end px-2.5 py-0 md:px-3 lg:px-4">
             <div ref={profileMenuRef} className="pointer-events-auto relative">
               <span
                 aria-hidden="true"
