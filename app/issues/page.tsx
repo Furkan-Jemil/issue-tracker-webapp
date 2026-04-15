@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { IssuesFilterPopover } from "@/app/issues/IssuesFilterPopover";
 import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import { IssueViewPresets } from "@/components/issue/IssueViewPresets";
+import { IssueSemanticBadge } from "@/components/issue/IssueSemanticBadge";
+import { DesignReferenceGallery } from "@/components/layout/DesignReferenceGallery";
 import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Card,
@@ -303,6 +305,7 @@ export default async function IssuesListPage({
           </>
         }
       />
+      <DesignReferenceGallery />
       <div className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card/80 px-3 py-2.5 shadow-sm">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground/90">View modes</span>
@@ -375,9 +378,15 @@ export default async function IssuesListPage({
                           <Card key={issue.id} density="dense" className="border-border/70 bg-card/95">
                             <CardContent className="space-y-2 p-3">
                               <div className="flex items-start justify-between gap-2">
-                                <Link href={`/issues/${issue.id}`} className="font-semibold leading-snug text-primary hover:underline">
-                                  {issue.title}
-                                </Link>
+                                <div className="space-y-1.5">
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <IssueSemanticBadge kind="status" value={issue.status} />
+                                    <IssueSemanticBadge kind="priority" value={issue.priority} />
+                                  </div>
+                                  <Link href={`/issues/${issue.id}`} className="font-semibold leading-snug text-primary hover:underline">
+                                    {issue.title}
+                                  </Link>
+                                </div>
                                 {canQuickStatus && (
                                   <StatusQuickActions
                                     issueId={issue.id}
@@ -386,9 +395,11 @@ export default async function IssuesListPage({
                                 )}
                               </div>
                               <div className="flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
-                                <span className="rounded-full border border-border/70 px-2 py-0.5">{issue.type}</span>
-                                <span className="rounded-full border border-border/70 px-2 py-0.5">{issue.priority}</span>
-                                <span className="rounded-full border border-border/70 px-2 py-0.5">{issue.severity}</span>
+                                <IssueSemanticBadge kind="type" value={issue.type} />
+                                <IssueSemanticBadge kind="severity" value={issue.severity} />
+                                <span className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-2.5 py-1 text-[11px]">
+                                  Assignee: {issue.assigneeId ? getUserLabel(issue.assigneeId, "Unknown") : "Unassigned"}
+                                </span>
                               </div>
                               <p className="text-xs text-muted-foreground">Created {formatDate(issue.createdAt)}</p>
                             </CardContent>
@@ -457,24 +468,24 @@ export default async function IssuesListPage({
                           {issue.title}
                         </Link>
                         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground lg:hidden">
-                          <span className="rounded-full border border-border/70 px-2 py-0.5">{issue.type}</span>
-                          <span className="rounded-full border border-border/70 px-2 py-0.5">{issue.severity}</span>
+                          <IssueSemanticBadge kind="status" value={issue.status} />
+                          <IssueSemanticBadge kind="priority" value={issue.priority} />
+                          <IssueSemanticBadge kind="type" value={issue.type} />
+                          <IssueSemanticBadge kind="severity" value={issue.severity} />
                         </div>
                       </TableCell>
                       <TableCell className={cn(cellPaddingClass, "hidden lg:table-cell")}>
-                        {issue.type}
+                        <IssueSemanticBadge kind="type" value={issue.type} />
                       </TableCell>
                       <TableCell className={cellPaddingClass}>
-                        {issue.priority}
+                        <IssueSemanticBadge kind="priority" value={issue.priority} />
                       </TableCell>
                       <TableCell className={cn(cellPaddingClass, "hidden xl:table-cell")}>
-                        {issue.severity}
+                        <IssueSemanticBadge kind="severity" value={issue.severity} />
                       </TableCell>
                       <TableCell className={cellPaddingClass}>
                         <div className="flex items-center gap-1.5">
-                          <Badge variant={statusVariant(issue.status)}>
-                            {issue.status}
-                          </Badge>
+                          <IssueSemanticBadge kind="status" value={issue.status} />
                           {canQuickStatus && (
                             <StatusQuickActions
                               issueId={issue.id}

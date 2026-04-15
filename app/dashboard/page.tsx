@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { DesignReferenceGallery } from "@/components/layout/DesignReferenceGallery";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
@@ -52,6 +53,7 @@ export default async function DashboardPage() {
           </Button>
         }
       />
+      <DesignReferenceGallery />
       <DashboardCharts />
     </div>
   );
