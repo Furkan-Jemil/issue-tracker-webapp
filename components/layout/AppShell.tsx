@@ -163,10 +163,10 @@ export function AppShell({
     applyTheme(nextTheme, true);
   }
 
-  const sidebarWidthClass = sidebarExpanded ? "w-52 md:w-56" : "w-16 md:w-20";
+  const sidebarWidthClass = sidebarExpanded ? "w-44 md:w-48" : "w-14 md:w-16";
   const contentOffsetClass = sidebarExpanded
-    ? "pl-52 md:pl-56"
-    : "pl-16 md:pl-20";
+    ? "pl-44 md:pl-48"
+    : "pl-14 md:pl-16";
 
   return (
     <div className="min-h-screen bg-background">
@@ -179,16 +179,16 @@ export function AppShell({
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-2 top-2 h-20 rounded-2xl bg-gradient-to-r from-primary/20 via-chart-2/18 to-chart-4/15 blur-2xl"
         />
-        <div className="flex h-16 items-center justify-between gap-2 border-b border-border/80 px-3">
+        <div className="flex h-14 items-center justify-between gap-2 border-b border-border/80 px-2.5">
           <Link
             href="/issues"
-            className="flex min-w-0 items-center gap-3 outline-none">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/75 text-primary-foreground shadow-md shadow-primary/30 ring-1 ring-primary/20">
-              <Ticket className="h-5 w-5" strokeWidth={2.25} aria-hidden />
+            className="flex min-w-0 items-center gap-2.5 outline-none">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/75 text-primary-foreground shadow-md shadow-primary/30 ring-1 ring-primary/20">
+              <Ticket className="h-4.5 w-4.5" strokeWidth={2.25} aria-hidden />
             </span>
             <span
               className={cn(
-                "min-w-0 overflow-hidden text-sm font-semibold tracking-wide text-foreground transition-all duration-200",
+                "min-w-0 overflow-hidden text-[13px] font-semibold tracking-wide text-foreground transition-all duration-200",
                 sidebarExpanded
                   ? "max-w-[140px] opacity-100"
                   : "max-w-0 opacity-0",
@@ -205,7 +205,7 @@ export function AppShell({
             aria-pressed={sidebarExpanded}
             onClick={() => setSidebarExpanded((current) => !current)}
             title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            className="h-11 w-11 shrink-0 rounded-full border-border/80 bg-background/80 text-muted-foreground shadow-sm hover:border-primary/35 hover:text-foreground md:h-9 md:w-9">
+            className="h-9 w-9 shrink-0 rounded-full border-border/80 bg-background/80 text-muted-foreground shadow-sm hover:border-primary/35 hover:text-foreground md:h-8 md:w-8">
             {sidebarExpanded ? (
               <ChevronsLeft
                 className={ICON_STYLE.control}
@@ -222,7 +222,7 @@ export function AppShell({
           </Button>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1.5 p-2 pt-2">
+        <nav className="flex flex-1 flex-col gap-1.5 p-2 pt-1.5">
           {navItems.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = getIcon(item.icon);
@@ -234,7 +234,7 @@ export function AppShell({
                 aria-current={active ? "page" : undefined}
                 title={item.label}
                 className={cn(
-                  "group relative flex h-10 items-center rounded-xl text-[13px] font-medium transition-all duration-200",
+                  "group relative flex h-9 items-center rounded-xl text-[12px] font-medium transition-all duration-200",
                   sidebarExpanded
                     ? "justify-start gap-3 px-3"
                     : "justify-center px-2",

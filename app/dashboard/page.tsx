@@ -41,10 +41,10 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="page-stack">
+    <div className="page-stack h-[calc(100dvh-2rem)] overflow-hidden">
       <PageHeader
         title="Dashboard"
-        description="Track issue activity, status, and trends."
+        description="Track issue activity, status, and trends in one view."
         icon={LayoutDashboard}
         actions={
           <Button asChild variant="outline" size="sm" className="shrink-0">

@@ -391,8 +391,8 @@ export default function DashboardCharts() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-3">
+    <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
+      <section className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground/90">
             Performance Snapshot
@@ -403,7 +403,7 @@ export default function DashboardCharts() {
             Live data
           </Badge>
         </div>
-        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-3 xl:grid-cols-5">
           {[
             {
               href: "/issues",
@@ -443,21 +443,21 @@ export default function DashboardCharts() {
           ].map(({ href, label, value, icon: Icon, tone }) => (
             <Link key={label} href={href}>
               <Card className="group h-full cursor-pointer border-border/70 bg-card/95 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
-                <CardContent className="flex items-center justify-between gap-3 p-3">
+                <CardContent className="flex items-center justify-between gap-2.5 p-2.5">
                   <div>
                     <p className="text-[12px] font-medium text-muted-foreground">
                       {label}
                     </p>
                     <p
-                      className={`text-2xl font-semibold leading-tight ${tone}`}>
+                      className={`text-xl font-semibold leading-tight ${tone}`}>
                       {value}
                     </p>
                     <p className="mt-0.5 text-[11px] text-muted-foreground transition-colors group-hover:text-foreground">
                       Open list
                     </p>
                   </div>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-gradient-to-br from-background to-muted/25 text-muted-foreground">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/70 bg-gradient-to-br from-background to-muted/25 text-muted-foreground">
+                    <Icon className="h-4.5 w-4.5" aria-hidden="true" />
                   </div>
                 </CardContent>
               </Card>
@@ -541,7 +541,7 @@ export default function DashboardCharts() {
         </Card>
       )}
 
-      <section className="space-y-2.5">
+      <section className="flex min-h-0 flex-1 flex-col space-y-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground/90">
             Analytics
@@ -551,29 +551,29 @@ export default function DashboardCharts() {
           </p>
         </div>
 
-        <div className="overflow-x-auto pb-1">
-          <div className="flex min-w-max gap-3 pr-1">
-          <Card className="min-w-[620px] border-border/70 bg-card/95 shadow-sm lg:min-w-[760px]">
-            <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-border/60 pb-3">
+        <div className="min-h-0 overflow-x-auto pb-1">
+          <div className="flex min-h-0 min-w-max gap-3 pr-1">
+          <Card className="w-[530px] min-w-[530px] max-w-[530px] border-border/70 bg-card/95 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 border-b border-border/60 pb-2.5">
               <div>
                 <CardTitle className="text-base font-semibold">
                   Issue Trend
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs">
                   Open and in-progress issues across the selected range.
                 </CardDescription>
               </div>
               <Select
                 value={timeRange}
                 onChange={(event) => setTimeRange(event.target.value)}
-                className="w-36">
+                className="w-32">
                 <option value="7d">Last 7 days</option>
                 <option value="30d">Last 30 days</option>
                 <option value="90d">Last 90 days</option>
                 <option value="365d">Last year</option>
               </Select>
             </CardHeader>
-            <CardContent className="h-[clamp(190px,26vh,240px)] p-3">
+            <CardContent className="h-[300px] p-3">
               <Line
                 key={`trend-${themeMode}`}
                 data={trendData}
@@ -641,17 +641,17 @@ export default function DashboardCharts() {
             </CardContent>
           </Card>
 
-          <Card className="min-w-[360px] border-border/70 bg-card/95 shadow-sm lg:min-w-[420px]">
-            <CardHeader className="border-b border-border/60 pb-3">
+          <Card className="w-[530px] min-w-[530px] max-w-[530px] border-border/70 bg-card/95 shadow-sm">
+            <CardHeader className="border-b border-border/60 pb-2.5">
               <CardTitle className="text-base font-semibold">
                 Status Mix
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs">
                 Current issue distribution by workflow state.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2.5 p-3">
-              <div className="mx-auto h-[190px] w-full max-w-[220px]">
+            <CardContent className="space-y-2 p-3">
+              <div className="mx-auto h-[248px] w-full max-w-[300px]">
                 <Doughnut
                   key={`status-${themeMode}`}
                   data={statusData}
@@ -700,17 +700,17 @@ export default function DashboardCharts() {
               </div>
             </CardContent>
           </Card>
-          <Card className="min-w-[620px] border-border/70 bg-card/95 shadow-sm lg:min-w-[760px]">
-            <CardHeader className="border-b border-border/60 pb-3">
+          <Card className="w-[530px] min-w-[530px] max-w-[530px] border-border/70 bg-card/95 shadow-sm">
+            <CardHeader className="border-b border-border/60 pb-2.5">
               <CardTitle className="text-base font-semibold">
                 Monthly Comparison
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs">
                 Open versus closed issue volume by grouped date buckets.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2.5 p-3">
-              <div className="h-[clamp(170px,23vh,220px)]">
+            <CardContent className="space-y-2 p-3">
+              <div className="h-[248px]">
             <Bar
               key={`comparison-${themeMode}`}
               data={comparisonData}
@@ -784,7 +784,7 @@ export default function DashboardCharts() {
         </div>
       </section>
 
-      <Card className="border-border/70 bg-card/95">
+      <Card className="hidden border-border/70 bg-card/95 2xl:block">
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-base font-semibold text-foreground/90">
             <span>Recent Issues</span>
