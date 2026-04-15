@@ -56,7 +56,7 @@ export function PageHeader({
         </nav>
       ) : null}
 
-      <Card className="premium-panel relative isolate flex flex-col gap-3 overflow-hidden rounded-3xl px-3.5 py-3 md:flex-row md:items-center md:justify-between md:px-5 md:py-4">
+      <Card className="premium-panel relative isolate flex flex-col gap-3 overflow-visible rounded-3xl px-3.5 py-3 md:flex-row md:items-center md:justify-between md:px-5 md:py-4">
         <span
           aria-hidden="true"
           className="pointer-events-none absolute -left-12 top-0 h-24 w-44 rounded-full bg-primary/20 blur-3xl"

@@ -391,7 +391,7 @@ export default function DashboardCharts() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden">
       <section className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground/90">
@@ -466,24 +466,6 @@ export default function DashboardCharts() {
         </div>
       </section>
 
-      <div className="flex items-center justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-9 w-9 rounded-full p-0"
-          aria-label="Toggle dashboard filters"
-          aria-expanded={filtersOpen}
-          onClick={() => setFiltersOpen((current) => !current)}>
-          <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-        </Button>
-        <Badge
-          variant="outline"
-          className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
-          {timeRange}
-        </Badge>
-      </div>
-
       {filtersOpen && (
         <Card className="border-border/70 bg-card/95">
           <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
@@ -546,14 +528,27 @@ export default function DashboardCharts() {
           <h2 className="text-sm font-semibold text-foreground/90">
             Analytics
           </h2>
-          <p className="text-xs text-muted-foreground">
-            Trend, mix, and throughput
-          </p>
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
+              {timeRange}
+            </Badge>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-9 w-9 rounded-full p-0"
+              aria-label="Toggle dashboard filters"
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen((current) => !current)}>
+              <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </div>
         </div>
 
-        <div className="min-h-0 overflow-x-auto pb-1">
-          <div className="flex min-h-0 min-w-max gap-3 pr-1">
-          <Card className="w-[530px] min-w-[530px] max-w-[530px] border-border/70 bg-card/95 shadow-sm">
+        <div className="grid min-h-0 flex-1 grid-cols-3 gap-2">
+          <Card className="min-w-0 border-border/70 bg-card/95 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between gap-2 border-b border-border/60 pb-2.5">
               <div>
                 <CardTitle className="text-base font-semibold">
@@ -566,82 +561,84 @@ export default function DashboardCharts() {
               <Select
                 value={timeRange}
                 onChange={(event) => setTimeRange(event.target.value)}
-                className="w-32">
+                className="w-28">
                 <option value="7d">Last 7 days</option>
                 <option value="30d">Last 30 days</option>
                 <option value="90d">Last 90 days</option>
                 <option value="365d">Last year</option>
               </Select>
             </CardHeader>
-            <CardContent className="h-[300px] p-3">
-              <Line
-                key={`trend-${themeMode}`}
-                data={trendData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  animation: { duration: 220, easing: "easeOutCubic" },
-                  interaction: { mode: "index", intersect: false },
-                  plugins: {
-                    legend: {
-                      position: "bottom",
-                      labels: {
-                        usePointStyle: true,
-                        pointStyle: "rectRounded",
-                        boxWidth: 10,
-                        boxHeight: 10,
+            <CardContent className="p-2.5">
+              <div className="aspect-square w-full">
+                <Line
+                  key={`trend-${themeMode}`}
+                  data={trendData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 220, easing: "easeOutCubic" },
+                    interaction: { mode: "index", intersect: false },
+                    plugins: {
+                      legend: {
+                        position: "bottom",
+                        labels: {
+                          usePointStyle: true,
+                          pointStyle: "rectRounded",
+                          boxWidth: 10,
+                          boxHeight: 10,
+                          padding: 12,
+                          font: { size: 11, weight: 600 },
+                          color: uiColors.legendText,
+                        },
+                      },
+                      tooltip: {
+                        backgroundColor: uiColors.tooltipBg,
+                        titleColor: uiColors.tooltipText,
+                        bodyColor: uiColors.tooltipText,
                         padding: 12,
-                        font: { size: 11, weight: 600 },
-                        color: uiColors.legendText,
+                        cornerRadius: 10,
+                        borderColor: uiColors.tooltipBorder,
+                        borderWidth: 1,
+                        displayColors: true,
+                        callbacks: {
+                          labelTextColor: () => uiColors.tooltipText,
+                        },
                       },
                     },
-                    tooltip: {
-                      backgroundColor: uiColors.tooltipBg,
-                      titleColor: uiColors.tooltipText,
-                      bodyColor: uiColors.tooltipText,
-                      padding: 12,
-                      cornerRadius: 10,
-                      borderColor: uiColors.tooltipBorder,
-                      borderWidth: 1,
-                      displayColors: true,
-                      callbacks: {
-                        labelTextColor: () => uiColors.tooltipText,
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        ticks: {
+                          precision: 0,
+                          font: { size: 11 },
+                          color: uiColors.axisText,
+                        },
+                        grid: { color: uiColors.grid },
+                        border: { display: false },
+                      },
+                      x: {
+                        grid: { display: false },
+                        ticks: {
+                          maxRotation: 0,
+                          autoSkip: true,
+                          maxTicksLimit: 8,
+                          font: { size: 11 },
+                          color: uiColors.axisText,
+                        },
+                        border: { display: false },
                       },
                     },
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      ticks: {
-                        precision: 0,
-                        font: { size: 11 },
-                        color: uiColors.axisText,
-                      },
-                      grid: { color: uiColors.grid },
-                      border: { display: false },
+                    elements: {
+                      line: { borderCapStyle: "round", borderJoinStyle: "round" },
+                      point: { radius: 0, hoverRadius: 4 },
                     },
-                    x: {
-                      grid: { display: false },
-                      ticks: {
-                        maxRotation: 0,
-                        autoSkip: true,
-                        maxTicksLimit: 8,
-                        font: { size: 11 },
-                        color: uiColors.axisText,
-                      },
-                      border: { display: false },
-                    },
-                  },
-                  elements: {
-                    line: { borderCapStyle: "round", borderJoinStyle: "round" },
-                    point: { radius: 0, hoverRadius: 4 },
-                  },
-                }}
-              />
+                  }}
+                />
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="w-[530px] min-w-[530px] max-w-[530px] border-border/70 bg-card/95 shadow-sm">
+          <Card className="min-w-0 border-border/70 bg-card/95 shadow-sm">
             <CardHeader className="border-b border-border/60 pb-2.5">
               <CardTitle className="text-base font-semibold">
                 Status Mix
@@ -650,8 +647,8 @@ export default function DashboardCharts() {
                 Current issue distribution by workflow state.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2 p-3">
-              <div className="mx-auto h-[248px] w-full max-w-[300px]">
+            <CardContent className="space-y-2 p-2.5">
+              <div className="mx-auto aspect-square w-full max-w-[360px]">
                 <Doughnut
                   key={`status-${themeMode}`}
                   data={statusData}
@@ -700,7 +697,7 @@ export default function DashboardCharts() {
               </div>
             </CardContent>
           </Card>
-          <Card className="w-[530px] min-w-[530px] max-w-[530px] border-border/70 bg-card/95 shadow-sm">
+          <Card className="min-w-0 border-border/70 bg-card/95 shadow-sm">
             <CardHeader className="border-b border-border/60 pb-2.5">
               <CardTitle className="text-base font-semibold">
                 Monthly Comparison
@@ -709,66 +706,66 @@ export default function DashboardCharts() {
                 Open versus closed issue volume by grouped date buckets.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2 p-3">
-              <div className="h-[248px]">
-            <Bar
-              key={`comparison-${themeMode}`}
-              data={comparisonData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: { duration: 220, easing: "easeOutCubic" },
-                plugins: {
-                  legend: {
-                    position: "bottom",
-                    labels: {
-                      usePointStyle: true,
-                      pointStyle: "rectRounded",
-                      boxWidth: 10,
-                      boxHeight: 10,
-                      padding: 12,
-                      font: { size: 11, weight: 600 },
-                      color: uiColors.legendText,
+            <CardContent className="space-y-2 p-2.5">
+              <div className="aspect-square w-full">
+                <Bar
+                  key={`comparison-${themeMode}`}
+                  data={comparisonData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 220, easing: "easeOutCubic" },
+                    plugins: {
+                      legend: {
+                        position: "bottom",
+                        labels: {
+                          usePointStyle: true,
+                          pointStyle: "rectRounded",
+                          boxWidth: 10,
+                          boxHeight: 10,
+                          padding: 12,
+                          font: { size: 11, weight: 600 },
+                          color: uiColors.legendText,
+                        },
+                      },
+                      tooltip: {
+                        backgroundColor: uiColors.tooltipBg,
+                        titleColor: uiColors.tooltipText,
+                        bodyColor: uiColors.tooltipText,
+                        padding: 12,
+                        cornerRadius: 10,
+                        borderColor: uiColors.tooltipBorder,
+                        borderWidth: 1,
+                        callbacks: {
+                          labelTextColor: () => uiColors.tooltipText,
+                        },
+                      },
                     },
-                  },
-                  tooltip: {
-                    backgroundColor: uiColors.tooltipBg,
-                    titleColor: uiColors.tooltipText,
-                    bodyColor: uiColors.tooltipText,
-                    padding: 12,
-                    cornerRadius: 10,
-                    borderColor: uiColors.tooltipBorder,
-                    borderWidth: 1,
-                    callbacks: {
-                      labelTextColor: () => uiColors.tooltipText,
+                    scales: {
+                      x: {
+                        grid: { display: false },
+                        ticks: {
+                          maxRotation: 0,
+                          autoSkip: true,
+                          maxTicksLimit: 6,
+                          font: { size: 11 },
+                          color: uiColors.axisText,
+                        },
+                        border: { display: false },
+                      },
+                      y: {
+                        beginAtZero: true,
+                        ticks: {
+                          precision: 0,
+                          font: { size: 11 },
+                          color: uiColors.axisText,
+                        },
+                        grid: { color: uiColors.grid },
+                        border: { display: false },
+                      },
                     },
-                  },
-                },
-                scales: {
-                  x: {
-                    grid: { display: false },
-                    ticks: {
-                      maxRotation: 0,
-                      autoSkip: true,
-                      maxTicksLimit: 6,
-                      font: { size: 11 },
-                      color: uiColors.axisText,
-                    },
-                    border: { display: false },
-                  },
-                  y: {
-                    beginAtZero: true,
-                    ticks: {
-                      precision: 0,
-                      font: { size: 11 },
-                      color: uiColors.axisText,
-                    },
-                    grid: { color: uiColors.grid },
-                    border: { display: false },
-                  },
-                },
-              }}
-            />
+                  }}
+                />
               </div>
               <div className="border-t border-border/60 pt-2 text-center">
                 <p className="text-sm font-medium text-foreground">
@@ -780,7 +777,6 @@ export default function DashboardCharts() {
               </div>
             </CardContent>
           </Card>
-          </div>
         </div>
       </section>
 

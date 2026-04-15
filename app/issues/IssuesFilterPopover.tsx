@@ -78,7 +78,7 @@ export function IssuesFilterPopover({
   }, [view]);
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative z-40">
       <Button
         ref={triggerRef}
         type="button"
@@ -101,7 +101,7 @@ export function IssuesFilterPopover({
       {open && (
         <div
           id="issues-filter-popover"
-          className="absolute left-0 top-11 z-30 w-[min(92vw,360px)] rounded-2xl border border-border/75 bg-card/95 p-3.5 shadow-[0_18px_36px_rgba(15,23,42,0.16)] backdrop-blur-xl md:left-auto md:right-0">
+          className="absolute left-0 top-11 z-[80] w-[min(92vw,360px)] rounded-2xl border border-border/75 bg-card/95 p-3.5 shadow-[0_18px_36px_rgba(15,23,42,0.16)] backdrop-blur-xl md:left-auto md:right-0">
           <form
             method="get"
             action={onSubmitHref}
