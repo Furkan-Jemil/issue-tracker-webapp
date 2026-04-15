@@ -1,10 +1,10 @@
 import "../styles/tailwind.css";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Manrope } from "next/font/google";
 import { getAppSession } from "@/lib/auth/session";
 import { AppShell, type AppNavItem } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 
-const fontSans = Plus_Jakarta_Sans({
+const fontSans = Manrope({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",

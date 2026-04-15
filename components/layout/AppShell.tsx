@@ -199,18 +199,18 @@ export function AppShell({
     <div className="min-h-screen bg-background">
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border/70 bg-gradient-to-b from-card/97 via-card/94 to-muted/40 shadow-[8px_0_30px_rgba(15,23,42,0.07)] backdrop-blur-md transition-[width] duration-200 ease-out",
+          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border/80 bg-gradient-to-b from-card/95 via-card/90 to-muted/35 shadow-[10px_0_34px_rgba(15,23,42,0.09)] backdrop-blur-xl transition-[width] duration-200 ease-out",
           sidebarWidthClass,
         )}>
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-2 top-2 h-20 rounded-2xl bg-gradient-to-r from-primary/15 via-sky-400/5 to-primary/10 blur-2xl"
+          className="pointer-events-none absolute inset-x-2 top-2 h-20 rounded-2xl bg-gradient-to-r from-primary/20 via-chart-2/18 to-chart-4/15 blur-2xl"
         />
-        <div className="flex h-16 items-center justify-between gap-2 border-b border-border/70 px-3">
+        <div className="flex h-16 items-center justify-between gap-2 border-b border-border/80 px-3">
           <Link
             href="/issues"
             className="flex min-w-0 items-center gap-3 outline-none">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-1 ring-primary/10">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/75 text-primary-foreground shadow-md shadow-primary/30 ring-1 ring-primary/20">
               <Ticket className="h-5 w-5" strokeWidth={2.25} aria-hidden />
             </span>
             <span
@@ -232,7 +232,7 @@ export function AppShell({
             aria-pressed={sidebarExpanded}
             onClick={() => setSidebarExpanded((current) => !current)}
             title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            className="h-11 w-11 shrink-0 rounded-full border-border/70 bg-background/80 text-muted-foreground md:h-9 md:w-9">
+            className="h-11 w-11 shrink-0 rounded-full border-border/80 bg-background/80 text-muted-foreground shadow-sm hover:border-primary/35 hover:text-foreground md:h-9 md:w-9">
             {sidebarExpanded ? (
               <ChevronsLeft
                 className={ICON_STYLE.control}
@@ -266,8 +266,8 @@ export function AppShell({
                     ? "justify-start gap-3 px-3"
                     : "justify-center px-2",
                   active
-                    ? "bg-gradient-to-r from-primary to-primary/85 text-primary-foreground shadow-md shadow-primary/25"
-                    : "text-muted-foreground hover:bg-accent/85 hover:text-accent-foreground",
+                    ? "bg-gradient-to-r from-primary to-primary/85 text-primary-foreground shadow-md shadow-primary/30"
+                    : "text-muted-foreground hover:bg-accent/70 hover:text-accent-foreground",
                 )}>
                 {active ? (
                   <span
@@ -305,9 +305,9 @@ export function AppShell({
             <div ref={profileMenuRef} className="relative">
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-6 -top-1 -z-10 h-8 rounded-full bg-gradient-to-r from-primary/20 via-sky-400/10 to-primary/20 blur-xl"
+                className="pointer-events-none absolute inset-x-6 -top-1 -z-10 h-8 rounded-full bg-gradient-to-r from-primary/25 via-chart-2/10 to-chart-4/20 blur-xl"
               />
-              <div className="flex items-center gap-2 rounded-[1.25rem] border border-border/70 bg-gradient-to-br from-card/95 via-card/90 to-muted/40 px-2 py-1.5 shadow-[0_10px_30px_rgba(2,8,23,0.10)] backdrop-blur-xl ring-1 ring-white/35 dark:ring-white/5">
+              <div className="flex items-center gap-2 rounded-[1.25rem] border border-border/80 bg-gradient-to-br from-card/95 via-card/90 to-muted/30 px-2 py-1.5 shadow-[0_14px_34px_rgba(15,23,42,0.11)] backdrop-blur-xl ring-1 ring-white/35 dark:ring-white/5">
                 <Button
                   type="button"
                   variant="outline"
@@ -323,7 +323,7 @@ export function AppShell({
                       ? "Switch to light mode"
                       : "Switch to dark mode"
                   }
-                  className="h-11 w-11 rounded-full border-border/70 bg-background/75 text-muted-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
+                  className="h-11 w-11 rounded-full border-border/80 bg-background/75 text-muted-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/35 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
                   {theme === "dark" ? (
                     <SunMedium
                       className={ICON_STYLE.control}
@@ -353,7 +353,7 @@ export function AppShell({
                       ? "Comfortable density"
                       : "Compact density"
                   }
-                  className="h-11 w-11 rounded-full border-border/70 bg-background/75 text-muted-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
+                  className="h-11 w-11 rounded-full border-border/80 bg-background/75 text-muted-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/35 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9">
                   {density === "compact" ? (
                     <List
                       className={ICON_STYLE.control}
@@ -368,15 +368,15 @@ export function AppShell({
                     />
                   )}
                 </Button>
-                <NotificationBell className="h-11 w-11 border-border/70 bg-background/75 text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9" />
+                <NotificationBell className="h-11 w-11 border-border/80 bg-background/75 text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-background hover:text-foreground hover:shadow-md md:h-9 md:w-9" />
                 <Button
                   type="button"
                   variant="outline"
                   aria-label={`Profile menu for ${profileName}`}
                   aria-expanded={profileMenuOpen}
                   onClick={() => setProfileMenuOpen((current) => !current)}
-                  className="group h-11 gap-0 rounded-full border-border/70 bg-background/75 px-1.5 text-xs font-medium text-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background hover:shadow-md md:h-9">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/25 to-primary/5 text-[10px] font-semibold text-primary ring-1 ring-primary/30">
+                  className="group h-11 gap-0 rounded-full border-border/80 bg-background/75 px-1.5 text-xs font-medium text-foreground shadow-sm hover:-translate-y-0.5 hover:border-primary/35 hover:bg-background hover:shadow-md md:h-9">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/35 to-chart-2/10 text-[10px] font-semibold text-primary ring-1 ring-primary/35">
                     {profileInitials}
                   </span>
                   <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:ml-2 group-hover:max-w-[120px] group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-[120px] group-focus-visible:opacity-100">
@@ -387,8 +387,8 @@ export function AppShell({
               </div>
 
               {profileMenuOpen && (
-                <Card className="absolute right-0 top-12 z-50 w-64 rounded-xl border-border/70 p-2 shadow-lg shadow-black/10">
-                  <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+                <Card className="absolute right-0 top-12 z-50 w-64 rounded-2xl border-border/80 p-2.5 shadow-lg shadow-black/10">
+                  <div className="rounded-xl border border-border/70 bg-muted/20 p-3">
                     <p className="truncate text-xs text-muted-foreground">
                       {profileEmail}
                     </p>
