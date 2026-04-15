@@ -228,13 +228,58 @@ export default function AdminUsersPage() {
 
       <Card className="overflow-hidden">
         <CardHeader className="border-b border-border/60 bg-muted/20 py-3">
-          <CardTitle className="flex items-center justify-between text-lg">
-            <span>User Management</span>
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <CardTitle className="text-lg">User Management</CardTitle>
+            <div className="hidden items-center gap-2 sm:flex">
+              <Input
+                aria-label="Search users"
+                type="text"
+                placeholder="Search name or email"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    const nextSearch = search.trim();
+                    setDebouncedSearch(nextSearch);
+                    setPage(1);
+                    void loadUsers(1, nextSearch, roleFilter);
+                  }
+                }}
+                className="w-52 lg:w-64"
+              />
+              <Select
+                aria-label="Filter users by role"
+                value={roleFilter}
+                onChange={(event) => {
+                  setRoleFilter(event.target.value);
+                  setPage(1);
+                }}
+                className="w-36">
+                <option value="">All roles</option>
+                <option value="USER">User</option>
+                <option value="TESTER">Tester</option>
+                <option value="ADMIN">Admin</option>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearch("");
+                  setRoleFilter("");
+                  setPage(1);
+                  setDebouncedSearch("");
+                  void loadUsers(1, "", "");
+                }}>
+                Clear
+              </Button>
+            </div>
+            <span className="hidden items-center gap-1 text-xs font-medium text-muted-foreground lg:inline-flex">
               Select row
               <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-end sm:hidden">
@@ -244,51 +289,6 @@ export default function AdminUsersPage() {
               size="sm"
               onClick={() => setMobileFiltersOpen((current) => !current)}>
               {mobileFiltersOpen ? "Hide filters" : "Show filters"}
-            </Button>
-          </div>
-
-          <div className="hidden flex-wrap gap-2.5 rounded-xl border border-border/70 bg-background/70 p-3 sm:flex">
-            <Input
-              aria-label="Search users"
-              type="text"
-              placeholder="Search by name or email..."
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  const nextSearch = search.trim();
-                  setDebouncedSearch(nextSearch);
-                  setPage(1);
-                  void loadUsers(1, nextSearch, roleFilter);
-                }
-              }}
-              className="min-w-64 flex-1"
-            />
-            <Select
-              aria-label="Filter users by role"
-              value={roleFilter}
-              onChange={(event) => {
-                setRoleFilter(event.target.value);
-                setPage(1);
-              }}
-              className="max-w-44">
-              <option value="">All roles</option>
-              <option value="USER">User</option>
-              <option value="TESTER">Tester</option>
-              <option value="ADMIN">Admin</option>
-            </Select>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setSearch("");
-                setRoleFilter("");
-                setPage(1);
-                setDebouncedSearch("");
-                void loadUsers(1, "", "");
-              }}>
-              Clear
             </Button>
           </div>
 

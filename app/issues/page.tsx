@@ -304,7 +304,7 @@ export default async function IssuesListPage({
           </>
         }
       />
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card/80 px-3 py-2.5 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-border/70 bg-card/85 px-3 py-2.5 shadow-sm">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground/90">View modes</span>
           <div className="group relative inline-flex items-center">
@@ -320,9 +320,22 @@ export default async function IssuesListPage({
             </div>
           </div>
         </div>
-        <span className="text-xs text-muted-foreground">Hover the icon for help</span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+            Filtered {total}
+          </span>
+          {hasActiveFilters ? (
+            <span className="inline-flex items-center rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+              Filters active
+            </span>
+          ) : (
+            <span className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+              No active filters
+            </span>
+          )}
+        </div>
       </div>
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {[
           { label: "Filtered", value: total, href: buildClearFiltersHref() },
           ...statusFilterOptions.map((item) => ({

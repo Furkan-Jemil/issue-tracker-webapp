@@ -7,6 +7,8 @@ import {
   RefreshCcw,
   MessageSquareText,
   ArrowUpRight,
+  CircleHelp,
+  Files,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -140,27 +142,43 @@ export default async function AdminAuditLogPage() {
         <CardHeader className="border-b border-border/60 bg-muted/20">
           <CardTitle className="text-xl">Activity Overview</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-2 rounded-xl border border-border/70 bg-background/70 p-4">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Export Data
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Download a full JSON export of all issues, comments, history, and
-              notifications.
-            </p>
-            <ExportDataButton />
+        <CardContent className="grid gap-3 lg:grid-cols-2">
+          <div className="group relative flex items-center justify-between rounded-xl border border-border/70 bg-background/70 p-3">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-card/80 text-muted-foreground">
+                <Files className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                Export Data
+              </h3>
+              <div className="relative">
+                <CircleHelp className="h-4 w-4 text-muted-foreground/80" aria-hidden="true" />
+                <div className="pointer-events-none absolute left-1/2 top-7 z-20 w-64 -translate-x-1/2 rounded-lg border border-border/70 bg-popover px-3 py-2 text-xs text-popover-foreground opacity-0 shadow-lg transition group-hover:opacity-100">
+                  Download a full JSON export of all issues, comments, history, and notifications.
+                </div>
+              </div>
+            </div>
+            <ExportDataButton compact />
           </div>
-          <div className="space-y-2 rounded-xl border border-border/70 bg-background/70 p-4">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              System Records
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              The audit log is the primary record for system changes, comments,
-              and user actions.
-            </p>
-            <Button asChild variant="outline" size="sm" className="w-fit">
-              <Link href="/issues">Go to issues</Link>
+          <div className="group relative flex items-center justify-between rounded-xl border border-border/70 bg-background/70 p-3">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-card/80 text-muted-foreground">
+                <History className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                System Records
+              </h3>
+              <div className="relative">
+                <CircleHelp className="h-4 w-4 text-muted-foreground/80" aria-hidden="true" />
+                <div className="pointer-events-none absolute left-1/2 top-7 z-20 w-64 -translate-x-1/2 rounded-lg border border-border/70 bg-popover px-3 py-2 text-xs text-popover-foreground opacity-0 shadow-lg transition group-hover:opacity-100">
+                  The audit log is the primary record for system changes, comments, and user actions.
+                </div>
+              </div>
+            </div>
+            <Button asChild variant="outline" size="icon" className="h-9 w-9">
+              <Link href="/issues" aria-label="Go to issues" title="Go to issues">
+                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
             </Button>
           </div>
         </CardContent>

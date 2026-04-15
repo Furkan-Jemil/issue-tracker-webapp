@@ -1,9 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function ExportDataButton() {
+export default function ExportDataButton({
+  compact = false,
+}: {
+  compact?: boolean;
+}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
@@ -37,9 +42,18 @@ export default function ExportDataButton() {
       <Button
         type="button"
         variant="outline"
+        size={compact ? "icon" : "default"}
         disabled={pending}
+        aria-label="Download JSON export"
+        title="Download JSON export"
         onClick={handleExport}>
-        {pending ? "Exporting…" : "Download JSON export"}
+        {compact ? (
+          <Download className="h-4 w-4" aria-hidden="true" />
+        ) : pending ? (
+          "Exporting…"
+        ) : (
+          "Download JSON export"
+        )}
       </Button>
       {error ? (
         <p className="text-sm text-destructive" role="alert">

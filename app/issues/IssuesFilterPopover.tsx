@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Filter, Search } from "lucide-react";
+import { Check, Filter, Search } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,16 +83,17 @@ export function IssuesFilterPopover({
         ref={triggerRef}
         type="button"
         variant="outline"
-        size="sm"
-        className="gap-2"
+        size="icon"
+        className="relative h-9 w-9 rounded-full border-border/80 bg-background/85"
+        aria-label="Open filters"
+        title="Filters"
         aria-expanded={open}
         aria-controls="issues-filter-popover"
         onClick={() => setOpen((current) => !current)}>
         <Filter className="h-4 w-4" aria-hidden="true" />
-        View options
         {hasActiveFilters && (
-          <Badge variant="secondary" className="ml-1">
-            Active
+          <Badge variant="secondary" className="absolute -right-1 -top-1 min-w-4 px-1 py-0 text-[10px]">
+            •
           </Badge>
         )}
       </Button>
@@ -100,20 +101,37 @@ export function IssuesFilterPopover({
       {open && (
         <div
           id="issues-filter-popover"
-          className="absolute left-0 top-11 z-30 w-[min(92vw,420px)] rounded-2xl border border-border/70 bg-card p-4 shadow-xl shadow-black/10 md:left-auto md:right-0">
-          <form method="get" action={onSubmitHref} className="space-y-3">
-            <div className="grid grid-cols-3 gap-2">
-              <Button type="button" variant={selectedView === "compact" ? "default" : "outline"} size="sm" onClick={() => setSelectedView("compact")} className="justify-center">
+          className="absolute left-0 top-11 z-30 w-[min(92vw,360px)] rounded-2xl border border-border/75 bg-card/95 p-3.5 shadow-[0_18px_36px_rgba(15,23,42,0.16)] backdrop-blur-xl md:left-auto md:right-0">
+          <form
+            method="get"
+            action={onSubmitHref}
+            className="space-y-3"
+            onSubmit={() => setOpen(false)}>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Filters
+              </p>
+              {hasActiveFilters ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                  <Check className="h-3 w-3" aria-hidden="true" />
+                  Active
+                </span>
+              ) : null}
+            </div>
+
+            <div className="grid grid-cols-3 gap-1.5">
+              <Button type="button" variant={selectedView === "compact" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("compact")} className="justify-center rounded-full">
                 Compact
               </Button>
-              <Button type="button" variant={selectedView === "details" ? "default" : "outline"} size="sm" onClick={() => setSelectedView("details")} className="justify-center">
+              <Button type="button" variant={selectedView === "details" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("details")} className="justify-center rounded-full">
                 Detailed
               </Button>
-              <Button type="button" variant={selectedView === "board" ? "default" : "outline"} size="sm" onClick={() => setSelectedView("board")} className="justify-center">
+              <Button type="button" variant={selectedView === "board" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("board")} className="justify-center rounded-full">
                 Board
               </Button>
             </div>
             <input type="hidden" name="view" value={selectedView} />
+
             <div className="grid grid-cols-1 gap-2">
               <div className="relative">
                 <Search
@@ -128,15 +146,16 @@ export function IssuesFilterPopover({
                   name="q"
                   defaultValue={query}
                   placeholder="Search title"
-                  className="pl-9"
+                  className="h-9 rounded-xl pl-9"
                 />
               </div>
               {isAdmin && (
-                <>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <Select
                     id="issues-status-filter"
                     name="status"
-                    defaultValue={status}>
+                    defaultValue={status}
+                    className="h-9 rounded-xl">
                     <option value="">All Statuses</option>
                     <option value="OPEN">Open</option>
                     <option value="IN_PROGRESS">In Progress</option>
@@ -146,7 +165,8 @@ export function IssuesFilterPopover({
                   <Select
                     id="issues-priority-filter"
                     name="priority"
-                    defaultValue={priority}>
+                    defaultValue={priority}
+                    className="h-9 rounded-xl">
                     <option value="">All Priorities</option>
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
@@ -155,7 +175,8 @@ export function IssuesFilterPopover({
                   <Select
                     id="issues-severity-filter"
                     name="severity"
-                    defaultValue={severity}>
+                    defaultValue={severity}
+                    className="h-9 rounded-xl">
                     <option value="">All Severities</option>
                     <option value="MINOR">Minor</option>
                     <option value="MAJOR">Major</option>
@@ -164,7 +185,8 @@ export function IssuesFilterPopover({
                   <Select
                     id="issues-reporter-filter"
                     name="reporter"
-                    defaultValue={reporter}>
+                    defaultValue={reporter}
+                    className="h-9 rounded-xl">
                     <option value="">All Reporters</option>
                     {reporterOptions.map((user) => (
                       <option key={user.id} value={user.id}>
@@ -175,7 +197,8 @@ export function IssuesFilterPopover({
                   <Select
                     id="issues-assignee-filter"
                     name="assignee"
-                    defaultValue={assignee}>
+                    defaultValue={assignee}
+                    className="h-9 rounded-xl sm:col-span-2">
                     <option value="">All Assignees</option>
                     {reporterOptions.map((user) => (
                       <option key={user.id} value={user.id}>
@@ -183,18 +206,19 @@ export function IssuesFilterPopover({
                       </option>
                     ))}
                   </Select>
-                </>
+                </div>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <Button type="submit" size="sm">
-                {isAdmin ? "Apply" : "Search"}
-              </Button>
+
+            <div className="flex items-center justify-end gap-2 pt-1">
               {hasActiveFilters && (
-                <Button asChild variant="outline" size="sm" onClick={() => setOpen(false)}>
+                <Button asChild variant="outline" size="dense" onClick={() => setOpen(false)} className="rounded-full">
                   <Link href={onResetHref}>Reset</Link>
                 </Button>
               )}
+              <Button type="submit" size="dense" className="rounded-full px-3">
+                {isAdmin ? "Apply" : "Search"}
+              </Button>
             </div>
           </form>
         </div>
