@@ -41,7 +41,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="page-stack h-[calc(100dvh-2rem)] overflow-hidden">
+    <div className="page-stack">
       <PageHeader
         title="Dashboard"
         description="Track issue activity, status, and trends in one view."

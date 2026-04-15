@@ -391,7 +391,7 @@ export default function DashboardCharts() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden">
+    <div className="space-y-2">
       <section className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground/90">
@@ -523,7 +523,7 @@ export default function DashboardCharts() {
         </Card>
       )}
 
-      <section className="flex min-h-0 flex-1 flex-col space-y-2">
+      <section className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground/90">
             Analytics
@@ -547,7 +547,7 @@ export default function DashboardCharts() {
           </div>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
           <Card className="min-w-0 border-border/70 bg-card/95 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between gap-2 border-b border-border/60 pb-2.5">
               <div>
@@ -569,7 +569,7 @@ export default function DashboardCharts() {
               </Select>
             </CardHeader>
             <CardContent className="p-2.5">
-              <div className="aspect-square w-full">
+              <div className="h-[210px] w-full">
                 <Line
                   key={`trend-${themeMode}`}
                   data={trendData}
@@ -648,7 +648,7 @@ export default function DashboardCharts() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 p-2.5">
-              <div className="mx-auto aspect-square w-full max-w-[360px]">
+              <div className="mx-auto h-[210px] w-full max-w-[240px]">
                 <Doughnut
                   key={`status-${themeMode}`}
                   data={statusData}
@@ -707,7 +707,7 @@ export default function DashboardCharts() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 p-2.5">
-              <div className="aspect-square w-full">
+              <div className="h-[210px] w-full">
                 <Bar
                   key={`comparison-${themeMode}`}
                   data={comparisonData}
