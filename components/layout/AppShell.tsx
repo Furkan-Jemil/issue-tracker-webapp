@@ -172,18 +172,14 @@ export function AppShell({
     <div className="min-h-screen bg-background">
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border/80 bg-gradient-to-b from-card/95 via-card/90 to-muted/35 shadow-[10px_0_34px_rgba(15,23,42,0.09)] backdrop-blur-xl transition-[width] duration-200 ease-out",
+          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border bg-card transition-[width] duration-200 ease-out",
           sidebarWidthClass,
         )}>
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-2 top-2 h-20 rounded-2xl bg-gradient-to-r from-primary/20 via-chart-2/18 to-chart-4/15 blur-2xl"
-        />
         <div className="flex h-14 items-center justify-between gap-2 border-b border-border/80 px-2.5">
           <Link
             href="/issues"
             className="flex min-w-0 items-center gap-2.5 outline-none">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/75 text-primary-foreground shadow-md shadow-primary/30 ring-1 ring-primary/20">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Ticket className="h-4.5 w-4.5" strokeWidth={2.25} aria-hidden />
             </span>
             <span
@@ -205,7 +201,7 @@ export function AppShell({
             aria-pressed={sidebarExpanded}
             onClick={() => setSidebarExpanded((current) => !current)}
             title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            className="h-9 w-9 shrink-0 rounded-full border-border/80 bg-background/80 text-muted-foreground shadow-sm hover:border-primary/35 hover:text-foreground md:h-8 md:w-8">
+            className="h-9 w-9 shrink-0 rounded-md border-border bg-background text-muted-foreground md:h-8 md:w-8">
             {sidebarExpanded ? (
               <ChevronsLeft
                 className={ICON_STYLE.control}
@@ -239,13 +235,13 @@ export function AppShell({
                     ? "justify-start gap-3 px-3"
                     : "justify-center px-2",
                   active
-                    ? "bg-gradient-to-r from-primary to-primary/85 text-primary-foreground shadow-md shadow-primary/30"
-                    : "text-muted-foreground hover:bg-accent/70 hover:text-accent-foreground",
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 )}>
                 {active ? (
                   <span
                     aria-hidden="true"
-                    className="absolute left-0 top-2 h-6 w-1 rounded-r-full bg-white/90"
+                    className="absolute left-0 top-2 h-6 w-1 rounded-r-full bg-primary"
                   />
                 ) : null}
                 <Icon
@@ -276,11 +272,7 @@ export function AppShell({
         <header className="pointer-events-none fixed inset-x-0 top-1 z-30 bg-transparent">
           <div className="page-shell flex justify-end px-2.5 py-0 md:px-3 lg:px-4">
             <div ref={profileMenuRef} className="pointer-events-auto relative">
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-6 -top-1 -z-10 h-8 rounded-full bg-gradient-to-r from-primary/25 via-chart-2/10 to-chart-4/20 blur-xl"
-              />
-              <div className="flex items-center gap-1.5 rounded-[1.1rem] border border-border/80 bg-gradient-to-br from-card/95 via-card/90 to-muted/30 px-1.5 py-1 shadow-[0_10px_26px_rgba(15,23,42,0.1)] backdrop-blur-xl ring-1 ring-white/35 dark:ring-white/5">
+              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-1.5 py-1 shadow-sm">
                 <Button
                   type="button"
                   variant="outline"
@@ -296,7 +288,7 @@ export function AppShell({
                       ? "Switch to light mode"
                       : "Switch to dark mode"
                   }
-                  className="h-9 w-9 rounded-full border-border/80 bg-background/75 text-muted-foreground shadow-sm hover:border-primary/35 hover:bg-background hover:text-foreground md:h-8 md:w-8">
+                  className="h-9 w-9 rounded-md border-border bg-background text-muted-foreground md:h-8 md:w-8">
                   {theme === "dark" ? (
                     <SunMedium
                       className={ICON_STYLE.control}
@@ -311,32 +303,32 @@ export function AppShell({
                     />
                   )}
                 </Button>
-                <NotificationBell className="h-9 w-9 border-border/80 bg-background/75 text-muted-foreground shadow-sm hover:border-primary/35 hover:bg-background hover:text-foreground md:h-8 md:w-8" />
+                <NotificationBell className="h-9 w-9 border-border bg-background text-muted-foreground md:h-8 md:w-8" />
                 <Button
                   type="button"
                   variant="outline"
                   aria-label={`Profile menu for ${profileName}`}
                   aria-expanded={profileMenuOpen}
                   onClick={() => setProfileMenuOpen((current) => !current)}
-                  className="group h-9 gap-0 rounded-full border-border/80 bg-background/75 px-1 text-xs font-medium text-foreground shadow-sm hover:border-primary/35 hover:bg-background md:h-8">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/35 to-chart-2/10 text-[10px] font-semibold text-primary ring-1 ring-primary/35">
+                  className="group h-9 gap-0 rounded-md border-border bg-background px-1 text-xs font-medium text-foreground md:h-8">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-[10px] font-semibold text-foreground">
                     {profileInitials}
                   </span>
-                  <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:ml-2 group-hover:max-w-[120px] group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-[120px] group-focus-visible:opacity-100">
+                  <span className="ml-2 max-w-[120px] overflow-hidden whitespace-nowrap opacity-100 transition-all duration-200">
                     {profileName}
                   </span>
                 </Button>
               </div>
 
               {profileMenuOpen && (
-                <Card className="absolute right-0 top-12 z-50 w-64 rounded-2xl border-border/80 p-2.5 shadow-lg shadow-black/10">
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-3">
+                <Card className="absolute right-0 top-12 z-50 w-64 rounded-xl border-border p-2.5 shadow-md">
+                  <div className="rounded-lg border border-border bg-muted/20 p-3">
                     <p className="truncate text-xs text-muted-foreground">
                       {profileEmail}
                     </p>
                   </div>
                   <div className="mt-2">
-                    <Button asChild variant="outline" className="h-9 w-full rounded-full border-border/70 bg-card/80 px-3 text-xs">
+                    <Button asChild variant="outline" className="h-9 w-full rounded-md border-border bg-card px-3 text-xs">
                       <Link href="/logout">
                         <LogOut className="h-4 w-4" aria-hidden="true" />
                         Logout
@@ -347,7 +339,7 @@ export function AppShell({
               )}
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute -right-2 top-1/2 h-5 w-5 -translate-y-1/2 rounded-br-2xl border-b border-r border-border/70"
+                className="pointer-events-none absolute -right-2 top-1/2 h-5 w-5 -translate-y-1/2 rounded-br-lg border-b border-r border-border/70"
               />
             </div>
           </div>

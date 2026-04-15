@@ -391,7 +391,7 @@ export default function DashboardCharts() {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <section className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground/90">
@@ -442,7 +442,7 @@ export default function DashboardCharts() {
             },
           ].map(({ href, label, value, icon: Icon, tone }) => (
             <Link key={label} href={href}>
-              <Card className="group h-full cursor-pointer border-border/70 bg-card/95 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
+              <Card className="group h-full cursor-pointer border-border bg-card transition-colors duration-150 hover:bg-accent/25 focus-within:ring-2 focus-within:ring-ring/50">
                 <CardContent className="flex items-center justify-between gap-2.5 p-2.5">
                   <div>
                     <p className="text-[12px] font-medium text-muted-foreground">
@@ -456,7 +456,7 @@ export default function DashboardCharts() {
                       Open list
                     </p>
                   </div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/70 bg-gradient-to-br from-background to-muted/25 text-muted-foreground">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/25 text-muted-foreground">
                     <Icon className="h-4.5 w-4.5" aria-hidden="true" />
                   </div>
                 </CardContent>
@@ -467,7 +467,7 @@ export default function DashboardCharts() {
       </section>
 
       {filtersOpen && (
-        <Card className="border-border/70 bg-card/95">
+        <Card className="border-border bg-card">
           <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
             <CardTitle className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               Filters
@@ -538,7 +538,7 @@ export default function DashboardCharts() {
               type="button"
               variant="outline"
               size="sm"
-              className="h-9 w-9 rounded-full p-0"
+              className="h-9 w-9 rounded-md p-0"
               aria-label="Toggle dashboard filters"
               aria-expanded={filtersOpen}
               onClick={() => setFiltersOpen((current) => !current)}>
@@ -548,7 +548,7 @@ export default function DashboardCharts() {
         </div>
 
         <div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
-          <Card className="min-w-0 border-border/70 bg-card/95 shadow-sm">
+          <Card className="min-w-0 border-border bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between gap-2 border-b border-border/60 pb-2.5">
               <div>
                 <CardTitle className="text-base font-semibold">
@@ -569,7 +569,7 @@ export default function DashboardCharts() {
               </Select>
             </CardHeader>
             <CardContent className="p-2.5">
-              <div className="h-[210px] w-full">
+              <div className="h-[190px] w-full lg:h-[210px]">
                 <Line
                   key={`trend-${themeMode}`}
                   data={trendData}
@@ -638,7 +638,7 @@ export default function DashboardCharts() {
             </CardContent>
           </Card>
 
-          <Card className="min-w-0 border-border/70 bg-card/95 shadow-sm">
+          <Card className="min-w-0 border-border bg-card shadow-sm">
             <CardHeader className="border-b border-border/60 pb-2.5">
               <CardTitle className="text-base font-semibold">
                 Status Mix
@@ -648,7 +648,7 @@ export default function DashboardCharts() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 p-2.5">
-              <div className="mx-auto h-[210px] w-full max-w-[240px]">
+              <div className="mx-auto h-[190px] w-full max-w-[220px] lg:h-[210px] lg:max-w-[240px]">
                 <Doughnut
                   key={`status-${themeMode}`}
                   data={statusData}
@@ -697,7 +697,7 @@ export default function DashboardCharts() {
               </div>
             </CardContent>
           </Card>
-          <Card className="min-w-0 border-border/70 bg-card/95 shadow-sm">
+          <Card className="min-w-0 border-border bg-card shadow-sm">
             <CardHeader className="border-b border-border/60 pb-2.5">
               <CardTitle className="text-base font-semibold">
                 Monthly Comparison
@@ -707,7 +707,7 @@ export default function DashboardCharts() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 p-2.5">
-              <div className="h-[210px] w-full">
+              <div className="h-[190px] w-full lg:h-[210px]">
                 <Bar
                   key={`comparison-${themeMode}`}
                   data={comparisonData}

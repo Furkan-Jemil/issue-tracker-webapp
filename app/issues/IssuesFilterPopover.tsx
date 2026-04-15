@@ -84,7 +84,7 @@ export function IssuesFilterPopover({
         type="button"
         variant="outline"
         size="icon"
-        className="relative h-9 w-9 rounded-full border-border/80 bg-background/85"
+        className="relative h-9 w-9 rounded-md border-border bg-background"
         aria-label="Open filters"
         title="Filters"
         aria-expanded={open}
@@ -101,7 +101,7 @@ export function IssuesFilterPopover({
       {open && (
         <div
           id="issues-filter-popover"
-          className="absolute left-0 top-11 z-[80] w-[min(92vw,360px)] rounded-2xl border border-border/75 bg-card/95 p-3.5 shadow-[0_18px_36px_rgba(15,23,42,0.16)] backdrop-blur-xl md:left-auto md:right-0">
+          className="popover-surface absolute left-0 top-11 z-[80] w-[min(92vw,360px)] rounded-xl border border-border bg-card p-3.5 shadow-md md:left-auto md:right-0">
           <form
             method="get"
             action={onSubmitHref}
@@ -120,13 +120,13 @@ export function IssuesFilterPopover({
             </div>
 
             <div className="grid grid-cols-3 gap-1.5">
-              <Button type="button" variant={selectedView === "compact" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("compact")} className="justify-center rounded-full">
+              <Button type="button" variant={selectedView === "compact" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("compact")} className="justify-center rounded-md">
                 Compact
               </Button>
-              <Button type="button" variant={selectedView === "details" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("details")} className="justify-center rounded-full">
+              <Button type="button" variant={selectedView === "details" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("details")} className="justify-center rounded-md">
                 Detailed
               </Button>
-              <Button type="button" variant={selectedView === "board" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("board")} className="justify-center rounded-full">
+              <Button type="button" variant={selectedView === "board" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("board")} className="justify-center rounded-md">
                 Board
               </Button>
             </div>
@@ -212,11 +212,11 @@ export function IssuesFilterPopover({
 
             <div className="flex items-center justify-end gap-2 pt-1">
               {hasActiveFilters && (
-                <Button asChild variant="outline" size="dense" onClick={() => setOpen(false)} className="rounded-full">
+                <Button asChild variant="outline" size="dense" onClick={() => setOpen(false)} className="rounded-md">
                   <Link href={onResetHref}>Reset</Link>
                 </Button>
               )}
-              <Button type="submit" size="dense" className="rounded-full px-3">
+              <Button type="submit" size="dense" className="rounded-md px-3">
                 {isAdmin ? "Apply" : "Search"}
               </Button>
             </div>

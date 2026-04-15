@@ -56,19 +56,11 @@ export function PageHeader({
         </nav>
       ) : null}
 
-      <Card className="premium-panel relative isolate flex flex-col gap-3 overflow-visible rounded-3xl px-3.5 py-3 md:flex-row md:items-center md:justify-between md:px-5 md:py-4">
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute -left-12 top-0 h-24 w-44 rounded-full bg-primary/20 blur-3xl"
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute right-8 top-0 h-16 w-28 rounded-full bg-chart-2/20 blur-2xl"
-        />
+      <Card className="premium-panel relative isolate flex flex-col gap-3 overflow-visible rounded-xl px-3.5 py-3 md:flex-row md:items-center md:justify-between md:px-5 md:py-4">
         <CardContent className="flex w-full items-center justify-between gap-2 p-0">
           <div className="flex min-w-0 items-start gap-3">
             {Icon ? (
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border/75 bg-gradient-to-br from-background/95 to-accent/35 text-muted-foreground shadow-sm">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/30 text-muted-foreground">
                 <Icon
                   className={ICON_STYLE.header}
                   strokeWidth={ICON_STROKE.header}
