@@ -101,11 +101,11 @@ export function IssuesFilterPopover({
       {open && (
         <div
           id="issues-filter-popover"
-          className="popover-surface absolute left-0 top-11 z-[80] w-[min(92vw,360px)] rounded-xl border border-border bg-card p-3.5 shadow-md md:left-auto md:right-0">
+          className="popover-surface absolute left-0 top-11 z-[80] w-[min(90vw,300px)] rounded-lg border border-border bg-card p-2.5 shadow-md md:left-auto md:right-0">
           <form
             method="get"
             action={onSubmitHref}
-            className="space-y-3"
+            className="space-y-2"
             onSubmit={() => setOpen(false)}>
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
@@ -119,20 +119,24 @@ export function IssuesFilterPopover({
               ) : null}
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5">
-              <Button type="button" variant={selectedView === "compact" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("compact")} className="justify-center rounded-md">
-                Compact
-              </Button>
-              <Button type="button" variant={selectedView === "details" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("details")} className="justify-center rounded-md">
-                Detailed
-              </Button>
-              <Button type="button" variant={selectedView === "board" ? "default" : "outline"} size="dense" onClick={() => setSelectedView("board")} className="justify-center rounded-md">
-                Board
-              </Button>
+            <div className="space-y-1">
+              <label htmlFor="issues-view-mode" className="text-[11px] font-medium text-muted-foreground">
+                View mode
+              </label>
+              <Select
+                id="issues-view-mode"
+                value={selectedView}
+                onValueChange={(value) => setSelectedView(value as "compact" | "details" | "board")}
+                className="h-8 rounded-md text-xs"
+              >
+                <option value="compact">Compact</option>
+                <option value="details">Detailed</option>
+                <option value="board">Board</option>
+              </Select>
             </div>
             <input type="hidden" name="view" value={selectedView} />
 
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-1.5">
               <div className="relative">
                 <Search
                   className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -146,16 +150,16 @@ export function IssuesFilterPopover({
                   name="q"
                   defaultValue={query}
                   placeholder="Search title"
-                  className="h-9 rounded-xl pl-9"
+                  className="h-8 rounded-md pl-9 text-xs"
                 />
               </div>
               {isAdmin && (
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-1.5">
                   <Select
                     id="issues-status-filter"
                     name="status"
                     defaultValue={status}
-                    className="h-9 rounded-xl">
+                    className="h-8 rounded-md text-xs">
                     <option value="">All Statuses</option>
                     <option value="OPEN">Open</option>
                     <option value="IN_PROGRESS">In Progress</option>
@@ -166,7 +170,7 @@ export function IssuesFilterPopover({
                     id="issues-priority-filter"
                     name="priority"
                     defaultValue={priority}
-                    className="h-9 rounded-xl">
+                    className="h-8 rounded-md text-xs">
                     <option value="">All Priorities</option>
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
@@ -176,7 +180,7 @@ export function IssuesFilterPopover({
                     id="issues-severity-filter"
                     name="severity"
                     defaultValue={severity}
-                    className="h-9 rounded-xl">
+                    className="h-8 rounded-md text-xs">
                     <option value="">All Severities</option>
                     <option value="MINOR">Minor</option>
                     <option value="MAJOR">Major</option>
@@ -186,7 +190,7 @@ export function IssuesFilterPopover({
                     id="issues-reporter-filter"
                     name="reporter"
                     defaultValue={reporter}
-                    className="h-9 rounded-xl">
+                    className="h-8 rounded-md text-xs">
                     <option value="">All Reporters</option>
                     {reporterOptions.map((user) => (
                       <option key={user.id} value={user.id}>
@@ -198,7 +202,7 @@ export function IssuesFilterPopover({
                     id="issues-assignee-filter"
                     name="assignee"
                     defaultValue={assignee}
-                    className="h-9 rounded-xl sm:col-span-2">
+                    className="h-8 rounded-md text-xs">
                     <option value="">All Assignees</option>
                     {reporterOptions.map((user) => (
                       <option key={user.id} value={user.id}>
@@ -210,7 +214,7 @@ export function IssuesFilterPopover({
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-1">
+            <div className="flex items-center justify-end gap-2 pt-0.5">
               {hasActiveFilters && (
                 <Button asChild variant="outline" size="dense" onClick={() => setOpen(false)} className="rounded-md">
                   <Link href={onResetHref}>Reset</Link>
