@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function ExportDataButton({
   compact = false,
+  className,
 }: {
   compact?: boolean;
+  className?: string;
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -38,7 +41,7 @@ export default function ExportDataButton({
   }
 
   return (
-    <div className="space-y-2">
+    <div className={cn(compact ? "inline-flex" : "space-y-2", className)}>
       <Button
         type="button"
         variant="outline"
@@ -55,7 +58,7 @@ export default function ExportDataButton({
           "Download JSON export"
         )}
       </Button>
-      {error ? (
+      {error && !compact ? (
         <p className="text-sm text-destructive" role="alert">
           {error}
         </p>

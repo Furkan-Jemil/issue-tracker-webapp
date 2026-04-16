@@ -7,7 +7,6 @@ import {
   RefreshCcw,
   MessageSquareText,
   ArrowUpRight,
-  CircleHelp,
   Files,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -139,49 +138,22 @@ export default async function AdminAuditLogPage() {
       </div>
 
       <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border/60 bg-muted/20">
-          <CardTitle className="text-xl">Activity Overview</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 lg:grid-cols-2">
-          <div className="group relative flex items-center justify-between rounded-xl border border-border/70 bg-background/70 p-3">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-card/80 text-muted-foreground">
-                <Files className="h-4 w-4" aria-hidden="true" />
-              </span>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                Export Data
-              </h3>
-              <div className="relative">
-                <CircleHelp className="h-4 w-4 text-muted-foreground/80" aria-hidden="true" />
-                <div className="pointer-events-none absolute left-1/2 top-7 z-20 w-64 -translate-x-1/2 rounded-lg border border-border/70 bg-popover px-3 py-2 text-xs text-popover-foreground opacity-0 shadow-lg transition group-hover:opacity-100">
-                  Download a full JSON export of all issues, comments, history, and notifications.
-                </div>
-              </div>
-            </div>
-            <ExportDataButton compact />
-          </div>
-          <div className="group relative flex items-center justify-between rounded-xl border border-border/70 bg-background/70 p-3">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-card/80 text-muted-foreground">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 bg-muted/20 py-3">
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/70 bg-card/80 text-muted-foreground">
+              <Files className="h-4 w-4" aria-hidden="true" />
+            </span>
+            Activity Overview
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <ExportDataButton compact className="shrink-0" />
+            <Button asChild variant="outline" size="icon" className="h-9 w-9" title="System records">
+              <Link href="/issues" aria-label="System records">
                 <History className="h-4 w-4" aria-hidden="true" />
-              </span>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                System Records
-              </h3>
-              <div className="relative">
-                <CircleHelp className="h-4 w-4 text-muted-foreground/80" aria-hidden="true" />
-                <div className="pointer-events-none absolute left-1/2 top-7 z-20 w-64 -translate-x-1/2 rounded-lg border border-border/70 bg-popover px-3 py-2 text-xs text-popover-foreground opacity-0 shadow-lg transition group-hover:opacity-100">
-                  The audit log is the primary record for system changes, comments, and user actions.
-                </div>
-              </div>
-            </div>
-            <Button asChild variant="outline" size="icon" className="h-9 w-9">
-              <Link href="/issues" aria-label="Go to issues" title="Go to issues">
-                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
           </div>
-        </CardContent>
+        </CardHeader>
       </Card>
 
       <Card className="overflow-hidden">
