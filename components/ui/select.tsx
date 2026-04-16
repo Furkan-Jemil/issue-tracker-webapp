@@ -98,9 +98,14 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       const realValue = denormalizeValue(nextValue);
       onValueChange?.(realValue);
       if (onChange) {
+        const noop = () => {};
+        const target = { value: realValue, name: name ?? "", id: id ?? "" };
         onChange(
           {
-            target: { value: realValue, name: name ?? "", id: id ?? "" },
+            target,
+            currentTarget: target,
+            preventDefault: noop,
+            stopPropagation: noop,
           } as React.ChangeEvent<HTMLSelectElement>,
         );
       }

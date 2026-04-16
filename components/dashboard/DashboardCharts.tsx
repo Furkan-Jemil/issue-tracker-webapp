@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
@@ -161,9 +161,37 @@ export default function DashboardCharts() {
   const [severityFilter, setSeverityFilter] = useState("");
   const [timeRange, setTimeRange] = useState("30d");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersPanelRef = useRef<HTMLDivElement | null>(null);
   const hasActiveFilters = Boolean(
     statusFilter || priorityFilter || severityFilter,
   );
+
+  useEffect(() => {
+    function onPointerDown(event: PointerEvent) {
+      if (!filtersOpen) return;
+      const target = event.target as Node | null;
+      if (
+        target &&
+        filtersPanelRef.current &&
+        !filtersPanelRef.current.contains(target)
+      ) {
+        setFiltersOpen(false);
+      }
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setFiltersOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [filtersOpen]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -466,63 +494,6 @@ export default function DashboardCharts() {
         </div>
       </section>
 
-      {filtersOpen && (
-        <Card className="border-border bg-card">
-          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
-            <CardTitle className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Filters
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs"
-              disabled={!hasActiveFilters}
-              onClick={() => {
-                setStatusFilter("");
-                setPriorityFilter("");
-                setSeverityFilter("");
-              }}>
-              Clear
-            </Button>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-2">
-            <Select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}>
-              <option value="">All Statuses</option>
-              <option value="OPEN">Open</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="RESOLVED">Resolved</option>
-              <option value="CLOSED">Closed</option>
-            </Select>
-            <Select
-              value={priorityFilter}
-              onChange={(event) => setPriorityFilter(event.target.value)}>
-              <option value="">All Priorities</option>
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-            </Select>
-            <Select
-              value={severityFilter}
-              onChange={(event) => setSeverityFilter(event.target.value)}>
-              <option value="">All Severities</option>
-              <option value="MINOR">Minor</option>
-              <option value="MAJOR">Major</option>
-              <option value="CRITICAL">Critical</option>
-            </Select>
-            <Select
-              value={timeRange}
-              onChange={(event) => setTimeRange(event.target.value)}>
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
-              <option value="365d">Last year</option>
-            </Select>
-          </CardContent>
-        </Card>
-      )}
-
       <section className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground/90">
@@ -534,16 +505,90 @@ export default function DashboardCharts() {
               className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
               {timeRange}
             </Badge>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-9 w-9 rounded-md p-0"
-              aria-label="Toggle dashboard filters"
-              aria-expanded={filtersOpen}
-              onClick={() => setFiltersOpen((current) => !current)}>
-              <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-            </Button>
+            <div ref={filtersPanelRef} className="relative">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="relative h-9 w-9 rounded-md p-0"
+                aria-label="Toggle dashboard filters"
+                aria-expanded={filtersOpen}
+                onClick={() => setFiltersOpen((current) => !current)}>
+                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+                {hasActiveFilters ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary"
+                  />
+                ) : null}
+              </Button>
+
+              {filtersOpen ? (
+                <Card className="popover-surface absolute right-0 top-11 z-30 w-[min(92vw,40rem)] border-border bg-card/98 shadow-2xl backdrop-blur">
+                  <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
+                    <CardTitle className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      Filters
+                    </CardTitle>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs"
+                        disabled={!hasActiveFilters}
+                        onClick={() => {
+                          setStatusFilter("");
+                          setPriorityFilter("");
+                          setSeverityFilter("");
+                        }}>
+                        Clear
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => setFiltersOpen(false)}>
+                        Close
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <Select
+                      value={statusFilter}
+                      onChange={(event) => setStatusFilter(event.target.value)}>
+                      <option value="">All Statuses</option>
+                      <option value="OPEN">Open</option>
+                      <option value="IN_PROGRESS">In Progress</option>
+                      <option value="RESOLVED">Resolved</option>
+                      <option value="CLOSED">Closed</option>
+                    </Select>
+                    <Select
+                      value={priorityFilter}
+                      onChange={(event) => setPriorityFilter(event.target.value)}>
+                      <option value="">All Priorities</option>
+                      <option value="LOW">Low</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HIGH">High</option>
+                    </Select>
+                    <Select
+                      value={severityFilter}
+                      onChange={(event) => setSeverityFilter(event.target.value)}>
+                      <option value="">All Severities</option>
+                      <option value="MINOR">Minor</option>
+                      <option value="MAJOR">Major</option>
+                      <option value="CRITICAL">Critical</option>
+                    </Select>
+                    <Select
+                      value={timeRange}
+                      onChange={(event) => setTimeRange(event.target.value)}>
+                      <option value="7d">Last 7 days</option>
+                      <option value="30d">Last 30 days</option>
+                      <option value="90d">Last 90 days</option>
+                      <option value="365d">Last year</option>
+                    </Select>
+                  </CardContent>
+                </Card>
+              ) : null}
+            </div>
           </div>
         </div>
 
