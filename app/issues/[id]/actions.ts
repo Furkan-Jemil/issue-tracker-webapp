@@ -19,9 +19,9 @@ function formatRole(role: string): string {
 
 const VALID_TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
   OPEN: ["IN_PROGRESS", "CLOSED"],
-  IN_PROGRESS: ["RESOLVED"],
-  RESOLVED: ["CLOSED"],
-  CLOSED: [],
+  IN_PROGRESS: ["RESOLVED", "OPEN"],
+  RESOLVED: ["CLOSED", "OPEN"],
+  CLOSED: ["OPEN"],
 };
 
 export async function updateIssue(issueId: string, formData: FormData) {
@@ -90,6 +90,13 @@ export async function updateIssue(issueId: string, formData: FormData) {
 
   const statusChanged = nextStatus !== issue.status;
   const assigneeChanged = nextAssigneeId !== issue.assigneeId;
+
+  if (isAdmin && statusChanged) {
+    const allowedTransitions = VALID_TRANSITIONS[issue.status] ?? [];
+    if (!allowedTransitions.includes(nextStatus)) {
+      redirect(`/issues/${issueId}?error=invalid-status-transition`);
+    }
+  }
 
   await prisma.$transaction(async (tx) => {
     await tx.issue.update({

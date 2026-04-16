@@ -415,9 +415,8 @@ export default function AdminUsersPage() {
                       onPointerDown={(event) => event.stopPropagation()}
                       onMouseDown={(event) => event.stopPropagation()}
                       onClick={(event) => event.stopPropagation()}
-                      onChange={(event) => {
-                        event.stopPropagation();
-                        void updateSingleRole(user.id, event.target.value);
+                      onValueChange={(value) => {
+                        void updateSingleRole(user.id, value);
                       }}
                       className="h-8 w-32 rounded-full border-border/70 bg-background/80 px-3 text-[11px] font-semibold">
                       <option value="USER">User</option>

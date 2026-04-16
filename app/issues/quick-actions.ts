@@ -8,9 +8,9 @@ import { createNotification } from "@/lib/notifications";
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   OPEN: ["IN_PROGRESS", "CLOSED"],
-  IN_PROGRESS: ["RESOLVED"],
-  RESOLVED: ["CLOSED"],
-  CLOSED: [],
+  IN_PROGRESS: ["RESOLVED", "OPEN"],
+  RESOLVED: ["CLOSED", "OPEN"],
+  CLOSED: ["OPEN"],
 };
 
 export async function changeIssueStatusQuick(issueId: string, status: string) {
