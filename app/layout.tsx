@@ -14,13 +14,13 @@ const fontSans = Manrope({
 function buildNavItems(role: string | undefined): AppNavItem[] {
   const items: AppNavItem[] = [];
   if (role === "ADMIN") {
-    items.push({ href: "/dashboard", label: "Dashboard", icon: "dashboard" });
+    items.push({ href: "/dashboard", label: "Dashboard", icon: "dashboard", section: "primary" });
   }
-  items.push({ href: "/issues", label: "Issues", icon: "issues" });
+  items.push({ href: "/issues", label: "Issues", icon: "issues", section: "primary" });
   if (role === "ADMIN") {
     items.push(
-      { href: "/admin/users", label: "Admin", icon: "admin" },
-      { href: "/admin/audit-log", label: "Audit Log", icon: "audit" },
+      { href: "/admin/users", label: "Admin", icon: "admin", section: "admin" },
+      { href: "/admin/audit-log", label: "Audit Log", icon: "audit", section: "admin" },
     );
   }
   return items;

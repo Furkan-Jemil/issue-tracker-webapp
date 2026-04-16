@@ -28,6 +28,7 @@ export type AppNavItem = {
   href: string;
   label: string;
   icon: NavIcon;
+  section?: "primary" | "admin";
 };
 
 function getIcon(icon: NavIcon) {
@@ -170,6 +171,8 @@ export function AppShell({
   const contentOffsetClass = sidebarExpanded
     ? "pl-44 md:pl-48"
     : "pl-14 md:pl-16";
+  const primaryNavItems = navItems.filter((item) => item.section !== "admin");
+  const adminNavItems = navItems.filter((item) => item.section === "admin");
 
   return (
     <div className="min-h-screen bg-background">
@@ -222,7 +225,7 @@ export function AppShell({
         </div>
 
         <nav className="flex flex-1 flex-col gap-1.5 p-2 pt-1.5">
-          {navItems.map((item) => {
+          {primaryNavItems.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = getIcon(item.icon);
 
@@ -264,6 +267,57 @@ export function AppShell({
               </Link>
             );
           })}
+          {adminNavItems.length > 0 ? (
+            <div className="mt-auto space-y-1.5 pt-2">
+              {sidebarExpanded ? (
+                <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
+                  Administration
+                </p>
+              ) : null}
+              {adminNavItems.map((item) => {
+                const active = isActive(pathname, item.href);
+                const Icon = getIcon(item.icon);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    title={item.label}
+                    className={cn(
+                      "group relative flex h-9 items-center rounded-xl text-[12px] font-medium transition-all duration-200",
+                      sidebarExpanded
+                        ? "justify-start gap-3 px-3"
+                        : "justify-center px-2",
+                      active
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    )}>
+                    {active ? (
+                      <span
+                        aria-hidden="true"
+                        className="absolute left-0 top-2 h-6 w-1 rounded-r-full bg-primary"
+                      />
+                    ) : null}
+                    <Icon
+                      className={ICON_STYLE.nav}
+                      strokeWidth={ICON_STROKE.nav}
+                      aria-hidden="true"
+                    />
+                    <span
+                      className={cn(
+                        "min-w-0 overflow-hidden whitespace-nowrap transition-all duration-200",
+                        sidebarExpanded
+                          ? "max-w-[160px] opacity-100"
+                          : "max-w-0 opacity-0",
+                      )}>
+                      {item.label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : null}
         </nav>
       </aside>
 
@@ -275,10 +329,10 @@ export function AppShell({
         <header className="pointer-events-none fixed inset-x-0 top-1 z-30 bg-transparent">
           <div className="page-shell flex justify-end px-2.5 py-0 md:px-3 lg:px-4">
             <div ref={profileMenuRef} className="pointer-events-auto relative">
-              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-1.5 py-1 shadow-sm">
+              <div className="flex items-center gap-1.5 rounded-xl bg-card/80 px-1.5 py-1">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
                   aria-label={
                     theme === "dark"
@@ -291,29 +345,29 @@ export function AppShell({
                       ? "Switch to light mode"
                       : "Switch to dark mode"
                   }
-                  className="h-9 w-9 rounded-md border-border bg-background text-muted-foreground md:h-8 md:w-8">
+                  className="h-8 w-8 rounded-md text-muted-foreground">
                   {theme === "dark" ? (
                     <SunMedium
-                      className={ICON_STYLE.control}
+                      className="h-4 w-4"
                       strokeWidth={ICON_STROKE.control}
                       aria-hidden="true"
                     />
                   ) : (
                     <Moon
-                      className={ICON_STYLE.control}
+                      className="h-4 w-4"
                       strokeWidth={ICON_STROKE.control}
                       aria-hidden="true"
                     />
                   )}
                 </Button>
-                <NotificationBell className="h-9 w-9 border-border bg-background text-muted-foreground md:h-8 md:w-8" />
+                <NotificationBell className="h-8 w-8 text-muted-foreground" />
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   aria-label={`Profile menu for ${profileName}`}
                   aria-expanded={profileMenuOpen}
                   onClick={() => setProfileMenuOpen((current) => !current)}
-                  className="group h-9 gap-0 rounded-md border-border bg-background px-1 text-xs font-medium text-foreground md:h-8">
+                  className="group h-8 gap-0 rounded-md px-1 text-xs font-medium text-foreground">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-[10px] font-semibold text-foreground">
                     {profileInitials}
                   </span>
