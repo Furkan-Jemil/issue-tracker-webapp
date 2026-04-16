@@ -35,6 +35,7 @@ export default function AdminUsersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [updatingRoleUserId, setUpdatingRoleUserId] = useState<string | null>(
     null,
@@ -71,10 +72,15 @@ export default function AdminUsersPage() {
       pageSize: String(pageSize),
     });
 
-    const res = await fetch(`/api/admin/users?${params.toString()}`);
+    const [res, allRes] = await Promise.all([
+      fetch(`/api/admin/users?${params.toString()}`),
+      fetch(`/api/admin/users?search=&role=&page=1&pageSize=1`),
+    ]);
     const data = await res.json();
+    const allData = await allRes.json();
     setUsers(data.users || []);
     setTotal(data.total || 0);
+    setTotalRecords(allData.total || 0);
   }
 
   useEffect(() => {
@@ -148,7 +154,6 @@ export default function AdminUsersPage() {
       <PageHeader
         title="Users"
         description="Manage user accounts, access roles, and operational permissions."
-        icon={UsersRound}
       />
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -159,7 +164,7 @@ export default function AdminUsersPage() {
             setPage(1);
           }}
           className="text-left">
-          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
+          <Card className="group cursor-pointer border-0 bg-card/75 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-card/90 focus-within:ring-2 focus-within:ring-ring/50">
             <CardContent className="flex items-center justify-between gap-3 p-3.5">
               <div>
                 <p className="text-[12px] font-medium text-muted-foreground">
@@ -170,7 +175,7 @@ export default function AdminUsersPage() {
                   Show all
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+              <div className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground/80">
                 <UsersRound className="h-5 w-5" aria-hidden="true" />
               </div>
             </CardContent>
@@ -183,7 +188,7 @@ export default function AdminUsersPage() {
             setPage(1);
           }}
           className="text-left">
-          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
+          <Card className="group cursor-pointer border-0 bg-card/75 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-card/90 focus-within:ring-2 focus-within:ring-ring/50">
             <CardContent className="flex items-center justify-between gap-3 p-3.5">
               <div>
                 <p className="text-[12px] font-medium text-muted-foreground">
@@ -194,7 +199,7 @@ export default function AdminUsersPage() {
                   Filter admins
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+              <div className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground/80">
                 <UserCog className="h-5 w-5" aria-hidden="true" />
               </div>
             </CardContent>
@@ -207,7 +212,7 @@ export default function AdminUsersPage() {
             setPage(1);
           }}
           className="text-left">
-          <Card className="group cursor-pointer border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg focus-within:ring-2 focus-within:ring-ring/50">
+          <Card className="group cursor-pointer border-0 bg-card/75 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-card/90 focus-within:ring-2 focus-within:ring-ring/50">
             <CardContent className="flex items-center justify-between gap-3 p-3.5">
               <div>
                 <p className="text-[12px] font-medium text-muted-foreground">
@@ -218,7 +223,7 @@ export default function AdminUsersPage() {
                   Filter testers
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground">
+              <div className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground/80">
                 <UserCheck className="h-5 w-5" aria-hidden="true" />
               </div>
             </CardContent>
@@ -226,10 +231,10 @@ export default function AdminUsersPage() {
         </button>
       </div>
 
-      <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border/60 bg-muted/20 py-3">
+      <section className="space-y-3">
+        <div className="border-b border-border/60 bg-muted/20 py-3">
           <div className="flex flex-wrap items-center justify-between gap-2.5">
-            <CardTitle className="text-lg">User Management</CardTitle>
+            <h2 className="text-lg font-semibold">User Management</h2>
             <div className="hidden items-center gap-2 sm:flex">
               <Input
                 aria-label="Search users"
@@ -280,8 +285,8 @@ export default function AdminUsersPage() {
               <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
+        </div>
+        <div className="space-y-3">
           <div className="flex items-center justify-end sm:hidden">
             <Button
               type="button"
@@ -362,7 +367,7 @@ export default function AdminUsersPage() {
             </div>
           )}
 
-          <Table className="rounded-xl border border-border/70 bg-card/40">
+          <Table className="bg-transparent">
             <caption className="sr-only">Admin users table</caption>
             <TableHeader>
               <TableRow>
@@ -453,6 +458,9 @@ export default function AdminUsersPage() {
             <span className="text-sm text-muted-foreground">
               Page {page} / {totalPages}
             </span>
+            <span className="text-xs text-muted-foreground">
+              Total {totalRecords} | Filtered {total}
+            </span>
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -472,8 +480,8 @@ export default function AdminUsersPage() {
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }
