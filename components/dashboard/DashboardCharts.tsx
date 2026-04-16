@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -92,6 +93,8 @@ type TimelinePoint = {
 
 type BucketSummary = {
   label: string;
+  startDate: Date | null;
+  endDate: Date | null;
   open: number;
   closed: number;
 };
@@ -143,6 +146,8 @@ function buildComparisonBuckets(points: TimelinePoint[]) {
 
     buckets.push({
       label: formatBucketRange(chunk[0].date, chunk[chunk.length - 1].date),
+      startDate: chunk[0].date,
+      endDate: chunk[chunk.length - 1].date,
       open: chunk.reduce((sum, point) => sum + point.open, 0),
       closed: chunk.reduce((sum, point) => sum + point.closed, 0),
     });
@@ -152,6 +157,7 @@ function buildComparisonBuckets(points: TimelinePoint[]) {
 }
 
 export default function DashboardCharts() {
+  const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -356,6 +362,28 @@ export default function DashboardCharts() {
     [chartColors.closed, chartColors.open, comparisonBuckets],
   );
 
+  function navigateToIssuesWithFilters(filters: {
+    status?: string;
+    priority?: string;
+    severity?: string;
+    createdFrom?: Date | null;
+    createdTo?: Date | null;
+  }) {
+    const params = new URLSearchParams({ view: "details", page: "1" });
+
+    if (filters.status) params.set("status", filters.status);
+    if (filters.priority) params.set("priority", filters.priority);
+    if (filters.severity) params.set("severity", filters.severity);
+    if (filters.createdFrom) {
+      params.set("createdFrom", filters.createdFrom.toISOString().slice(0, 10));
+    }
+    if (filters.createdTo) {
+      params.set("createdTo", filters.createdTo.toISOString().slice(0, 10));
+    }
+
+    router.push(`/issues?${params.toString()}`);
+  }
+
   const statusData = useMemo(
     () => ({
       labels: ["Open", "In Progress", "Resolved", "Closed"],
@@ -470,7 +498,7 @@ export default function DashboardCharts() {
             },
           ].map(({ href, label, value, icon: Icon, tone }) => (
             <Link key={label} href={href}>
-              <Card className="group h-full cursor-pointer border-border bg-card transition-colors duration-150 hover:bg-accent/25 focus-within:ring-2 focus-within:ring-ring/50">
+              <Card className="group h-full cursor-pointer border-0 bg-card/70 shadow-none transition-colors duration-150 hover:bg-accent/20 focus-within:ring-2 focus-within:ring-ring/50">
                 <CardContent className="flex items-center justify-between gap-2.5 p-2.5">
                   <div>
                     <p className="text-[12px] font-medium text-muted-foreground">
@@ -484,8 +512,8 @@ export default function DashboardCharts() {
                       Open list
                     </p>
                   </div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/25 text-muted-foreground">
-                    <Icon className="h-4.5 w-4.5" aria-hidden="true" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground/80">
+                    <Icon className="h-4 w-4" aria-hidden="true" />
                   </div>
                 </CardContent>
               </Card>
@@ -500,17 +528,15 @@ export default function DashboardCharts() {
             Analytics
           </h2>
           <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
+            <Badge className="rounded-full bg-muted/60 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               {timeRange}
             </Badge>
             <div ref={filtersPanelRef} className="relative">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="relative h-9 w-9 rounded-md p-0"
+                className="relative h-8 w-8 rounded-md p-0"
                 aria-label="Toggle dashboard filters"
                 aria-expanded={filtersOpen}
                 onClick={() => setFiltersOpen((current) => !current)}>
@@ -592,97 +618,107 @@ export default function DashboardCharts() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
-          <Card className="min-w-0 border-border bg-card shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between gap-2 border-b border-border/60 pb-2.5">
-              <div>
-                <CardTitle className="text-base font-semibold">
-                  Issue Trend
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Open and in-progress issues across the selected range.
-                </CardDescription>
-              </div>
-              <Select
-                value={timeRange}
-                onChange={(event) => setTimeRange(event.target.value)}
-                className="w-28">
-                <option value="7d">Last 7 days</option>
-                <option value="30d">Last 30 days</option>
-                <option value="90d">Last 90 days</option>
-                <option value="365d">Last year</option>
-              </Select>
-            </CardHeader>
-            <CardContent className="p-2.5">
-              <div className="h-[190px] w-full lg:h-[210px]">
-                <Line
-                  key={`trend-${themeMode}`}
-                  data={trendData}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 220, easing: "easeOutCubic" },
-                    interaction: { mode: "index", intersect: false },
-                    plugins: {
-                      legend: {
-                        position: "bottom",
-                        labels: {
-                          usePointStyle: true,
-                          pointStyle: "rectRounded",
-                          boxWidth: 10,
-                          boxHeight: 10,
-                          padding: 12,
-                          font: { size: 11, weight: 600 },
-                          color: uiColors.legendText,
-                        },
-                      },
-                      tooltip: {
-                        backgroundColor: uiColors.tooltipBg,
-                        titleColor: uiColors.tooltipText,
-                        bodyColor: uiColors.tooltipText,
+        <Card className="min-w-0 border-border bg-card shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 border-b border-border/60 pb-2.5">
+            <div>
+              <CardTitle className="text-base font-semibold">Issue Trend</CardTitle>
+              <CardDescription className="text-xs">
+                Open and in-progress issues across the selected range.
+              </CardDescription>
+            </div>
+            <Select
+              value={timeRange}
+              onChange={(event) => setTimeRange(event.target.value)}
+              className="w-28">
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+              <option value="365d">Last year</option>
+            </Select>
+          </CardHeader>
+          <CardContent className="p-2.5">
+            <div className="h-[210px] w-full lg:h-[230px]">
+              <Line
+                key={`trend-${themeMode}`}
+                data={trendData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  animation: { duration: 220, easing: "easeOutCubic" },
+                  interaction: { mode: "index", intersect: false },
+                  onClick: (_event, elements) => {
+                    if (!elements.length) return;
+                    const { datasetIndex, index } = elements[0];
+                    const datasetLabel = trendData.datasets[datasetIndex]?.label;
+                    const status = datasetLabel === "Open" ? "OPEN" : datasetLabel === "In Progress" ? "IN_PROGRESS" : undefined;
+                    const point = timelinePoints[index];
+                    navigateToIssuesWithFilters({
+                      status,
+                      createdFrom: point?.date ?? null,
+                      createdTo: point?.date ?? null,
+                    });
+                  },
+                  plugins: {
+                    legend: {
+                      position: "bottom",
+                      labels: {
+                        usePointStyle: true,
+                        pointStyle: "rectRounded",
+                        boxWidth: 10,
+                        boxHeight: 10,
                         padding: 12,
-                        cornerRadius: 10,
-                        borderColor: uiColors.tooltipBorder,
-                        borderWidth: 1,
-                        displayColors: true,
-                        callbacks: {
-                          labelTextColor: () => uiColors.tooltipText,
-                        },
+                        font: { size: 11, weight: 600 },
+                        color: uiColors.legendText,
                       },
                     },
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                        ticks: {
-                          precision: 0,
-                          font: { size: 11 },
-                          color: uiColors.axisText,
-                        },
-                        grid: { color: uiColors.grid },
-                        border: { display: false },
-                      },
-                      x: {
-                        grid: { display: false },
-                        ticks: {
-                          maxRotation: 0,
-                          autoSkip: true,
-                          maxTicksLimit: 8,
-                          font: { size: 11 },
-                          color: uiColors.axisText,
-                        },
-                        border: { display: false },
+                    tooltip: {
+                      backgroundColor: uiColors.tooltipBg,
+                      titleColor: uiColors.tooltipText,
+                      bodyColor: uiColors.tooltipText,
+                      padding: 12,
+                      cornerRadius: 10,
+                      borderColor: uiColors.tooltipBorder,
+                      borderWidth: 1,
+                      displayColors: true,
+                      callbacks: {
+                        labelTextColor: () => uiColors.tooltipText,
                       },
                     },
-                    elements: {
-                      line: { borderCapStyle: "round", borderJoinStyle: "round" },
-                      point: { radius: 0, hoverRadius: 4 },
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: {
+                        precision: 0,
+                        font: { size: 11 },
+                        color: uiColors.axisText,
+                      },
+                      grid: { color: uiColors.grid },
+                      border: { display: false },
                     },
-                  }}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                    x: {
+                      grid: { display: false },
+                      ticks: {
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 8,
+                        font: { size: 11 },
+                        color: uiColors.axisText,
+                      },
+                      border: { display: false },
+                    },
+                  },
+                  elements: {
+                    line: { borderCapStyle: "round", borderJoinStyle: "round" },
+                    point: { radius: 0, hoverRadius: 4 },
+                  },
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
+        <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
           <Card className="min-w-0 border-border bg-card shadow-sm">
             <CardHeader className="border-b border-border/60 pb-2.5">
               <CardTitle className="text-base font-semibold">
@@ -703,6 +739,18 @@ export default function DashboardCharts() {
                     animation: { duration: 220, easing: "easeOutCubic" },
                     cutout: "66%",
                     rotation: -90,
+                    onClick: (_event, elements) => {
+                      if (!elements.length) return;
+                      const index = elements[0].index;
+                      const label = statusData.labels[index];
+                      const statusMap: Record<string, string> = {
+                        Open: "OPEN",
+                        "In Progress": "IN_PROGRESS",
+                        Resolved: "RESOLVED",
+                        Closed: "CLOSED",
+                      };
+                      navigateToIssuesWithFilters({ status: statusMap[label] });
+                    },
                     plugins: {
                       legend: {
                         position: "bottom",
@@ -760,6 +808,18 @@ export default function DashboardCharts() {
                     responsive: true,
                     maintainAspectRatio: false,
                     animation: { duration: 220, easing: "easeOutCubic" },
+                    onClick: (_event, elements) => {
+                      if (!elements.length) return;
+                      const { datasetIndex, index } = elements[0];
+                      const bucket = comparisonBuckets[index];
+                      if (!bucket) return;
+                      const status = datasetIndex === 0 ? "OPEN" : "CLOSED";
+                      navigateToIssuesWithFilters({
+                        status,
+                        createdFrom: bucket.startDate,
+                        createdTo: bucket.endDate,
+                      });
+                    },
                     plugins: {
                       legend: {
                         position: "bottom",

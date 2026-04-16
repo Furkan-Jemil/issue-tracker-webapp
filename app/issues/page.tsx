@@ -6,12 +6,11 @@ import {
   parseSeverity,
 } from "@/lib/issueFilters";
 import Link from "next/link";
-import { ClipboardList, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IssuesFilterPopover } from "@/app/issues/IssuesFilterPopover";
+import IssueViewModeControl from "@/app/issues/IssueViewModeControl";
 import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
-import { IssueViewPresets } from "@/components/issue/IssueViewPresets";
 import { IssueSemanticBadge } from "@/components/issue/IssueSemanticBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import {
@@ -61,6 +60,8 @@ export default async function IssuesListPage({
     severity?: string;
     reporter?: string;
     assignee?: string;
+    createdFrom?: string;
+    createdTo?: string;
     notice?: string;
   }>;
 }) {
@@ -95,11 +96,23 @@ export default async function IssuesListPage({
     isAdmin && typeof params?.assignee === "string"
       ? params.assignee.trim()
       : "";
+  const createdFromRaw = params?.createdFrom?.trim() || "";
+  const createdToRaw = params?.createdTo?.trim() || "";
+  const createdFrom = /^\d{4}-\d{2}-\d{2}$/.test(createdFromRaw)
+    ? new Date(`${createdFromRaw}T00:00:00.000Z`)
+    : null;
+  const createdTo = /^\d{4}-\d{2}-\d{2}$/.test(createdToRaw)
+    ? new Date(`${createdToRaw}T23:59:59.999Z`)
+    : null;
   const notice = params?.notice || "";
   const skip = (currentPage - 1) * pageSize;
 
-  const where = {
+  const baseWhere = {
     ...(!isAdmin ? { createdBy: session.user.id } : {}),
+  };
+
+  const where = {
+    ...baseWhere,
     ...(isAdmin && reporter ? { createdBy: reporter } : {}),
     ...(isAdmin && assignee ? { assigneeId: assignee } : {}),
     ...(query
@@ -110,9 +123,17 @@ export default async function IssuesListPage({
     ...(status ? { status } : {}),
     ...(priority ? { priority } : {}),
     ...(severity ? { severity } : {}),
+    ...(createdFrom || createdTo
+      ? {
+          createdAt: {
+            ...(createdFrom ? { gte: createdFrom } : {}),
+            ...(createdTo ? { lte: createdTo } : {}),
+          },
+        }
+      : {}),
   };
 
-  const [issues, total, reporters, statusCounts] = await Promise.all([
+  const [issues, filteredTotal, totalVisible, reporters, statusCounts] = await Promise.all([
     prisma.issue.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -132,6 +153,7 @@ export default async function IssuesListPage({
       },
     }),
     prisma.issue.count({ where }),
+    prisma.issue.count({ where: baseWhere }),
     isAdmin
       ? prisma.user.findMany({
           select: { id: true, name: true, email: true, role: true },
@@ -152,17 +174,17 @@ export default async function IssuesListPage({
     statusCounts.map((entry) => [entry.status, entry._count.status]),
   );
 
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const totalPages = Math.max(1, Math.ceil(filteredTotal / pageSize));
 
   const hasPrev = currentPage > 1;
   const hasNext = currentPage < totalPages;
 
   const hasActiveFilters = Boolean(
-    query || status || priority || severity || reporter || assignee,
+    query || status || priority || severity || reporter || assignee || createdFrom || createdTo,
   );
   const tableColumnCount =
     5 + (showDetails ? 2 : 0) + (isAdmin && showDetails ? 2 : 0);
-  const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${total} total issues), ${view} view`;
+  const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${filteredTotal} filtered issues), ${view} view`;
   const cellPaddingClass = showDetails ? "py-2.5" : "py-1.5";
   const headPaddingClass = showDetails ? "h-10 py-1.5" : "h-9 py-1";
   const boardColumns = BOARD_STATUS_ORDER.map((statusKey) => ({
@@ -177,19 +199,6 @@ export default async function IssuesListPage({
             : "Closed",
       total: statusCountMap.get(statusKey) ?? 0,
     issues: issues.filter((issue) => issue.status === statusKey),
-  }));
-
-  const statusFilterOptions = BOARD_STATUS_ORDER.map((statusKey) => ({
-    key: statusKey,
-    label:
-      statusKey === "OPEN"
-        ? "Open"
-        : statusKey === "IN_PROGRESS"
-          ? "In progress"
-          : statusKey === "RESOLVED"
-            ? "Resolved"
-            : "Closed",
-    count: statusCountMap.get(statusKey) ?? 0,
   }));
 
   function getUserLabel(userId: string, fallback: string) {
@@ -214,6 +223,8 @@ export default async function IssuesListPage({
     if (severity) nextParams.set("severity", severity);
     if (reporter) nextParams.set("reporter", reporter);
     if (assignee) nextParams.set("assignee", assignee);
+    if (createdFromRaw) nextParams.set("createdFrom", createdFromRaw);
+    if (createdToRaw) nextParams.set("createdTo", createdToRaw);
   }
 
   function buildIssuesHref(page: number) {
@@ -245,114 +256,45 @@ export default async function IssuesListPage({
     return `/issues?${nextParams.toString()}`;
   }
 
-  function buildStatusHref(nextStatus: (typeof BOARD_STATUS_ORDER)[number]) {
-    const nextParams = new URLSearchParams({ view, page: "1", status: nextStatus });
-    if (query) nextParams.set("q", query);
-    if (priority) nextParams.set("priority", priority);
-    if (severity) nextParams.set("severity", severity);
-    if (reporter) nextParams.set("reporter", reporter);
-    if (assignee) nextParams.set("assignee", assignee);
-    return `/issues?${nextParams.toString()}`;
-  }
-
   return (
     <div className="page-stack">
       <PageHeader
         title="Issues"
         description="Track, prioritize, and move issues through the workflow."
-        icon={ClipboardList}
-        actions={
-          <>
-            <div className="flex flex-wrap items-center gap-1 rounded-full border border-border/70 bg-background/80 p-1 shadow-sm">
-              {[
-                { label: "Compact", href: buildViewHref("compact"), active: view === "compact" },
-                { label: "Detailed", href: buildViewHref("details"), active: view === "details" },
-                { label: "Board", href: buildViewHref("board"), active: view === "board" },
-              ].map((item) => (
-                <Button
-                  key={item.label}
-                  asChild
-                  size="dense"
-                  variant={item.active ? "default" : "ghost"}
-                  className="rounded-full px-3 font-medium"
-                >
-                  <Link href={item.href}>{item.label}</Link>
-                </Button>
-              ))}
-            </div>
-            <IssuesFilterPopover
-              view={view}
-              isAdmin={isAdmin}
-              hasActiveFilters={hasActiveFilters}
-              query={query}
-              status={status}
-              priority={priority}
-              severity={severity}
-              reporter={reporter}
-              assignee={assignee}
-              reporters={reporters.map((user) => ({
-                id: user.id,
-                label: user.name || user.email,
-                role: user.role,
-              }))}
-              onSubmitHref="/issues"
-              onResetHref={buildClearFiltersHref()}
-            />
-            <Button asChild>
-              <Link href="/issues/new">Create Issue</Link>
-            </Button>
-          </>
-        }
       />
-      <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-border/70 bg-card/85 px-3 py-2.5 shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-foreground/90">View modes</span>
-          <div className="group relative inline-flex items-center">
-            <button
-              type="button"
-              aria-label="How issue views work"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-            >
-              <Info className="h-4 w-4" aria-hidden="true" />
-            </button>
-            <div className="pointer-events-none absolute left-1/2 top-9 z-20 w-max max-w-[240px] -translate-x-1/2 rounded-lg border border-border/70 bg-popover px-3 py-2 text-[11px] text-popover-foreground opacity-0 shadow-lg transition group-hover:opacity-100">
-              Compact is for fast scanning, Detailed is for ownership context, and Board is for triage by status.
+      <section className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-2">
+            <p className="text-xs text-muted-foreground">Issues table</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <IssueViewModeControl
+                currentView={view}
+                compactHref={buildViewHref("compact")}
+                detailsHref={buildViewHref("details")}
+                boardHref={buildViewHref("board")}
+              />
+              <IssuesFilterPopover
+                view={view}
+                isAdmin={isAdmin}
+                hasActiveFilters={hasActiveFilters}
+                query={query}
+                status={status}
+                priority={priority}
+                severity={severity}
+                reporter={reporter}
+                assignee={assignee}
+                reporters={reporters.map((user) => ({
+                  id: user.id,
+                  label: user.name || user.email,
+                  role: user.role,
+                }))}
+                onSubmitHref="/issues"
+                onResetHref={buildClearFiltersHref()}
+              />
+              <Button asChild>
+                <Link href="/issues/new">Create Issue</Link>
+              </Button>
             </div>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-            Filtered {total}
-          </span>
-          {hasActiveFilters ? (
-            <span className="inline-flex items-center rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
-              Filters active
-            </span>
-          ) : (
-            <span className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-              No active filters
-            </span>
-          )}
-        </div>
-      </div>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {[
-          { label: "Filtered", value: total, href: buildClearFiltersHref() },
-          ...statusFilterOptions.map((item) => ({
-            label: item.label,
-            value: item.count,
-            href: buildStatusHref(item.key),
-          })),
-        ].map((item) => (
-          <Link key={item.label} href={item.href} className="group rounded-2xl border border-border/70 bg-card/80 px-3 py-2.5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-md">
-            <div className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground">{item.label}</div>
-            <div className="mt-1 text-lg font-semibold text-foreground">{item.value}</div>
-          </Link>
-        ))}
-      </div>
-      <IssueViewPresets />
-      <Card className="overflow-hidden">
-        <CardContent className="space-y-4 p-4 md:p-5">
           {notice === "admin-dashboard-only" && (
             <Card className="border-amber-300 bg-amber-50/60">
               <CardHeader className="pb-2">
@@ -427,7 +369,7 @@ export default async function IssuesListPage({
               </div>
             </div>
           ) : (
-            <Table className="rounded-xl border border-border/70 bg-card/40">
+            <Table className="bg-transparent">
               <caption className="sr-only">{issuesTableCaption}</caption>
               <TableHeader>
                 <TableRow>
@@ -564,6 +506,9 @@ export default async function IssuesListPage({
             <p>
               Page {currentPage} / {totalPages}
             </p>
+            <p className="text-xs text-muted-foreground">
+              Total {totalVisible} | Filtered {filteredTotal}
+            </p>
             <div className="flex gap-2">
               <Button asChild variant="outline" size="sm" disabled={!hasPrev}>
                 <Link
@@ -581,8 +526,7 @@ export default async function IssuesListPage({
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+      </section>
     </div>
   );
 }
