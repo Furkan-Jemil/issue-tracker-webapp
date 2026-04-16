@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import Link from "next/link";
+import type { HistoryEvent } from "@prisma/client";
 import {
   History,
   FilePlus2,
@@ -57,7 +58,13 @@ export default async function AdminAuditLogPage({
     );
   }
   const params = await searchParams;
-  const eventFilter = (params?.event || "").trim();
+  const eventFilterRaw = (params?.event || "").trim();
+  const eventFilter: HistoryEvent | undefined =
+    eventFilterRaw === "CREATED" ||
+    eventFilterRaw === "STATUS_CHANGED" ||
+    eventFilterRaw === "COMMENTED"
+      ? eventFilterRaw
+      : undefined;
   const query = (params?.q || "").trim();
   const where = {
     ...(eventFilter ? { eventType: eventFilter } : {}),
