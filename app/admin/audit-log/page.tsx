@@ -2,17 +2,11 @@ import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import Link from "next/link";
 import type { HistoryEvent } from "@prisma/client";
-import {
-  History,
-  FilePlus2,
-  RefreshCcw,
-  MessageSquareText,
-  ArrowUpRight,
-} from "lucide-react";
+import { History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/PageHeader";
+import AuditEventFilterControl from "./AuditEventFilterControl";
 import ExportDataButton from "../settings/ExportDataButton";
 import {
   Table,
@@ -65,6 +59,7 @@ export default async function AdminAuditLogPage({
     eventFilterRaw === "COMMENTED"
       ? eventFilterRaw
       : undefined;
+  const selectedEvent = eventFilter ?? "ALL";
   const query = (params?.q || "").trim();
   const where = {
     ...(eventFilter ? { eventType: eventFilter } : {}),
@@ -89,14 +84,6 @@ export default async function AdminAuditLogPage({
     }),
     prisma.issueHistory.count(),
   ]);
-  const createdCount = logs.filter((log) => log.eventType === "CREATED").length;
-  const statusCount = logs.filter(
-    (log) => log.eventType === "STATUS_CHANGED",
-  ).length;
-  const commentedCount = logs.filter(
-    (log) => log.eventType === "COMMENTED",
-  ).length;
-
   function eventVariant(eventType: string) {
     if (eventType === "CREATED") return "secondary" as const;
     if (eventType === "STATUS_CHANGED") return "warning" as const;
@@ -110,85 +97,11 @@ export default async function AdminAuditLogPage({
         title="Audit Log"
         description="Review tracked system changes, comments, and status transitions."
       />
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Link href="/issues" className="block">
-          <Card className="group cursor-pointer border-0 bg-card/75 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-card/90 focus-within:ring-2 focus-within:ring-ring/50">
-            <CardContent className="flex items-center justify-between gap-3 p-3.5">
-              <div>
-                <p className="text-[12px] font-medium text-muted-foreground">
-                  Created
-                </p>
-                <p className="mt-1 text-2xl font-semibold">{createdCount}</p>
-                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
-                  View issues
-                </p>
-              </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground/80">
-                <FilePlus2 className="h-5 w-5" aria-hidden="true" />
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/issues?view=details" className="block">
-          <Card className="group cursor-pointer border-0 bg-card/75 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-card/90 focus-within:ring-2 focus-within:ring-ring/50">
-            <CardContent className="flex items-center justify-between gap-3 p-3.5">
-              <div>
-                <p className="text-[12px] font-medium text-muted-foreground">
-                  Status changes
-                </p>
-                <p className="mt-1 text-2xl font-semibold">{statusCount}</p>
-                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
-                  Open details
-                </p>
-              </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground/80">
-                <RefreshCcw className="h-5 w-5" aria-hidden="true" />
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/issues?view=details&status=OPEN" className="block">
-          <Card className="group cursor-pointer border-0 bg-card/75 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-card/90 focus-within:ring-2 focus-within:ring-ring/50">
-            <CardContent className="flex items-center justify-between gap-3 p-3.5">
-              <div>
-                <p className="text-[12px] font-medium text-muted-foreground">
-                  Comments
-                </p>
-                <p className="mt-1 text-2xl font-semibold">{commentedCount}</p>
-                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
-                  Open comment flow
-                </p>
-              </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground/80">
-                <MessageSquareText className="h-5 w-5" aria-hidden="true" />
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 bg-muted/20 py-3">
           <h2 className="text-xl font-semibold">Audit Log</h2>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 rounded-md bg-muted/25 p-1">
-              <Button asChild size="dense" variant={!eventFilter ? "default" : "ghost"} className="h-7 rounded-md px-2 text-xs">
-                <Link href="/admin/audit-log">All</Link>
-              </Button>
-              <Button asChild size="dense" variant={eventFilter === "CREATED" ? "default" : "ghost"} className="h-7 rounded-md px-2 text-xs">
-                <Link href="/admin/audit-log?event=CREATED">Created</Link>
-              </Button>
-              <Button asChild size="dense" variant={eventFilter === "STATUS_CHANGED" ? "default" : "ghost"} className="h-7 rounded-md px-2 text-xs">
-                <Link href="/admin/audit-log?event=STATUS_CHANGED">Status</Link>
-              </Button>
-              <Button asChild size="dense" variant={eventFilter === "COMMENTED" ? "default" : "ghost"} className="h-7 rounded-md px-2 text-xs">
-                <Link href="/admin/audit-log?event=COMMENTED">Comments</Link>
-              </Button>
-            </div>
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
-              Open issue
-              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </span>
+            <AuditEventFilterControl current={selectedEvent} />
             <ExportDataButton compact className="shrink-0" />
             <Button asChild variant="ghost" size="icon" className="h-8 w-8" title="System records">
               <Link href="/issues" aria-label="System records">

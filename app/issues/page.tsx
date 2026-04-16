@@ -9,7 +9,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IssuesFilterPopover } from "@/app/issues/IssuesFilterPopover";
-import IssueViewModeControl from "@/app/issues/IssueViewModeControl";
 import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import { IssueSemanticBadge } from "@/components/issue/IssueSemanticBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -250,12 +249,6 @@ export default async function IssuesListPage({
     return `/issues?${nextParams.toString()}`;
   }
 
-  function buildViewHref(nextView: "compact" | "details" | "board") {
-    const nextParams = new URLSearchParams({ view: nextView, page: "1" });
-    appendToolbarParams(nextParams);
-    return `/issues?${nextParams.toString()}`;
-  }
-
   return (
     <div className="page-stack">
       <PageHeader
@@ -263,15 +256,9 @@ export default async function IssuesListPage({
         description="Track, prioritize, and move issues through the workflow."
       />
       <section className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 bg-muted/20 py-3">
             <p className="text-xs text-muted-foreground">Issues table</p>
             <div className="flex flex-wrap items-center gap-2">
-              <IssueViewModeControl
-                currentView={view}
-                compactHref={buildViewHref("compact")}
-                detailsHref={buildViewHref("details")}
-                boardHref={buildViewHref("board")}
-              />
               <IssuesFilterPopover
                 view={view}
                 isAdmin={isAdmin}
@@ -290,7 +277,7 @@ export default async function IssuesListPage({
                 onSubmitHref="/issues"
                 onResetHref={buildClearFiltersHref()}
               />
-              <Button asChild>
+              <Button asChild size="sm">
                 <Link href="/issues/new">Create Issue</Link>
               </Button>
             </div>

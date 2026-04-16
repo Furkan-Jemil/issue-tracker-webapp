@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { UsersRound, UserCog, UserCheck, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import {
@@ -146,90 +145,12 @@ export default function AdminUsersPage() {
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const adminCount = users.filter((user) => user.role === "ADMIN").length;
-  const testerCount = users.filter((user) => user.role === "TESTER").length;
-
   return (
     <div className="page-stack">
       <PageHeader
         title="Users"
         description="Manage user accounts, access roles, and operational permissions."
       />
-
-      <div className="grid gap-3 sm:grid-cols-3">
-        <button
-          type="button"
-          onClick={() => {
-            setRoleFilter("");
-            setPage(1);
-          }}
-          className="text-left">
-          <Card className="group cursor-pointer border-0 bg-card/75 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-card/90 focus-within:ring-2 focus-within:ring-ring/50">
-            <CardContent className="flex items-center justify-between gap-3 p-3.5">
-              <div>
-                <p className="text-[12px] font-medium text-muted-foreground">
-                  Visible users
-                </p>
-                <p className="mt-1 text-2xl font-semibold">{users.length}</p>
-                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
-                  Show all
-                </p>
-              </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground/80">
-                <UsersRound className="h-5 w-5" aria-hidden="true" />
-              </div>
-            </CardContent>
-          </Card>
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setRoleFilter("ADMIN");
-            setPage(1);
-          }}
-          className="text-left">
-          <Card className="group cursor-pointer border-0 bg-card/75 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-card/90 focus-within:ring-2 focus-within:ring-ring/50">
-            <CardContent className="flex items-center justify-between gap-3 p-3.5">
-              <div>
-                <p className="text-[12px] font-medium text-muted-foreground">
-                  Admins on page
-                </p>
-                <p className="mt-1 text-2xl font-semibold">{adminCount}</p>
-                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
-                  Filter admins
-                </p>
-              </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground/80">
-                <UserCog className="h-5 w-5" aria-hidden="true" />
-              </div>
-            </CardContent>
-          </Card>
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setRoleFilter("TESTER");
-            setPage(1);
-          }}
-          className="text-left">
-          <Card className="group cursor-pointer border-0 bg-card/75 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-card/90 focus-within:ring-2 focus-within:ring-ring/50">
-            <CardContent className="flex items-center justify-between gap-3 p-3.5">
-              <div>
-                <p className="text-[12px] font-medium text-muted-foreground">
-                  Testers on page
-                </p>
-                <p className="mt-1 text-2xl font-semibold">{testerCount}</p>
-                <p className="text-[11px] text-muted-foreground/80 group-hover:text-foreground">
-                  Filter testers
-                </p>
-              </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground/80">
-                <UserCheck className="h-5 w-5" aria-hidden="true" />
-              </div>
-            </CardContent>
-          </Card>
-        </button>
-      </div>
 
       <section className="space-y-3">
         <div className="border-b border-border/60 bg-muted/20 py-3">
