@@ -2,6 +2,51 @@
 
 This project is built with Next.js (App Router), TypeScript, Prisma, and PostgreSQL.
 
+## Frameworks And Tech Stack
+
+### Core Framework
+
+- Next.js 15 (`next`) with App Router
+- React 19 (`react`, `react-dom`)
+- TypeScript 5
+
+### Backend And API
+
+- Next.js Route Handlers (`app/api/**`) for server APIs
+- Node.js 22 runtime
+
+### Data Layer
+
+- Prisma ORM 7 (`prisma`, `@prisma/client`)
+- PostgreSQL (`pg`)
+
+### Authentication And Authorization
+
+- Better Auth (`better-auth`, `@better-auth/infra`)
+- NextAuth (`next-auth`) for auth route integration
+- CASL (`@casl/ability`, `@casl/react`) for access control
+
+### UI And Styling
+
+- Tailwind CSS 3 (`tailwindcss`)
+- PostCSS + Autoprefixer
+- Radix UI primitives (`@radix-ui/*`)
+- CVA (`class-variance-authority`) + `clsx` + `tailwind-merge`
+
+### Charts And Visualization
+
+- Chart.js + `react-chartjs-2`
+- Recharts
+
+### File Storage And Uploads
+
+- Vercel Blob (`@vercel/blob`)
+
+### QA / Tooling
+
+- Playwright (E2E)
+- TSX (TypeScript script runner)
+
 ## Getting Started
 
 - Run `npm install` to install dependencies.
