@@ -39,7 +39,7 @@ export default function NotificationBell({ className }: { className?: string }) 
       aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ""}`}
       title="Open notifications"
       className={cn(
-        "relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:h-8 md:w-8",
+        "relative inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
         className,
       )}>
       <Bell className="h-4 w-4" />
