@@ -55,15 +55,17 @@ export function AppShell({
   navItems,
   profileName,
   profileEmail,
+  initialTheme,
 }: {
   children: React.ReactNode;
   navItems: AppNavItem[];
   profileName: string;
   profileEmail: string;
+  initialTheme: "light" | "dark";
 }) {
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">(initialTheme);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const themeTransitionTimeoutRef = useRef<number | null>(null);
@@ -90,6 +92,11 @@ export function AppShell({
     root.classList.toggle("dark", nextTheme === "dark");
   }
 
+  function persistTheme(nextTheme: "light" | "dark") {
+    window.localStorage.setItem("app-theme", nextTheme);
+    document.cookie = `app-theme=${nextTheme}; path=/; max-age=31536000; samesite=lax`;
+  }
+
   useEffect(() => {
     const stored = window.localStorage.getItem("app-shell-sidebar-expanded");
     if (stored !== null) {
@@ -106,19 +113,15 @@ export function AppShell({
 
   useEffect(() => {
     const stored = window.localStorage.getItem("app-theme");
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    ).matches;
     const nextTheme =
       stored === "dark" || stored === "light"
         ? stored
-        : prefersDark
-          ? "dark"
-          : "light";
+        : initialTheme;
 
     setTheme(nextTheme);
+    persistTheme(nextTheme);
     applyTheme(nextTheme, false);
-  }, []);
+  }, [initialTheme]);
 
   useEffect(() => {
     return () => {
@@ -159,7 +162,7 @@ export function AppShell({
   function toggleTheme() {
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
-    window.localStorage.setItem("app-theme", nextTheme);
+    persistTheme(nextTheme);
     applyTheme(nextTheme, true);
   }
 

@@ -1,5 +1,6 @@
 import "../styles/tailwind.css";
 import { Manrope } from "next/font/google";
+import { cookies } from "next/headers";
 import { getAppSession } from "@/lib/auth/session";
 import { AppShell, type AppNavItem } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
@@ -30,13 +31,28 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const savedTheme = cookieStore.get("app-theme")?.value;
+  const initialTheme: "light" | "dark" =
+    savedTheme === "dark" || savedTheme === "light" ? savedTheme : "light";
   const session = await getAppSession();
   const profileName = session?.user?.name?.trim() || "Signed-in User";
   const profileEmail = session?.user?.email?.trim() || "No email";
   const navItems = buildNavItems(session?.user?.role);
 
   return (
-    <html lang="en" className={fontSans.variable}>
+    <html
+      lang="en"
+      className={`${fontSans.variable}${initialTheme === "dark" ? " dark" : ""}`}
+      suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(() => { try { const readCookie = document.cookie.split('; ').find((part) => part.startsWith('app-theme='))?.split('=')[1]; const stored = window.localStorage.getItem('app-theme'); const nextTheme = stored === 'dark' || stored === 'light' ? stored : readCookie === 'dark' || readCookie === 'light' ? readCookie : null; if (!nextTheme) return; document.documentElement.classList.toggle('dark', nextTheme === 'dark'); } catch {} })();",
+          }}
+        />
+      </head>
       <body className="font-sans antialiased">
         <a
           href="#main-content"
@@ -45,7 +61,11 @@ export default async function RootLayout({
             <span>Skip to main content</span>
           </Button>
         </a>
-        <AppShell navItems={navItems} profileName={profileName} profileEmail={profileEmail}>
+        <AppShell
+          navItems={navItems}
+          profileName={profileName}
+          profileEmail={profileEmail}
+          initialTheme={initialTheme}>
           {children}
         </AppShell>
       </body>
