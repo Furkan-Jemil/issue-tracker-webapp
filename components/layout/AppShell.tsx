@@ -190,7 +190,7 @@ export function AppShell({
             </span>
             <span
               className={cn(
-                "min-w-0 overflow-hidden text-[13px] font-semibold tracking-wide text-foreground transition-all duration-200",
+                "min-w-0 overflow-hidden whitespace-nowrap text-[13px] font-semibold tracking-normal text-foreground transition-all duration-200",
                 sidebarExpanded
                   ? "max-w-[140px] opacity-100"
                   : "max-w-0 opacity-0",
