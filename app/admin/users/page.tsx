@@ -172,7 +172,7 @@ export default function AdminUsersPage() {
                     void loadUsers(1, nextSearch, roleFilter);
                   }
                 }}
-                className="w-52 lg:w-64"
+                className="w-40 md:w-52 lg:w-64"
               />
               <Select
                 aria-label="Filter users by role"
@@ -181,7 +181,7 @@ export default function AdminUsersPage() {
                   setRoleFilter(event.target.value);
                   setPage(1);
                 }}
-                className="w-36">
+                className="w-28 md:w-36">
                 <option value="">All roles</option>
                 <option value="USER">User</option>
                 <option value="TESTER">Tester</option>
@@ -293,7 +293,7 @@ export default function AdminUsersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead scope="col">Name</TableHead>
-                <TableHead scope="col">Email</TableHead>
+                <TableHead scope="col" className="hidden sm:table-cell">Email</TableHead>
                 <TableHead scope="col">Role</TableHead>
                 <TableHead scope="col" className="hidden lg:table-cell">
                   Created
@@ -325,11 +325,14 @@ export default function AdminUsersPage() {
                     <p className="mt-1 text-[11px] text-muted-foreground lg:hidden">
                       Joined {new Date(user.createdAt).toLocaleDateString()}
                     </p>
+                    <p className="mt-1 break-all text-[11px] text-muted-foreground sm:hidden">
+                      {user.email}
+                    </p>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <Link
                       href={`/admin/users/${user.id}`}
-                      className="text-muted-foreground hover:text-primary hover:underline">
+                      className="break-all text-muted-foreground hover:text-primary hover:underline">
                       {user.email}
                     </Link>
                   </TableCell>
@@ -344,7 +347,7 @@ export default function AdminUsersPage() {
                       onValueChange={(value) => {
                         void updateSingleRole(user.id, value);
                       }}
-                      className="h-8 w-32 rounded-full border-border/70 bg-background/80 px-3 text-[11px] font-semibold">
+                      className="h-8 w-full min-w-0 rounded-full border-border/70 bg-background/80 px-3 text-[11px] font-semibold sm:w-32">
                       <option value="USER">User</option>
                       <option value="TESTER">Tester</option>
                       <option value="ADMIN">Admin</option>
