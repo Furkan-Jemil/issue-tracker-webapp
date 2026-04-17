@@ -176,6 +176,7 @@ export default function DashboardCharts() {
   const hasActiveFilters = Boolean(
     statusFilter || priorityFilter || severityFilter || searchQuery,
   );
+  const activeFilterCount = [statusFilter, priorityFilter, severityFilter, searchQuery].filter(Boolean).length;
 
   useEffect(() => {
     function onPointerDown(event: PointerEvent) {
@@ -577,7 +578,7 @@ export default function DashboardCharts() {
             </form>
             <Select
               value={timeRange}
-              onChange={(event) => setTimeRange(event.target.value)}
+              onValueChange={setTimeRange}
               className="h-8 w-32 text-xs">
               <option value="7d">Last 7 days</option>
               <option value="30d">Last 30 days</option>
@@ -598,8 +599,9 @@ export default function DashboardCharts() {
                 {hasActiveFilters ? (
                   <span
                     aria-hidden="true"
-                    className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary"
-                  />
+                    className="absolute -right-1 -top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                    {activeFilterCount}
+                  </span>
                 ) : null}
               </Button>
 
@@ -608,7 +610,7 @@ export default function DashboardCharts() {
                   <CardContent className="space-y-1.5 p-2">
                     <Select
                       value={statusFilter}
-                      onChange={(event) => setStatusFilter(event.target.value)}
+                      onValueChange={setStatusFilter}
                       className="h-8 text-xs">
                       <option value="">All Statuses</option>
                       <option value="OPEN">Open</option>
@@ -618,7 +620,7 @@ export default function DashboardCharts() {
                     </Select>
                     <Select
                       value={priorityFilter}
-                      onChange={(event) => setPriorityFilter(event.target.value)}
+                      onValueChange={setPriorityFilter}
                       className="h-8 text-xs">
                       <option value="">All Priorities</option>
                       <option value="LOW">Low</option>
@@ -627,7 +629,7 @@ export default function DashboardCharts() {
                     </Select>
                     <Select
                       value={severityFilter}
-                      onChange={(event) => setSeverityFilter(event.target.value)}
+                      onValueChange={setSeverityFilter}
                       className="h-8 text-xs">
                       <option value="">All Severities</option>
                       <option value="MINOR">Minor</option>

@@ -185,6 +185,15 @@ export default async function IssuesListPage({
   const hasActiveFilterFields = Boolean(
     status || priority || severity || reporter || assignee || createdFrom || createdTo,
   );
+  const activeFilterCount = [
+    status,
+    priority,
+    severity,
+    reporter,
+    assignee,
+    createdFromRaw,
+    createdToRaw,
+  ].filter(Boolean).length;
   const tableColumnCount =
     5 + (showDetails ? 2 : 0) + (isAdmin && showDetails ? 2 : 0);
   const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${filteredTotal} filtered issues), ${view} view`;
@@ -280,6 +289,10 @@ export default async function IssuesListPage({
                 view={view}
                 isAdmin={isAdmin}
                 hasActiveFilters={hasActiveFilterFields}
+                activeFilterCount={activeFilterCount}
+                query={query}
+                createdFrom={createdFromRaw}
+                createdTo={createdToRaw}
                 status={status}
                 priority={priority}
                 severity={severity}

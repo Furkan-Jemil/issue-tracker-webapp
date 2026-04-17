@@ -18,6 +18,10 @@ export function IssuesFilterPopover({
   view,
   isAdmin,
   hasActiveFilters,
+  activeFilterCount,
+  query,
+  createdFrom,
+  createdTo,
   status,
   priority,
   severity,
@@ -30,6 +34,10 @@ export function IssuesFilterPopover({
   view: "compact" | "details" | "board";
   isAdmin: boolean;
   hasActiveFilters: boolean;
+  activeFilterCount: number;
+  query: string;
+  createdFrom: string;
+  createdTo: string;
   status: string;
   priority: string;
   severity: string;
@@ -105,6 +113,10 @@ export function IssuesFilterPopover({
       if (current === "details") return "board";
       return "compact";
     });
+    window.requestAnimationFrame(() => {
+      const form = containerRef.current?.querySelector("form") as HTMLFormElement | null;
+      form?.requestSubmit();
+    });
   }
 
   const viewModeLabel =
@@ -121,6 +133,13 @@ export function IssuesFilterPopover({
         ? StretchHorizontal
         : Kanban;
 
+  function submitFiltersSoon() {
+    window.requestAnimationFrame(() => {
+      const form = containerRef.current?.querySelector("form") as HTMLFormElement | null;
+      form?.requestSubmit();
+    });
+  }
+
   return (
     <div ref={containerRef} className="relative z-40">
       <Button
@@ -136,8 +155,8 @@ export function IssuesFilterPopover({
         onClick={() => setOpen((current) => !current)}>
         <Filter className="h-4 w-4" aria-hidden="true" />
         {hasActiveFilters && (
-          <Badge variant="secondary" className="absolute -right-1 -top-1 min-w-4 px-1 py-0 text-[10px]">
-            •
+          <Badge variant="secondary" className="absolute -right-1.5 -top-1 min-w-4 px-1 py-0 text-[10px]">
+            {activeFilterCount}
           </Badge>
         )}
       </Button>
@@ -167,10 +186,13 @@ export function IssuesFilterPopover({
                   <ViewModeIcon className="h-3.5 w-3.5" aria-hidden="true" />
                 </Button>
                 <Button type="submit" size="dense" className="h-7 rounded-md px-2 text-[11px]">
-                  Search
+                  Apply
                 </Button>
               </div>
             </div>
+            {query ? <input type="hidden" name="q" value={query} /> : null}
+            {createdFrom ? <input type="hidden" name="createdFrom" value={createdFrom} /> : null}
+            {createdTo ? <input type="hidden" name="createdTo" value={createdTo} /> : null}
             <input type="hidden" name="view" value={selectedView} />
 
             {hasActiveFilters ? (
@@ -187,7 +209,10 @@ export function IssuesFilterPopover({
                     id="issues-status-filter"
                     name="status"
                     value={selectedStatus}
-                    onValueChange={setSelectedStatus}
+                    onValueChange={(value) => {
+                      setSelectedStatus(value);
+                      submitFiltersSoon();
+                    }}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Statuses</option>
                     <option value="OPEN">Open</option>
@@ -199,7 +224,10 @@ export function IssuesFilterPopover({
                     id="issues-priority-filter"
                     name="priority"
                     value={selectedPriority}
-                    onValueChange={setSelectedPriority}
+                    onValueChange={(value) => {
+                      setSelectedPriority(value);
+                      submitFiltersSoon();
+                    }}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Priorities</option>
                     <option value="LOW">Low</option>
@@ -210,7 +238,10 @@ export function IssuesFilterPopover({
                     id="issues-severity-filter"
                     name="severity"
                     value={selectedSeverity}
-                    onValueChange={setSelectedSeverity}
+                    onValueChange={(value) => {
+                      setSelectedSeverity(value);
+                      submitFiltersSoon();
+                    }}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Severities</option>
                     <option value="MINOR">Minor</option>
@@ -221,7 +252,10 @@ export function IssuesFilterPopover({
                     id="issues-reporter-filter"
                     name="reporter"
                     value={selectedReporter}
-                    onValueChange={setSelectedReporter}
+                    onValueChange={(value) => {
+                      setSelectedReporter(value);
+                      submitFiltersSoon();
+                    }}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Reporters</option>
                     {reporterOptions.map((user) => (
@@ -234,7 +268,10 @@ export function IssuesFilterPopover({
                     id="issues-assignee-filter"
                     name="assignee"
                     value={selectedAssignee}
-                    onValueChange={setSelectedAssignee}
+                    onValueChange={(value) => {
+                      setSelectedAssignee(value);
+                      submitFiltersSoon();
+                    }}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Assignees</option>
                     {reporterOptions.map((user) => (
