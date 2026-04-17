@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Filter, Search } from "lucide-react";
+import { Check, Filter, Kanban, Rows3, Search, StretchHorizontal } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -77,6 +77,28 @@ export function IssuesFilterPopover({
     setSelectedView(view);
   }, [view]);
 
+  function cycleViewMode() {
+    setSelectedView((current) => {
+      if (current === "compact") return "details";
+      if (current === "details") return "board";
+      return "compact";
+    });
+  }
+
+  const viewModeLabel =
+    selectedView === "compact"
+      ? "Compact"
+      : selectedView === "details"
+        ? "Detailed"
+        : "Board";
+
+  const ViewModeIcon =
+    selectedView === "compact"
+      ? Rows3
+      : selectedView === "details"
+        ? StretchHorizontal
+        : Kanban;
+
   return (
     <div ref={containerRef} className="relative z-40">
       <Button
@@ -107,34 +129,34 @@ export function IssuesFilterPopover({
             action={onSubmitHref}
             className="space-y-2"
             onSubmit={() => setOpen(false)}>
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Filters
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Filter
               </p>
-              {hasActiveFilters ? (
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-                  <Check className="h-3 w-3" aria-hidden="true" />
-                  Active
-                </span>
-              ) : null}
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="issues-view-mode" className="text-[11px] font-medium text-muted-foreground">
-                View mode
-              </label>
-              <Select
-                id="issues-view-mode"
-                value={selectedView}
-                onValueChange={(value) => setSelectedView(value as "compact" | "details" | "board")}
-                className="h-8 rounded-md text-xs"
-              >
-                <option value="compact">Compact</option>
-                <option value="details">Detailed</option>
-                <option value="board">Board</option>
-              </Select>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={cycleViewMode}
+                  aria-label={`View mode: ${viewModeLabel}. Click to switch mode.`}
+                  title={`View mode: ${viewModeLabel}`}
+                  className="h-7 w-7 rounded-md">
+                  <ViewModeIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                </Button>
+                <Button type="submit" size="dense" className="h-7 rounded-md px-2 text-[11px]">
+                  Search
+                </Button>
+              </div>
             </div>
             <input type="hidden" name="view" value={selectedView} />
+
+            {hasActiveFilters ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                <Check className="h-3 w-3" aria-hidden="true" />
+                Active filters
+              </span>
+            ) : null}
 
             <div className="grid grid-cols-1 gap-1.5">
               <div className="relative">
@@ -220,9 +242,6 @@ export function IssuesFilterPopover({
                   <Link href={onResetHref}>Reset</Link>
                 </Button>
               )}
-              <Button type="submit" size="dense" className="rounded-md px-3">
-                {isAdmin ? "Apply" : "Search"}
-              </Button>
             </div>
           </form>
         </div>

@@ -549,6 +549,7 @@ export default function DashboardCharts() {
                 className="relative h-8 w-8 rounded-md p-0"
                 aria-label="Toggle dashboard filters"
                 aria-expanded={filtersOpen}
+                aria-controls="dashboard-filters-popover"
                 onClick={() => setFiltersOpen((current) => !current)}>
                 <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
                 {hasActiveFilters ? (
@@ -560,7 +561,7 @@ export default function DashboardCharts() {
               </Button>
 
               {filtersOpen ? (
-                <Card className="popover-surface absolute right-0 top-9 z-30 w-[min(88vw,220px)] border-border bg-card shadow-lg">
+                <Card id="dashboard-filters-popover" className="popover-surface absolute right-0 top-9 z-30 w-[min(88vw,220px)] border-border bg-card shadow-lg">
                   <CardContent className="space-y-1.5 p-2">
                     <Select
                       value={statusFilter}
@@ -591,6 +592,7 @@ export default function DashboardCharts() {
                       <option value="CRITICAL">Critical</option>
                     </Select>
                     <Button
+                      type="button"
                       variant="ghost"
                       size="sm"
                       className="h-7 justify-start px-2 text-xs"
@@ -599,6 +601,7 @@ export default function DashboardCharts() {
                         setStatusFilter("");
                         setPriorityFilter("");
                         setSeverityFilter("");
+                        setFiltersOpen(false);
                       }}>
                       Clear filters
                     </Button>
