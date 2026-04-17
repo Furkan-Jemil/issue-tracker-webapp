@@ -6,10 +6,10 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto rounded-none border-0 bg-transparent">
+  <div className="relative w-full overflow-x-clip rounded-none border-0 bg-transparent">
     <table
       ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
+      className={cn("w-full table-fixed caption-bottom text-sm md:table-auto", className)}
       {...props}
     />
   </div>
@@ -74,7 +74,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-[var(--table-head-h)] px-[var(--table-cell-px)] text-left align-middle text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground [&:has([role=checkbox])]:pr-0",
+      "h-[var(--table-head-h)] whitespace-normal break-words px-[var(--table-cell-px)] text-left align-middle text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className,
     )}
     {...props}
@@ -89,7 +89,7 @@ const TableCell = React.forwardRef<
   <td
     ref={ref}
     className={cn(
-      "px-[var(--table-cell-px)] py-[var(--table-cell-py)] align-middle [&:has([role=checkbox])]:pr-0",
+      "whitespace-normal break-words px-[var(--table-cell-px)] py-[var(--table-cell-py)] align-middle [&:has([role=checkbox])]:pr-0",
       className,
     )}
     {...props}

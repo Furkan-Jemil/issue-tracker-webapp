@@ -152,7 +152,7 @@ export default function NotificationsPage() {
             <Link href="/notifications?view=unread">Unread</Link>
           </Button>
         </div>
-        <Button type="button" onClick={markAllAsRead} disabled={markAllPending}>
+        <Button type="button" size="sm" onClick={markAllAsRead} disabled={markAllPending}>
           {markAllPending ? "Marking..." : "Mark all read"}
         </Button>
       </div>
@@ -205,7 +205,7 @@ export default function NotificationsPage() {
             {visibleNotifications.map((n) => (
               <TableRow key={n.id}>
                 <TableCell>
-                  <Link href={n.issue ? `/issues/${n.issue.id}` : "#"} className="text-primary hover:underline">
+                  <Link href={n.issue ? `/issues/${n.issue.id}` : "#"} className="break-words text-primary hover:underline">
                     {n.message}
                   </Link>
                 </TableCell>
@@ -221,7 +221,8 @@ export default function NotificationsPage() {
                   {!n.isRead ? (
                     <Button
                       type="button"
-                      size="sm"
+                      size="dense"
+                      className="px-2 text-xs"
                       onClick={(event) => {
                         event.preventDefault();
                         void markOneAsRead(n.id);

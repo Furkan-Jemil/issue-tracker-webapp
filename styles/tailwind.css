@@ -83,6 +83,7 @@
   body {
     @apply text-sm;
     line-height: 1.4286;
+    overflow-x: clip;
   }
   html {
     scroll-padding-top: 140px;
@@ -188,11 +189,16 @@
     box-shadow: var(--surface-shadow);
   }
   .page-shell {
-    @apply mx-auto w-full max-w-[1480px];
+    @apply mx-auto w-full max-w-[1480px] min-w-0;
+    overflow-x: clip;
   }
   .page-stack {
     display: grid;
     gap: var(--space-stack);
+    min-width: 0;
+  }
+  .page-stack > * {
+    min-width: 0;
   }
   .page-title {
     @apply h1;

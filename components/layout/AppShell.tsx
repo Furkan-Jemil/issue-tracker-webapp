@@ -100,9 +100,23 @@ export function AppShell({
 
   useEffect(() => {
     const stored = window.localStorage.getItem("app-shell-sidebar-expanded");
+    if (window.innerWidth < 1024) {
+      setSidebarExpanded(false);
+      return;
+    }
     if (stored !== null) {
       setSidebarExpanded(stored === "true");
     }
+  }, []);
+
+  useEffect(() => {
+    function onResize() {
+      if (window.innerWidth < 1024) {
+        setSidebarExpanded(false);
+      }
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   useEffect(() => {
@@ -175,7 +189,7 @@ export function AppShell({
   const adminNavItems = navItems.filter((item) => item.section === "admin");
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-clip bg-background">
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border bg-card transition-[width] duration-200 ease-out",
@@ -257,7 +271,7 @@ export function AppShell({
                 />
                 <span
                   className={cn(
-                    "min-w-0 overflow-hidden whitespace-nowrap transition-all duration-200",
+                    "min-w-0 truncate whitespace-nowrap transition-all duration-200",
                     sidebarExpanded
                       ? "max-w-[160px] opacity-100"
                       : "max-w-0 opacity-0",
@@ -306,7 +320,7 @@ export function AppShell({
                     />
                     <span
                       className={cn(
-                        "min-w-0 overflow-hidden whitespace-nowrap transition-all duration-200",
+                        "min-w-0 truncate whitespace-nowrap transition-all duration-200",
                         sidebarExpanded
                           ? "max-w-[160px] opacity-100"
                           : "max-w-0 opacity-0",
@@ -323,7 +337,7 @@ export function AppShell({
 
       <div
         className={cn(
-          "relative min-h-screen transition-[padding-left] duration-200 ease-out",
+          "relative min-h-screen min-w-0 overflow-x-clip transition-[padding-left] duration-200 ease-out",
           contentOffsetClass,
         )}>
         <header className="pointer-events-none fixed inset-x-0 top-1 z-30 bg-transparent">
@@ -404,7 +418,7 @@ export function AppShell({
 
         <main
           id="main-content"
-          className="page-enter page-shell w-full"
+          className="page-enter page-shell w-full min-w-0"
           style={{
             paddingInline: "var(--space-page-x)",
             paddingTop: "1.25rem",
