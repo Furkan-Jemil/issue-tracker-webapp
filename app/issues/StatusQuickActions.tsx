@@ -109,7 +109,7 @@ export function StatusQuickActions({
           id={menuId}
           role="menu"
           aria-label="Quick status menu"
-          className="absolute right-0 top-9 z-30 min-w-48 rounded-lg border border-border/70 bg-popover p-1.5 shadow-lg"
+          className="absolute right-0 top-9 z-30 w-[min(88vw,12rem)] rounded-lg border border-border/70 bg-popover p-1.5 shadow-lg"
           onKeyDown={(event) => {
             if (event.key === "ArrowDown") {
               event.preventDefault();

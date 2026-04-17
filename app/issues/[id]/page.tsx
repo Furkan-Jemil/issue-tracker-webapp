@@ -182,7 +182,7 @@ export default async function IssueDetailPage({
             {issue.url && (
               <p className="text-sm">
                 <span className="font-semibold">Page or feature:</span>{" "}
-                <a href={issue.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                <a href={issue.url} target="_blank" rel="noopener noreferrer" className="break-all text-primary hover:underline">
                   {issue.url}
                 </a>
               </p>
@@ -212,15 +212,15 @@ export default async function IssueDetailPage({
               </div>
               <div className="flex items-start justify-between gap-3">
                 <dt className="text-muted-foreground">Reported</dt>
-                <dd className="text-right font-medium text-foreground">{issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified"}</dd>
+                <dd className="max-w-[14rem] break-words text-right font-medium text-foreground">{issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified"}</dd>
               </div>
               <div className="flex items-start justify-between gap-3">
                 <dt className="text-muted-foreground">Created</dt>
-                <dd className="text-right font-medium text-foreground">{formatDate(issue.createdAt)}</dd>
+                <dd className="max-w-[14rem] break-words text-right font-medium text-foreground">{formatDate(issue.createdAt)}</dd>
               </div>
               <div className="flex items-start justify-between gap-3">
                 <dt className="text-muted-foreground">Assignee</dt>
-                <dd className="text-right font-medium text-foreground">
+                <dd className="max-w-[14rem] break-words text-right font-medium text-foreground">
                   {issue.assignee ? issue.assignee.name || issue.assignee.email : "Unassigned"}
                 </dd>
               </div>
@@ -284,7 +284,7 @@ export default async function IssueDetailPage({
                         <a href={file.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
                           {file.filename}
                         </a>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="break-words text-xs text-muted-foreground">
                           {file.mimeType} • {(file.sizeBytes / 1024).toFixed(1)} KB • Uploaded by {file.uploader.name || file.uploader.email}
                         </p>
                       </div>

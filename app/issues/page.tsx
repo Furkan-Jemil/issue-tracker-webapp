@@ -302,7 +302,7 @@ export default async function IssuesListPage({
               <div className="rounded-xl border border-border/70 bg-background/70 px-3 py-2 text-sm text-muted-foreground">
                 Board view groups the current filtered page by status so handoff and triage stay simple.
               </div>
-              <div className="grid gap-3 xl:grid-cols-4">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 {boardColumns.map((column) => (
                   <section key={column.key} className="rounded-2xl border border-border/70 bg-muted/20 p-3">
                     <div className="mb-3 flex items-center justify-between gap-2">
@@ -404,7 +404,7 @@ export default async function IssuesListPage({
                       <TableCell className={cellPaddingClass}>
                         <Link
                           href={`/issues/${issue.id}`}
-                          className="font-medium text-primary hover:underline">
+                          className="font-medium text-primary hover:underline break-words">
                           {issue.title}
                         </Link>
                         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground lg:hidden">
@@ -424,7 +424,7 @@ export default async function IssuesListPage({
                         <IssueSemanticBadge kind="severity" value={issue.severity} />
                       </TableCell>
                       <TableCell className={cellPaddingClass}>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <IssueSemanticBadge kind="status" value={issue.status} />
                           {canQuickStatus && (
                             <StatusQuickActions
@@ -437,8 +437,8 @@ export default async function IssuesListPage({
                       {isAdmin && showDetails && (
                         <TableCell className={cellPaddingClass}>
                           {issue.assigneeId ? (
-                            <div className="flex items-center gap-2">
-                              <span>{getUserLabel(issue.assigneeId, "Unknown assignee")}</span>
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                              <span className="break-words">{getUserLabel(issue.assigneeId, "Unknown assignee")}</span>
                               {getUserRoleChip(reporterById.get(issue.assigneeId)?.role)}
                             </div>
                           ) : (
@@ -448,8 +448,8 @@ export default async function IssuesListPage({
                       )}
                       {isAdmin && showDetails && (
                         <TableCell className={cellPaddingClass}>
-                          <div className="flex items-center gap-2">
-                            <span>{getUserLabel(issue.createdBy, "Unknown reporter")}</span>
+                          <div className="flex min-w-0 flex-wrap items-center gap-2">
+                            <span className="break-words">{getUserLabel(issue.createdBy, "Unknown reporter")}</span>
                             {getUserRoleChip(reporterById.get(issue.createdBy)?.role)}
                           </div>
                         </TableCell>
