@@ -167,9 +167,9 @@ export function AppShell({
     applyTheme(nextTheme, true);
   }
 
-  const sidebarWidthClass = sidebarExpanded ? "w-44 md:w-48" : "w-14 md:w-16";
+  const sidebarWidthClass = sidebarExpanded ? "w-48 md:w-52" : "w-14 md:w-16";
   const contentOffsetClass = sidebarExpanded
-    ? "pl-44 md:pl-48"
+    ? "pl-48 md:pl-52"
     : "pl-14 md:pl-16";
   const primaryNavItems = navItems.filter((item) => item.section !== "admin");
   const adminNavItems = navItems.filter((item) => item.section === "admin");
@@ -192,7 +192,7 @@ export function AppShell({
               className={cn(
                 "min-w-0 overflow-hidden whitespace-nowrap text-[13px] font-semibold tracking-normal text-foreground transition-all duration-200",
                 sidebarExpanded
-                  ? "max-w-[140px] opacity-100"
+                  ? "max-w-[168px] opacity-100"
                   : "max-w-0 opacity-0",
               )}>
               IssueTracker

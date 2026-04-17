@@ -44,6 +44,11 @@ export function IssuesFilterPopover({
 }) {
   const [open, setOpen] = useState(false);
   const [selectedView, setSelectedView] = useState(view);
+  const [selectedStatus, setSelectedStatus] = useState(status);
+  const [selectedPriority, setSelectedPriority] = useState(priority);
+  const [selectedSeverity, setSelectedSeverity] = useState(severity);
+  const [selectedReporter, setSelectedReporter] = useState(reporter);
+  const [selectedAssignee, setSelectedAssignee] = useState(assignee);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -76,6 +81,26 @@ export function IssuesFilterPopover({
   useEffect(() => {
     setSelectedView(view);
   }, [view]);
+
+  useEffect(() => {
+    setSelectedStatus(status);
+  }, [status]);
+
+  useEffect(() => {
+    setSelectedPriority(priority);
+  }, [priority]);
+
+  useEffect(() => {
+    setSelectedSeverity(severity);
+  }, [severity]);
+
+  useEffect(() => {
+    setSelectedReporter(reporter);
+  }, [reporter]);
+
+  useEffect(() => {
+    setSelectedAssignee(assignee);
+  }, [assignee]);
 
   function cycleViewMode() {
     setSelectedView((current) => {
@@ -180,7 +205,8 @@ export function IssuesFilterPopover({
                   <Select
                     id="issues-status-filter"
                     name="status"
-                    defaultValue={status}
+                    value={selectedStatus}
+                    onValueChange={setSelectedStatus}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Statuses</option>
                     <option value="OPEN">Open</option>
@@ -191,7 +217,8 @@ export function IssuesFilterPopover({
                   <Select
                     id="issues-priority-filter"
                     name="priority"
-                    defaultValue={priority}
+                    value={selectedPriority}
+                    onValueChange={setSelectedPriority}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Priorities</option>
                     <option value="LOW">Low</option>
@@ -201,7 +228,8 @@ export function IssuesFilterPopover({
                   <Select
                     id="issues-severity-filter"
                     name="severity"
-                    defaultValue={severity}
+                    value={selectedSeverity}
+                    onValueChange={setSelectedSeverity}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Severities</option>
                     <option value="MINOR">Minor</option>
@@ -211,7 +239,8 @@ export function IssuesFilterPopover({
                   <Select
                     id="issues-reporter-filter"
                     name="reporter"
-                    defaultValue={reporter}
+                    value={selectedReporter}
+                    onValueChange={setSelectedReporter}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Reporters</option>
                     {reporterOptions.map((user) => (
@@ -223,7 +252,8 @@ export function IssuesFilterPopover({
                   <Select
                     id="issues-assignee-filter"
                     name="assignee"
-                    defaultValue={assignee}
+                    value={selectedAssignee}
+                    onValueChange={setSelectedAssignee}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Assignees</option>
                     {reporterOptions.map((user) => (
