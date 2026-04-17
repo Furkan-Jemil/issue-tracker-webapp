@@ -115,8 +115,8 @@ export default async function AdminAuditLogPage({
             <caption className="sr-only">Recent issue history events</caption>
             <TableHeader>
               <TableRow>
-                <TableHead scope="col">Time</TableHead>
-                <TableHead scope="col">User</TableHead>
+                <TableHead scope="col" className="hidden md:table-cell">Time</TableHead>
+                <TableHead scope="col" className="hidden lg:table-cell">User</TableHead>
                 <TableHead scope="col">Event</TableHead>
                 <TableHead scope="col">Description</TableHead>
                 <TableHead scope="col">Issue</TableHead>
@@ -126,8 +126,8 @@ export default async function AdminAuditLogPage({
               {logs.length > 0 ? (
                 logs.map((log) => (
                   <TableRow key={log.id} className="transition hover:bg-muted/30">
-                    <TableCell>{formatDate(log.createdAt)}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">{formatDate(log.createdAt)}</TableCell>
+                    <TableCell className="hidden lg:table-cell break-all">
                       {log.actor?.name} ({log.actor?.email})
                     </TableCell>
                     <TableCell>
@@ -135,8 +135,19 @@ export default async function AdminAuditLogPage({
                         {log.eventType}
                       </Badge>
                     </TableCell>
-                    <TableCell>{log.description}</TableCell>
                     <TableCell>
+                      <div className="space-y-1">
+                        <p className="text-[11px] text-muted-foreground md:hidden">
+                          {formatDate(log.createdAt)}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground lg:hidden">
+                          {log.actor?.name || "Unknown"}
+                          {log.actor?.email ? ` (${log.actor.email})` : ""}
+                        </p>
+                        <p className="break-words">{log.description}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="break-words">
                       <Link
                         className="text-primary hover:underline"
                         href={log.issue ? `/issues/${log.issue.id}` : "/issues"}>

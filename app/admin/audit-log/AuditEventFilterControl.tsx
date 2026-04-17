@@ -30,7 +30,7 @@ export default function AuditEventFilterControl({
         aria-label="Filter audit log events"
         value={current}
         onValueChange={onChange}
-        className="h-8 w-[132px] border-0 bg-transparent px-1 text-xs"
+        className="h-8 w-24 border-0 bg-transparent px-1 text-xs sm:w-[132px]"
       >
         <option value="ALL">All</option>
         <option value="CREATED">Created</option>
