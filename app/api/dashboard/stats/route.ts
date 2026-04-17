@@ -24,12 +24,16 @@ export async function GET(req: NextRequest) {
     const status = parseIssueStatus(searchParams.get("status"));
     const priority = parsePriority(searchParams.get("priority"));
     const severity = parseSeverity(searchParams.get("severity"));
+    const query = searchParams.get("q")?.trim() || "";
     const range = parseDashboardRange(searchParams.get("range"));
 
     const baseWhere: Prisma.IssueWhereInput = {};
     if (status) baseWhere.status = status;
     if (priority) baseWhere.priority = priority;
     if (severity) baseWhere.severity = severity;
+    if (query) {
+      baseWhere.title = { contains: query, mode: "insensitive" };
+    }
 
     const totalIssues = await prisma.issue.count({ where: baseWhere });
 

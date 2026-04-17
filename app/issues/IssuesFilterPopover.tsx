@@ -2,11 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Filter, Kanban, Rows3, Search, StretchHorizontal } from "lucide-react";
+import { Check, Filter, Kanban, Rows3, StretchHorizontal } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 
 type ReporterOption = {
@@ -19,7 +18,6 @@ export function IssuesFilterPopover({
   view,
   isAdmin,
   hasActiveFilters,
-  query,
   status,
   priority,
   severity,
@@ -32,7 +30,6 @@ export function IssuesFilterPopover({
   view: "compact" | "details" | "board";
   isAdmin: boolean;
   hasActiveFilters: boolean;
-  query: string;
   status: string;
   priority: string;
   severity: string;
@@ -184,22 +181,6 @@ export function IssuesFilterPopover({
             ) : null}
 
             <div className="grid grid-cols-1 gap-1.5">
-              <div className="relative">
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <label htmlFor="issues-title-search" className="sr-only">
-                  Search issue title
-                </label>
-                <Input
-                  id="issues-title-search"
-                  name="q"
-                  defaultValue={query}
-                  placeholder="Search title"
-                  className="h-8 rounded-md pl-9 text-xs"
-                />
-              </div>
               {isAdmin && (
                 <div className="grid grid-cols-1 gap-1.5">
                   <Select

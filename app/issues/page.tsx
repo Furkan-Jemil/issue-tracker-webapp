@@ -28,6 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { Search, X } from "lucide-react";
 
 const PAGE_SIZE = 20;
 const BOARD_PAGE_SIZE = 40;
@@ -181,6 +182,9 @@ export default async function IssuesListPage({
   const hasActiveFilters = Boolean(
     query || status || priority || severity || reporter || assignee || createdFrom || createdTo,
   );
+  const hasActiveFilterFields = Boolean(
+    status || priority || severity || reporter || assignee || createdFrom || createdTo,
+  );
   const tableColumnCount =
     5 + (showDetails ? 2 : 0) + (isAdmin && showDetails ? 2 : 0);
   const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${filteredTotal} filtered issues), ${view} view`;
@@ -246,6 +250,19 @@ export default async function IssuesListPage({
 
   function buildClearFiltersHref() {
     const nextParams = new URLSearchParams({ view, page: "1" });
+    if (query) nextParams.set("q", query);
+    return `/issues?${nextParams.toString()}`;
+  }
+
+  function buildClearSearchHref() {
+    const nextParams = new URLSearchParams({ view, page: "1" });
+    if (status) nextParams.set("status", status);
+    if (priority) nextParams.set("priority", priority);
+    if (severity) nextParams.set("severity", severity);
+    if (reporter) nextParams.set("reporter", reporter);
+    if (assignee) nextParams.set("assignee", assignee);
+    if (createdFromRaw) nextParams.set("createdFrom", createdFromRaw);
+    if (createdToRaw) nextParams.set("createdTo", createdToRaw);
     return `/issues?${nextParams.toString()}`;
   }
 
@@ -262,8 +279,7 @@ export default async function IssuesListPage({
               <IssuesFilterPopover
                 view={view}
                 isAdmin={isAdmin}
-                hasActiveFilters={hasActiveFilters}
-                query={query}
+                hasActiveFilters={hasActiveFilterFields}
                 status={status}
                 priority={priority}
                 severity={severity}
@@ -277,6 +293,41 @@ export default async function IssuesListPage({
                 onSubmitHref="/issues"
                 onResetHref={buildClearFiltersHref()}
               />
+              <form method="get" action="/issues" className="flex items-center gap-1.5">
+                <input type="hidden" name="view" value={view} />
+                <input type="hidden" name="page" value="1" />
+                {status ? <input type="hidden" name="status" value={status} /> : null}
+                {priority ? <input type="hidden" name="priority" value={priority} /> : null}
+                {severity ? <input type="hidden" name="severity" value={severity} /> : null}
+                {reporter ? <input type="hidden" name="reporter" value={reporter} /> : null}
+                {assignee ? <input type="hidden" name="assignee" value={assignee} /> : null}
+                {createdFromRaw ? <input type="hidden" name="createdFrom" value={createdFromRaw} /> : null}
+                {createdToRaw ? <input type="hidden" name="createdTo" value={createdToRaw} /> : null}
+                <div className="relative">
+                  <Search
+                    className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <input
+                    type="text"
+                    name="q"
+                    defaultValue={query}
+                    placeholder="Search title"
+                    aria-label="Search issue title"
+                    className="h-9 w-[min(52vw,240px)] rounded-md border border-input bg-background pl-8 pr-8 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  {query ? (
+                    <Button asChild type="button" variant="ghost" size="icon" className="absolute right-0.5 top-1/2 h-7 w-7 -translate-y-1/2 rounded-md">
+                      <Link href={buildClearSearchHref()} aria-label="Clear search">
+                        <X className="h-3.5 w-3.5" aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  ) : null}
+                </div>
+                <Button type="submit" size="sm" className="h-9 px-3">
+                  Search
+                </Button>
+              </form>
               <Button asChild size="sm">
                 <Link href="/issues/new">Create Issue</Link>
               </Button>

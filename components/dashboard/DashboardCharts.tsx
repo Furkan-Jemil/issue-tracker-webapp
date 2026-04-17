@@ -22,6 +22,8 @@ import {
   LoaderCircle,
   BadgeCheck,
   CheckCircle2,
+  Search,
+  X,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +35,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 
 const Line = dynamic(() => import("react-chartjs-2").then((mod) => mod.Line), {
@@ -165,11 +168,13 @@ export default function DashboardCharts() {
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
   const [severityFilter, setSeverityFilter] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [timeRange, setTimeRange] = useState("30d");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersPanelRef = useRef<HTMLDivElement | null>(null);
   const hasActiveFilters = Boolean(
-    statusFilter || priorityFilter || severityFilter,
+    statusFilter || priorityFilter || severityFilter || searchQuery,
   );
 
   useEffect(() => {
@@ -250,6 +255,7 @@ export default function DashboardCharts() {
     if (statusFilter) params.append("status", statusFilter);
     if (priorityFilter) params.append("priority", priorityFilter);
     if (severityFilter) params.append("severity", severityFilter);
+    if (searchQuery) params.append("q", searchQuery);
     if (timeRange) params.append("range", timeRange);
 
     setLoading(true);
@@ -271,7 +277,7 @@ export default function DashboardCharts() {
         setData(null);
         setLoading(false);
       });
-  }, [statusFilter, priorityFilter, severityFilter, timeRange]);
+  }, [statusFilter, priorityFilter, severityFilter, searchQuery, timeRange]);
 
   const timelinePoints = useMemo<TimelinePoint[]>(() => {
     if (!data?.trend) return [];
@@ -532,6 +538,43 @@ export default function DashboardCharts() {
 
         <div className="space-y-2">
           <div className="flex items-center justify-end gap-2">
+            <form
+              className="flex items-center gap-1.5"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setSearchQuery(searchInput.trim());
+              }}>
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <Input
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  placeholder="Search title"
+                  aria-label="Search dashboard issues by title"
+                  className="h-8 w-[min(45vw,190px)] rounded-md pl-8 pr-8 text-xs"
+                />
+                {searchInput ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setSearchInput("");
+                      setSearchQuery("");
+                    }}
+                    aria-label="Clear search"
+                    className="absolute right-0.5 top-1/2 h-6 w-6 -translate-y-1/2 rounded-md">
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Button>
+                ) : null}
+              </div>
+              <Button type="submit" size="dense" className="h-8 px-2.5 text-xs">
+                Search
+              </Button>
+            </form>
             <Select
               value={timeRange}
               onChange={(event) => setTimeRange(event.target.value)}
