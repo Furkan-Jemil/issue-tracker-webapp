@@ -61,6 +61,9 @@ export function IssuesFilterPopover({
     function onPointerDown(event: PointerEvent) {
       if (!open) return;
       const target = event.target as Node | null;
+      if (target && target instanceof Element && target.closest('[data-select-content="true"]')) {
+        return;
+      }
       if (target && containerRef.current && !containerRef.current.contains(target)) {
         setOpen(false);
       }

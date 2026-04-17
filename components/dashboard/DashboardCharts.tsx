@@ -182,6 +182,9 @@ export default function DashboardCharts() {
     function onPointerDown(event: PointerEvent) {
       if (!filtersOpen) return;
       const target = event.target as Node | null;
+      if (target && target instanceof Element && target.closest('[data-select-content="true"]')) {
+        return;
+      }
       if (
         target &&
         filtersPanelRef.current &&

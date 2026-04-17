@@ -138,6 +138,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           </SelectPrimitive.Trigger>
           <SelectPrimitive.Portal>
             <SelectPrimitive.Content
+              data-select-content="true"
               className="relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md"
               position="popper">
               <SelectPrimitive.ScrollUpButton className="flex cursor-default items-center justify-center py-1">
