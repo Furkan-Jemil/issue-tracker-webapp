@@ -116,10 +116,6 @@ export function IssuesFilterPopover({
       if (current === "details") return "board";
       return "compact";
     });
-    window.requestAnimationFrame(() => {
-      const form = containerRef.current?.querySelector("form") as HTMLFormElement | null;
-      form?.requestSubmit();
-    });
   }
 
   const viewModeLabel =
@@ -135,13 +131,6 @@ export function IssuesFilterPopover({
       : selectedView === "details"
         ? StretchHorizontal
         : Kanban;
-
-  function submitFiltersSoon() {
-    window.requestAnimationFrame(() => {
-      const form = containerRef.current?.querySelector("form") as HTMLFormElement | null;
-      form?.requestSubmit();
-    });
-  }
 
   return (
     <div ref={containerRef} className="relative z-40">
@@ -177,21 +166,16 @@ export function IssuesFilterPopover({
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 Filter
               </p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={cycleViewMode}
-                  aria-label={`View mode: ${viewModeLabel}. Click to switch mode.`}
-                  title={`View mode: ${viewModeLabel}`}
-                  className="h-7 w-7 rounded-md">
-                  <ViewModeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                </Button>
-                <Button type="submit" size="dense" className="h-7 rounded-md px-2 text-[11px]">
-                  Apply
-                </Button>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={cycleViewMode}
+                aria-label={`View mode: ${viewModeLabel}. Click to switch mode.`}
+                title={`View mode: ${viewModeLabel}`}
+                className="h-7 w-7 rounded-md">
+                <ViewModeIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              </Button>
             </div>
             {query ? <input type="hidden" name="q" value={query} /> : null}
             {createdFrom ? <input type="hidden" name="createdFrom" value={createdFrom} /> : null}
@@ -214,7 +198,6 @@ export function IssuesFilterPopover({
                     value={selectedStatus}
                     onValueChange={(value) => {
                       setSelectedStatus(value);
-                      submitFiltersSoon();
                     }}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Statuses</option>
@@ -229,7 +212,6 @@ export function IssuesFilterPopover({
                     value={selectedPriority}
                     onValueChange={(value) => {
                       setSelectedPriority(value);
-                      submitFiltersSoon();
                     }}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Priorities</option>
@@ -243,7 +225,6 @@ export function IssuesFilterPopover({
                     value={selectedSeverity}
                     onValueChange={(value) => {
                       setSelectedSeverity(value);
-                      submitFiltersSoon();
                     }}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Severities</option>
@@ -257,7 +238,6 @@ export function IssuesFilterPopover({
                     value={selectedReporter}
                     onValueChange={(value) => {
                       setSelectedReporter(value);
-                      submitFiltersSoon();
                     }}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Reporters</option>
@@ -273,7 +253,6 @@ export function IssuesFilterPopover({
                     value={selectedAssignee}
                     onValueChange={(value) => {
                       setSelectedAssignee(value);
-                      submitFiltersSoon();
                     }}
                     className="h-8 rounded-md text-xs">
                     <option value="">All Assignees</option>
@@ -287,12 +266,15 @@ export function IssuesFilterPopover({
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-0.5">
+            <div className="flex items-center justify-end gap-1.5 pt-0.5">
               {hasActiveFilters && (
                 <Button asChild variant="outline" size="dense" onClick={() => setOpen(false)} className="rounded-md">
                   <Link href={onResetHref}>Reset</Link>
                 </Button>
               )}
+              <Button type="submit" size="dense" className="h-7 rounded-md px-2 text-[11px]">
+                Apply
+              </Button>
             </div>
           </form>
         </div>
