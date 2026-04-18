@@ -346,7 +346,6 @@ export default async function IssuesListPage({
                 </Button>
               </div>
             </div>
-          </div>
           {notice === "admin-dashboard-only" && (
             <Card className="border-amber-300 bg-amber-50/60">
               <CardHeader className="pb-2">
