@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Check, Filter, Kanban, Rows3, StretchHorizontal } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +48,7 @@ export function IssuesFilterPopover({
   onSubmitHref: string;
   onResetHref: string;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selectedView, setSelectedView] = useState(view);
   const [selectedStatus, setSelectedStatus] = useState(status);
@@ -132,6 +134,23 @@ export function IssuesFilterPopover({
         ? StretchHorizontal
         : Kanban;
 
+  function handleApply(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextParams = new URLSearchParams();
+    nextParams.set("view", selectedView);
+    nextParams.set("page", "1");
+    if (query) nextParams.set("q", query);
+    if (createdFrom) nextParams.set("createdFrom", createdFrom);
+    if (createdTo) nextParams.set("createdTo", createdTo);
+    if (selectedStatus) nextParams.set("status", selectedStatus);
+    if (selectedPriority) nextParams.set("priority", selectedPriority);
+    if (selectedSeverity) nextParams.set("severity", selectedSeverity);
+    if (selectedReporter) nextParams.set("reporter", selectedReporter);
+    if (selectedAssignee) nextParams.set("assignee", selectedAssignee);
+    setOpen(false);
+    router.push(`${onSubmitHref}?${nextParams.toString()}`);
+  }
+
   return (
     <div ref={containerRef} className="relative z-40">
       <Button
@@ -158,10 +177,8 @@ export function IssuesFilterPopover({
           id="issues-filter-popover"
           className="popover-surface absolute left-0 top-11 z-[80] w-[min(90vw,300px)] rounded-lg border border-border bg-card p-2.5 shadow-md md:left-auto md:right-0">
           <form
-            method="get"
-            action={onSubmitHref}
             className="space-y-2"
-            onSubmit={() => setOpen(false)}>
+            onSubmit={handleApply}>
             <div className="flex items-center justify-between gap-1.5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 Filter
@@ -181,6 +198,7 @@ export function IssuesFilterPopover({
             {createdFrom ? <input type="hidden" name="createdFrom" value={createdFrom} /> : null}
             {createdTo ? <input type="hidden" name="createdTo" value={createdTo} /> : null}
             <input type="hidden" name="view" value={selectedView} />
+            <input type="hidden" name="page" value="1" />
 
             {hasActiveFilters ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
