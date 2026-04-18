@@ -282,31 +282,9 @@ export default async function IssuesListPage({
         description="Track, prioritize, and move issues through the workflow."
       />
       <section className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 bg-muted/20 py-3">
+          <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
             <p className="text-xs text-muted-foreground">Issues table</p>
-            <div className="flex flex-wrap items-center gap-2">
-              <IssuesFilterPopover
-                view={view}
-                isAdmin={isAdmin}
-                hasActiveFilters={hasActiveFilterFields}
-                activeFilterCount={activeFilterCount}
-                query={query}
-                createdFrom={createdFromRaw}
-                createdTo={createdToRaw}
-                status={status}
-                priority={priority}
-                severity={severity}
-                reporter={reporter}
-                assignee={assignee}
-                reporters={reporters.map((user) => ({
-                  id: user.id,
-                  label: user.name || user.email,
-                  role: user.role,
-                }))}
-                onSubmitHref="/issues"
-                onResetHref={buildClearFiltersHref()}
-              />
-              <form method="get" action="/issues" className="flex items-center gap-1.5">
+              <form method="get" action="/issues" className="flex items-center gap-1.5 md:justify-self-center">
                 <input type="hidden" name="view" value={view} />
                 <input type="hidden" name="page" value="1" />
                 {status ? <input type="hidden" name="status" value={status} /> : null}
@@ -341,9 +319,32 @@ export default async function IssuesListPage({
                   Search
                 </Button>
               </form>
-              <Button asChild size="sm">
-                <Link href="/issues/new">Create Issue</Link>
-              </Button>
+              <div className="flex items-center gap-2 md:justify-self-end">
+                <IssuesFilterPopover
+                  view={view}
+                  isAdmin={isAdmin}
+                  hasActiveFilters={hasActiveFilterFields}
+                  activeFilterCount={activeFilterCount}
+                  query={query}
+                  createdFrom={createdFromRaw}
+                  createdTo={createdToRaw}
+                  status={status}
+                  priority={priority}
+                  severity={severity}
+                  reporter={reporter}
+                  assignee={assignee}
+                  reporters={reporters.map((user) => ({
+                    id: user.id,
+                    label: user.name || user.email,
+                    role: user.role,
+                  }))}
+                  onSubmitHref="/issues"
+                  onResetHref={buildClearFiltersHref()}
+                />
+                <Button asChild size="sm">
+                  <Link href="/issues/new">Create Issue</Link>
+                </Button>
+              </div>
             </div>
           </div>
           {notice === "admin-dashboard-only" && (
