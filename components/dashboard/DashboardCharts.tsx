@@ -168,15 +168,23 @@ export default function DashboardCharts() {
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
   const [severityFilter, setSeverityFilter] = useState("");
+  const [draftStatusFilter, setDraftStatusFilter] = useState("");
+  const [draftPriorityFilter, setDraftPriorityFilter] = useState("");
+  const [draftSeverityFilter, setDraftSeverityFilter] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [timeRange, setTimeRange] = useState("30d");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersPanelRef = useRef<HTMLDivElement | null>(null);
-  const hasActiveFilters = Boolean(
-    statusFilter || priorityFilter || severityFilter || searchQuery,
+  const hasActiveFilters = Boolean(statusFilter || priorityFilter || severityFilter);
+  const activeFilterCount = [statusFilter, priorityFilter, severityFilter].filter(Boolean).length;
+  const hasDraftFilters = Boolean(
+    draftStatusFilter || draftPriorityFilter || draftSeverityFilter,
   );
-  const activeFilterCount = [statusFilter, priorityFilter, severityFilter, searchQuery].filter(Boolean).length;
+  const hasPendingFilterChanges =
+    draftStatusFilter !== statusFilter ||
+    draftPriorityFilter !== priorityFilter ||
+    draftSeverityFilter !== severityFilter;
 
   useEffect(() => {
     function onPointerDown(event: PointerEvent) {
@@ -207,6 +215,20 @@ export default function DashboardCharts() {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [filtersOpen]);
+
+  function openFiltersPanel() {
+    setDraftStatusFilter(statusFilter);
+    setDraftPriorityFilter(priorityFilter);
+    setDraftSeverityFilter(severityFilter);
+    setFiltersOpen(true);
+  }
+
+  function applyDraftFilters() {
+    setStatusFilter(draftStatusFilter);
+    setPriorityFilter(draftPriorityFilter);
+    setSeverityFilter(draftSeverityFilter);
+    setFiltersOpen(false);
+  }
 
   useEffect(() => {
     const root = document.documentElement;
@@ -597,7 +619,13 @@ export default function DashboardCharts() {
                 aria-label="Toggle dashboard filters"
                 aria-expanded={filtersOpen}
                 aria-controls="dashboard-filters-popover"
-                onClick={() => setFiltersOpen((current) => !current)}>
+                onClick={() => {
+                  if (filtersOpen) {
+                    setFiltersOpen(false);
+                    return;
+                  }
+                  openFiltersPanel();
+                }}>
                 <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
                 {hasActiveFilters ? (
                   <span
@@ -612,8 +640,8 @@ export default function DashboardCharts() {
                 <Card id="dashboard-filters-popover" className="popover-surface absolute right-0 top-9 z-30 w-[min(88vw,220px)] border-border bg-card shadow-lg">
                   <CardContent className="space-y-1.5 p-2">
                     <Select
-                      value={statusFilter}
-                      onValueChange={setStatusFilter}
+                      value={draftStatusFilter}
+                      onValueChange={setDraftStatusFilter}
                       className="h-8 text-xs">
                       <option value="">All Statuses</option>
                       <option value="OPEN">Open</option>
@@ -622,8 +650,8 @@ export default function DashboardCharts() {
                       <option value="CLOSED">Closed</option>
                     </Select>
                     <Select
-                      value={priorityFilter}
-                      onValueChange={setPriorityFilter}
+                      value={draftPriorityFilter}
+                      onValueChange={setDraftPriorityFilter}
                       className="h-8 text-xs">
                       <option value="">All Priorities</option>
                       <option value="LOW">Low</option>
@@ -631,28 +659,37 @@ export default function DashboardCharts() {
                       <option value="HIGH">High</option>
                     </Select>
                     <Select
-                      value={severityFilter}
-                      onValueChange={setSeverityFilter}
+                      value={draftSeverityFilter}
+                      onValueChange={setDraftSeverityFilter}
                       className="h-8 text-xs">
                       <option value="">All Severities</option>
                       <option value="MINOR">Minor</option>
                       <option value="MAJOR">Major</option>
                       <option value="CRITICAL">Critical</option>
                     </Select>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 justify-start px-2 text-xs"
-                      disabled={!hasActiveFilters}
-                      onClick={() => {
-                        setStatusFilter("");
-                        setPriorityFilter("");
-                        setSeverityFilter("");
-                        setFiltersOpen(false);
-                      }}>
-                      Clear filters
-                    </Button>
+                    <div className="flex items-center justify-end gap-1.5 pt-0.5">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        disabled={!hasDraftFilters}
+                        onClick={() => {
+                          setDraftStatusFilter("");
+                          setDraftPriorityFilter("");
+                          setDraftSeverityFilter("");
+                        }}>
+                        Clear
+                      </Button>
+                      <Button
+                        type="button"
+                        size="dense"
+                        className="h-7 px-2 text-xs"
+                        disabled={!hasPendingFilterChanges}
+                        onClick={applyDraftFilters}>
+                        Apply
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ) : null}
