@@ -340,10 +340,10 @@ export function AppShell({
           "relative min-h-screen min-w-0 overflow-x-clip transition-[padding-left] duration-200 ease-out",
           contentOffsetClass,
         )}>
-        <header className="pointer-events-none fixed inset-x-0 top-1 z-30 bg-transparent">
-          <div className="page-shell flex justify-end px-2.5 py-0 md:px-3 lg:px-4">
+        <header className="pointer-events-none fixed inset-x-0 top-0.5 z-30 bg-transparent">
+          <div className="page-shell flex justify-end px-2 py-0 md:px-3 lg:px-4">
             <div ref={profileMenuRef} className="pointer-events-auto relative">
-              <div className="flex items-center gap-1.5 rounded-xl bg-card/80 px-1.5 py-1">
+              <div className="flex items-center gap-1.5 rounded-lg bg-card/80 px-1.5 py-0.5">
                 <Button
                   type="button"
                   variant="ghost"
@@ -421,7 +421,7 @@ export function AppShell({
           className="page-enter page-shell w-full min-w-0"
           style={{
             paddingInline: "var(--space-page-x)",
-            paddingTop: "1.25rem",
+            paddingTop: "var(--space-main-top)",
             paddingBottom: "var(--space-page-y)",
           }}>
           {children}
