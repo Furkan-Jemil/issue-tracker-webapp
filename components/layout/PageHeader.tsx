@@ -31,7 +31,7 @@ export function PageHeader({
   icon?: PageHeaderIcon;
 }) {
   return (
-    <header className={cn("space-y-2", className)}>
+    <header className={cn("space-y-1.5", className)}>
       {breadcrumbs?.length ? (
         <nav
           aria-label="Breadcrumb"
@@ -55,8 +55,8 @@ export function PageHeader({
         </nav>
       ) : null}
 
-      <div className="flex flex-col gap-3 px-0.5 py-1 md:flex-row md:items-start md:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
+      <div className="flex flex-col gap-2 px-0.5 py-0.5 md:flex-row md:items-start md:justify-between">
+        <div className="flex min-w-0 items-start gap-2.5">
           {Icon ? (
             <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/85">
               <Icon
@@ -66,15 +66,15 @@ export function PageHeader({
               />
             </div>
           ) : null}
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             <h1 className="page-title leading-tight">{title}</h1>
             {description ? (
-              <p className="page-subtitle max-w-2xl text-muted-foreground/95">{description}</p>
+              <p className="page-subtitle max-w-xl text-muted-foreground/95">{description}</p>
             ) : null}
           </div>
         </div>
         {actions ? (
-          <div className="flex flex-wrap items-center gap-2 md:justify-end">
+          <div className="flex flex-wrap items-center gap-1.5 md:justify-end">
             {actions}
           </div>
         ) : null}
