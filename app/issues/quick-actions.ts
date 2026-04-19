@@ -7,10 +7,10 @@ import { getAppSession } from "@/lib/auth/session";
 import { createNotification } from "@/lib/notifications";
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  OPEN: ["IN_PROGRESS", "CLOSED"],
-  IN_PROGRESS: ["RESOLVED", "OPEN"],
-  RESOLVED: ["CLOSED", "OPEN"],
-  CLOSED: ["OPEN"],
+  OPEN: ["IN_PROGRESS", "RESOLVED", "CLOSED"],
+  IN_PROGRESS: ["OPEN", "RESOLVED", "CLOSED"],
+  RESOLVED: ["OPEN", "IN_PROGRESS", "CLOSED"],
+  CLOSED: ["OPEN", "IN_PROGRESS", "RESOLVED"],
 };
 
 export async function changeIssueStatusQuick(issueId: string, status: string) {
