@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IssuesFilterPopover } from "@/app/issues/IssuesFilterPopover";
+import { IssuesBoard } from "@/app/issues/IssuesBoard";
 import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import { IssueSemanticBadge } from "@/components/issue/IssueSemanticBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -32,14 +33,6 @@ import { Search, X } from "lucide-react";
 
 const PAGE_SIZE = 20;
 const BOARD_PAGE_SIZE = 40;
-const BOARD_STATUS_ORDER = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"] as const;
-
-function statusVariant(status: string) {
-  if (status === "OPEN") return "warning" as const;
-  if (status === "IN_PROGRESS") return "secondary" as const;
-  if (status === "RESOLVED") return "success" as const;
-  return "outline" as const;
-}
 
 function formatDate(d: Date | string): string {
   const date = new Date(d);
@@ -133,7 +126,7 @@ export default async function IssuesListPage({
       : {}),
   };
 
-  const [issues, filteredTotal, totalVisible, reporters, statusCounts] = await Promise.all([
+  const [issues, filteredTotal, totalVisible, reporters] = await Promise.all([
     prisma.issue.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -160,20 +153,11 @@ export default async function IssuesListPage({
           orderBy: { name: "asc" },
         })
       : Promise.resolve([]),
-    prisma.issue.groupBy({
-      by: ["status"],
-      where,
-      _count: { status: true },
-    }),
   ]);
 
   const reporterById = new Map(
     reporters.map((user) => [user.id, user]),
   );
-  const statusCountMap = new Map(
-    statusCounts.map((entry) => [entry.status, entry._count.status]),
-  );
-
   const totalPages = Math.max(1, Math.ceil(filteredTotal / pageSize));
 
   const hasPrev = currentPage > 1;
@@ -199,19 +183,15 @@ export default async function IssuesListPage({
   const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${filteredTotal} filtered issues), ${view} view`;
   const cellPaddingClass = showDetails ? "py-2.5" : "py-1.5";
   const headPaddingClass = showDetails ? "h-10 py-1.5" : "h-9 py-1";
-  const boardColumns = BOARD_STATUS_ORDER.map((statusKey) => ({
-    key: statusKey,
-    label:
-      statusKey === "OPEN"
-        ? "Open"
-        : statusKey === "IN_PROGRESS"
-          ? "In Progress"
-          : statusKey === "RESOLVED"
-            ? "Resolved"
-            : "Closed",
-      total: statusCountMap.get(statusKey) ?? 0,
-    issues: issues.filter((issue) => issue.status === statusKey),
+  const boardIssues = issues.map((issue) => ({
+    ...issue,
+    status: issue.status as "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED",
+    createdAt: issue.createdAt.toISOString(),
   }));
+
+  const assigneeLabelById = Object.fromEntries(
+    reporters.map((user) => [user.id, user.name || user.email]),
+  );
 
   function getUserLabel(userId: string, fallback: string) {
     const user = reporterById.get(userId);
@@ -281,9 +261,9 @@ export default async function IssuesListPage({
         title="Issues"
         description="Track, prioritize, and move issues through the workflow."
       />
-      <section className="space-y-4">
-          <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
-            <p className="text-xs text-muted-foreground">Issues table</p>
+      <section className="space-y-3">
+          <div className="grid gap-1.5 border-b border-border/60 bg-muted/20 py-2 md:grid-cols-[auto_1fr_auto] md:items-center">
+            <p className="hidden text-xs text-muted-foreground md:block">Issues table</p>
               <form method="get" action="/issues" className="flex items-center gap-1.5 md:justify-self-center">
                 <input type="hidden" name="view" value={view} />
                 <input type="hidden" name="page" value="1" />
@@ -305,7 +285,7 @@ export default async function IssuesListPage({
                     defaultValue={query}
                     placeholder="Search title"
                     aria-label="Search issue title"
-                    className="h-9 w-[min(52vw,240px)] rounded-md border border-input bg-background pl-8 pr-8 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="h-8 w-[min(46vw,220px)] rounded-md border border-input bg-background pl-8 pr-8 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring md:w-[240px]"
                   />
                   {query ? (
                     <Button asChild type="button" variant="ghost" size="icon" className="absolute right-0.5 top-1/2 h-7 w-7 -translate-y-1/2 rounded-md">
@@ -315,11 +295,11 @@ export default async function IssuesListPage({
                     </Button>
                   ) : null}
                 </div>
-                <Button type="submit" size="sm" className="h-9 px-3">
+                <Button type="submit" size="sm" className="h-8 px-3">
                   Search
                 </Button>
               </form>
-              <div className="flex items-center gap-2 md:justify-self-end">
+              <div className="flex items-center gap-1.5 md:justify-self-end">
                 <IssuesFilterPopover
                   view={view}
                   isAdmin={isAdmin}
@@ -362,63 +342,11 @@ export default async function IssuesListPage({
             </Card>
           )}
           {isBoard ? (
-            <div className="space-y-3">
-              <div className="rounded-xl border border-border/70 bg-background/70 px-3 py-2 text-sm text-muted-foreground">
-                Board view groups the current filtered page by status so handoff and triage stay simple.
-              </div>
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                {boardColumns.map((column) => (
-                  <section key={column.key} className="rounded-2xl border border-border/70 bg-muted/20 p-3">
-                    <div className="mb-3 flex items-center justify-between gap-2">
-                      <div>
-                        <h2 className="text-sm font-semibold text-foreground">{column.label}</h2>
-                        <p className="text-xs text-muted-foreground">{column.total} filtered issues</p>
-                      </div>
-                      <Badge variant={statusVariant(column.key)}>{column.key}</Badge>
-                    </div>
-                    <div className="space-y-2">
-                      {column.issues.length > 0 ? (
-                        column.issues.map((issue) => (
-                          <Card key={issue.id} density="dense" className="border-border/70 bg-card/95">
-                            <CardContent className="space-y-2 p-3">
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="space-y-1.5">
-                                  <div className="flex flex-wrap items-center gap-1.5">
-                                    <IssueSemanticBadge kind="status" value={issue.status} />
-                                    <IssueSemanticBadge kind="priority" value={issue.priority} />
-                                  </div>
-                                  <Link href={`/issues/${issue.id}`} className="font-semibold leading-snug text-primary hover:underline">
-                                    {issue.title}
-                                  </Link>
-                                </div>
-                                {canQuickStatus && (
-                                  <StatusQuickActions
-                                    issueId={issue.id}
-                                    currentStatus={issue.status}
-                                  />
-                                )}
-                              </div>
-                              <div className="flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
-                                <IssueSemanticBadge kind="type" value={issue.type} />
-                                <IssueSemanticBadge kind="severity" value={issue.severity} />
-                                <span className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-2.5 py-1 text-[11px]">
-                                  Assignee: {issue.assigneeId ? getUserLabel(issue.assigneeId, "Unknown") : "Unassigned"}
-                                </span>
-                              </div>
-                              <p className="text-xs text-muted-foreground">Created {formatDate(issue.createdAt)}</p>
-                            </CardContent>
-                          </Card>
-                        ))
-                      ) : (
-                        <div className="rounded-xl border border-dashed border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
-                          No issues in this lane for the current filters.
-                        </div>
-                      )}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            </div>
+            <IssuesBoard
+              issues={boardIssues}
+              assigneeLabelById={assigneeLabelById}
+              canManageStatus={canQuickStatus}
+            />
           ) : (
             <Table className="bg-transparent">
               <caption className="sr-only">{issuesTableCaption}</caption>
