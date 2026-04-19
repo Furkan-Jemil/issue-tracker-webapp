@@ -18,10 +18,10 @@ function formatRole(role: string): string {
 }
 
 const VALID_TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
-  OPEN: ["IN_PROGRESS", "CLOSED"],
-  IN_PROGRESS: ["RESOLVED", "OPEN"],
-  RESOLVED: ["CLOSED", "OPEN"],
-  CLOSED: ["OPEN"],
+  OPEN: ["IN_PROGRESS"],
+  IN_PROGRESS: ["OPEN", "RESOLVED"],
+  RESOLVED: ["IN_PROGRESS", "CLOSED"],
+  CLOSED: ["RESOLVED"],
 };
 
 export async function updateIssue(issueId: string, formData: FormData) {
