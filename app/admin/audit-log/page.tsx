@@ -6,6 +6,7 @@ import { History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { AutoSearchInput } from "@/components/ui/auto-search-input";
 import AuditEventFilterControl from "./AuditEventFilterControl";
 import ExportDataButton from "../settings/ExportDataButton";
 import {
@@ -98,10 +99,13 @@ export default async function AdminAuditLogPage({
         description="Review tracked system changes, comments, and status transitions."
       />
       <section className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 bg-muted/20 py-3">
-          <h2 className="text-xl font-semibold">Audit Log</h2>
+        <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <AutoSearchInput
+            placeholder="Search audit log (type at least two words)"
+            className="w-full max-w-md"
+          />
           <div className="flex items-center gap-2">
-            <AuditEventFilterControl current={selectedEvent} />
+            <AuditEventFilterControl current={selectedEvent} query={query} />
             <ExportDataButton compact className="shrink-0" />
             <Button asChild variant="ghost" size="icon" className="h-8 w-8" title="System records">
               <Link href="/issues" aria-label="System records">

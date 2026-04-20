@@ -9,18 +9,26 @@ type AuditEvent = "ALL" | "CREATED" | "STATUS_CHANGED" | "COMMENTED";
 
 export default function AuditEventFilterControl({
   current,
+  query,
 }: {
   current: AuditEvent;
+  query?: string;
 }) {
   const router = useRouter();
 
   function onChange(nextValue: string) {
     if (nextValue === current) return;
+    const nextParams = new URLSearchParams();
+    if (query?.trim()) {
+      nextParams.set("q", query.trim());
+    }
     if (nextValue === "ALL") {
-      router.push("/admin/audit-log");
+      const nextQuery = nextParams.toString();
+      router.push(nextQuery ? `/admin/audit-log?${nextQuery}` : "/admin/audit-log");
       return;
     }
-    router.push(`/admin/audit-log?event=${nextValue}`);
+    nextParams.set("event", nextValue);
+    router.push(`/admin/audit-log?${nextParams.toString()}`);
   }
 
   return (
