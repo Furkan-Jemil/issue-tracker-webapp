@@ -6,10 +6,10 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-x-clip rounded-none border-0 bg-transparent">
+  <div className="relative w-full overflow-x-auto rounded-xl border border-border/70 bg-card/80">
     <table
       ref={ref}
-      className={cn("w-full table-fixed caption-bottom text-sm md:table-auto", className)}
+      className={cn("w-full caption-bottom text-sm", className)}
       {...props}
     />
   </div>
@@ -22,7 +22,7 @@ const TableHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={cn("[&_tr]:border-b", className)}
+    className={cn("bg-muted/25 [&_tr]:border-b", className)}
     {...props}
   />
 ));
@@ -59,7 +59,7 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "border-b border-border/70 transition-colors hover:bg-muted/45 data-[state=selected]:bg-muted",
+      "border-b border-border/70 transition-colors hover:bg-muted/35 data-[state=selected]:bg-muted",
       className,
     )}
     {...props}
@@ -74,7 +74,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-[var(--table-head-h)] whitespace-normal break-words px-[var(--table-cell-px)] text-left align-middle text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground [&:has([role=checkbox])]:pr-0",
+      "h-[var(--table-head-h)] whitespace-nowrap px-[var(--table-cell-px)] text-left align-middle text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className,
     )}
     {...props}
