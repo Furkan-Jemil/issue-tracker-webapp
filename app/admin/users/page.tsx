@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { UserRowActionsMenu } from "./UserRowActionsMenu";
 
 type UserRow = {
   id: string;
@@ -35,7 +36,6 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [updatingRoleUserId, setUpdatingRoleUserId] = useState<string | null>(
     null,
   );
@@ -50,14 +50,32 @@ export default function AdminUsersPage() {
 
   const pageSize = 20;
 
+  function countWords(value: string) {
+    return value.trim().split(/\s+/).filter(Boolean).length;
+  }
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
+      const trimmed = search.trim();
+      if (!trimmed) {
+        setDebouncedSearch("");
+        setPage(1);
+        return;
+      }
+      if (countWords(trimmed) >= 2) {
+        setDebouncedSearch(trimmed);
+        setPage(1);
+      }
     }, 300);
 
     return () => window.clearTimeout(timer);
   }, [search]);
+
+  function roleBadgeVariant(role: string) {
+    if (role === "ADMIN") return "warning" as const;
+    if (role === "TESTER") return "secondary" as const;
+    return "outline" as const;
+  }
 
   async function loadUsers(
     nextPage = page,
@@ -155,25 +173,15 @@ export default function AdminUsersPage() {
       <section className="space-y-3">
         <div className="border-b border-border/60 bg-muted/20 py-3">
           <div className="flex flex-wrap items-center justify-between gap-2.5">
-            <h2 className="text-lg font-semibold">User Management</h2>
-            <div className="hidden items-center gap-2 sm:flex">
-              <Input
-                aria-label="Search users"
-                type="text"
-                placeholder="Search name or email"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    const nextSearch = search.trim();
-                    setDebouncedSearch(nextSearch);
-                    setPage(1);
-                    void loadUsers(1, nextSearch, roleFilter);
-                  }
-                }}
-                className="w-40 md:w-52 lg:w-64"
-              />
+            <Input
+              aria-label="Search users"
+              type="text"
+              placeholder="Search users (type at least two words)"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="w-full max-w-md"
+            />
+            <div className="flex items-center gap-2 sm:ml-auto">
               <Select
                 aria-label="Filter users by role"
                 value={roleFilter}
@@ -201,69 +209,9 @@ export default function AdminUsersPage() {
                 Clear
               </Button>
             </div>
-            <span className="hidden items-center gap-1 text-xs font-medium text-muted-foreground lg:inline-flex">
-              Select row
-              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </span>
           </div>
         </div>
         <div className="space-y-3">
-          <div className="flex items-center justify-end sm:hidden">
-            <Button
-              type="button"
-              variant="soft"
-              size="sm"
-              onClick={() => setMobileFiltersOpen((current) => !current)}>
-              {mobileFiltersOpen ? "Hide filters" : "Show filters"}
-            </Button>
-          </div>
-
-          {mobileFiltersOpen && (
-            <div className="grid gap-2.5 rounded-xl border border-border/70 bg-background/70 p-3 sm:hidden">
-              <Input
-                aria-label="Search users"
-                type="text"
-                placeholder="Search by name or email..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    const nextSearch = search.trim();
-                    setDebouncedSearch(nextSearch);
-                    setPage(1);
-                    void loadUsers(1, nextSearch, roleFilter);
-                  }
-                }}
-                className="w-full"
-              />
-              <Select
-                aria-label="Filter users by role"
-                value={roleFilter}
-                onChange={(event) => {
-                  setRoleFilter(event.target.value);
-                  setPage(1);
-                }}>
-                <option value="">All roles</option>
-                <option value="USER">User</option>
-                <option value="TESTER">Tester</option>
-                <option value="ADMIN">Admin</option>
-              </Select>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setSearch("");
-                  setRoleFilter("");
-                  setPage(1);
-                  setDebouncedSearch("");
-                  void loadUsers(1, "", "");
-                }}>
-                Clear
-              </Button>
-            </div>
-          )}
-
           {roleNotice && (
             <div
               className={`rounded-lg border px-3 py-2 text-sm ${
@@ -298,7 +246,7 @@ export default function AdminUsersPage() {
                 <TableHead scope="col" className="hidden lg:table-cell">
                   Created
                 </TableHead>
-                <TableHead scope="col" className="hidden md:table-cell">
+                <TableHead scope="col" className="hidden md:table-cell text-right">
                   Actions
                 </TableHead>
               </TableRow>
@@ -337,32 +285,24 @@ export default function AdminUsersPage() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Select
-                      aria-label={`Change role for ${user.email}`}
-                      value={user.role}
-                      disabled={updatingRoleUserId === user.id}
-                      onPointerDown={(event) => event.stopPropagation()}
-                      onMouseDown={(event) => event.stopPropagation()}
-                      onClick={(event) => event.stopPropagation()}
-                      onValueChange={(value) => {
-                        void updateSingleRole(user.id, value);
-                      }}
-                      className="h-8 w-full min-w-0 rounded-full border-border/70 bg-background/80 px-3 text-[11px] font-semibold sm:w-32">
-                      <option value="USER">User</option>
-                      <option value="TESTER">Tester</option>
-                      <option value="ADMIN">Admin</option>
-                    </Select>
+                    <Badge variant={roleBadgeVariant(user.role)} className="rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.1em]">
+                      {user.role}
+                    </Badge>
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
                     {new Date(user.createdAt).toLocaleString()}
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <Link
-                      href={`/admin/users/${user.id}`}
-                      className="text-primary hover:underline"
-                      onClick={(event) => event.stopPropagation()}>
-                      Edit
-                    </Link>
+                  <TableCell className="hidden md:table-cell text-right">
+                    <div className="flex justify-end">
+                      <UserRowActionsMenu
+                        userId={user.id}
+                        currentRole={user.role as "USER" | "TESTER" | "ADMIN"}
+                        disabled={updatingRoleUserId === user.id}
+                        onChangeRole={(role) => {
+                          void updateSingleRole(user.id, role);
+                        }}
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

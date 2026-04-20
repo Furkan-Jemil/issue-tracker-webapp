@@ -51,7 +51,7 @@ export default async function EditUserPage({
   return (
     <div className="page-stack">
       <PageHeader title="Edit User" description="Update the user role and account details." icon={UsersRound} />
-      <Card>
+      <Card id="edit-section">
         <CardHeader>
           <CardTitle className="text-xl">Edit User</CardTitle>
         </CardHeader>
