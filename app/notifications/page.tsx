@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AutoSearchInput } from "@/components/ui/auto-search-input";
 import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Table,
@@ -134,8 +135,18 @@ export default function NotificationsPage() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const view = searchParams.get("view") === "unread" ? "unread" : "all";
+  const query = (searchParams.get("q") || "").trim();
+  const queryWordCount = query.split(/\s+/).filter(Boolean).length;
+
   const visibleNotifications =
     view === "unread" ? notifications.filter((n) => !n.isRead) : notifications;
+  const filteredNotifications =
+    queryWordCount >= 2
+      ? visibleNotifications.filter((n) => {
+          const haystack = `${n.message} ${n.issue?.title || ""}`.toLowerCase();
+          return haystack.includes(query.toLowerCase());
+        })
+      : visibleNotifications;
 
   return (
     <div className="page-stack">
@@ -143,18 +154,24 @@ export default function NotificationsPage() {
         title="Notifications"
         description="Stay on top of issue updates and assignments."
       />
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 bg-muted/20 py-3">
-        <div className="flex items-center gap-1 rounded-md bg-muted/25 p-1">
+      <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+        <AutoSearchInput
+          placeholder="Search notifications (type at least two words)"
+          className="w-full max-w-sm"
+        />
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex items-center gap-1 rounded-md bg-muted/25 p-1">
           <Button asChild size="dense" variant={view === "all" ? "default" : "ghost"} className="h-7 rounded-md px-2 text-xs">
-            <Link href="/notifications?view=all">All</Link>
+            <Link href={query ? `/notifications?view=all&q=${encodeURIComponent(query)}` : "/notifications?view=all"}>All</Link>
           </Button>
           <Button asChild size="dense" variant={view === "unread" ? "default" : "ghost"} className="h-7 rounded-md px-2 text-xs">
-            <Link href="/notifications?view=unread">Unread</Link>
+            <Link href={query ? `/notifications?view=unread&q=${encodeURIComponent(query)}` : "/notifications?view=unread"}>Unread</Link>
           </Button>
         </div>
         <Button type="button" size="sm" onClick={markAllAsRead} disabled={markAllPending}>
           {markAllPending ? "Marking..." : "Mark all read"}
         </Button>
+        </div>
       </div>
       {inlineNotice && (
         <div
@@ -188,7 +205,7 @@ export default function NotificationsPage() {
         <div className="rounded-md bg-muted/20 px-3 py-2 text-sm text-muted-foreground" aria-live="polite">
           Loading notifications...
         </div>
-      ) : visibleNotifications.length === 0 ? (
+      ) : filteredNotifications.length === 0 ? (
         <div className="rounded-md bg-muted/20 px-3 py-2 text-sm text-muted-foreground">No notifications for this view.</div>
       ) : (
         <Table className="bg-transparent" aria-live="polite" aria-busy={loading}>
@@ -202,7 +219,7 @@ export default function NotificationsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {visibleNotifications.map((n) => (
+            {filteredNotifications.map((n) => (
               <TableRow key={n.id}>
                 <TableCell>
                   <Link href={n.issue ? `/issues/${n.issue.id}` : "#"} className="break-words text-primary hover:underline">
