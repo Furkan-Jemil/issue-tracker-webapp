@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { ArrowLeft, ArrowRight, GripVertical } from "lucide-react";
+import { GripVertical } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { IssueSemanticBadge } from "@/components/issue/IssueSemanticBadge";
 import { changeIssueStatusQuick } from "@/app/issues/quick-actions";
+import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import { cn } from "@/lib/utils";
 
 type BoardStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
@@ -167,13 +168,6 @@ function applyMove(
   };
 }
 
-function getAdjacentStatus(status: BoardStatus, direction: "back" | "forward") {
-  const index = STATUS_ORDER.indexOf(status);
-  if (index < 0) return null;
-  if (direction === "back") return STATUS_ORDER[index - 1] ?? null;
-  return STATUS_ORDER[index + 1] ?? null;
-}
-
 export function IssuesBoard({
   issues,
   assigneeLabelById,
@@ -305,9 +299,6 @@ export function IssuesBoard({
                   </div>
                 ) : (
                   items.map((issue, index) => {
-                    const prev = getAdjacentStatus(issue.status, "back");
-                    const next = getAdjacentStatus(issue.status, "forward");
-
                     return (
                       <div
                         key={issue.id}
@@ -363,30 +354,11 @@ export function IssuesBoard({
                               {canManageStatus ? (
                                 <div className="flex items-center gap-1">
                                   <GripVertical className="h-4 w-4 text-muted-foreground/70" aria-hidden="true" />
-                                  <Button
-                                    type="button"
-                                    size="dense"
-                                    variant="outline"
-                                    disabled={!prev || isPending}
-                                    onClick={() => {
-                                      if (!prev) return;
-                                      commitMove(issue.id, prev, 0);
-                                    }}
-                                    title="Move backward">
-                                    <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    size="dense"
-                                    variant="outline"
-                                    disabled={!next || isPending}
-                                    onClick={() => {
-                                      if (!next) return;
-                                      commitMove(issue.id, next, 0);
-                                    }}
-                                    title="Move forward">
-                                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                                  </Button>
+                                  <StatusQuickActions
+                                    issueId={issue.id}
+                                    currentStatus={issue.status}
+                                    editHref={`/issues/${issue.id}#edit-section`}
+                                  />
                                 </div>
                               ) : null}
                             </div>
