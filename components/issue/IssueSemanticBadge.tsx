@@ -123,6 +123,7 @@ export function IssueSemanticBadge({
 }) {
   const meta = getMeta(kind, value);
   const Icon = meta.icon;
+  const showIcon = kind === "status" || kind === "type";
 
   return (
     <Badge
@@ -133,7 +134,7 @@ export function IssueSemanticBadge({
         className,
       )}
     >
-      <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden={true} />
+      {showIcon ? <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden={true} /> : null}
       {meta.label}
     </Badge>
   );

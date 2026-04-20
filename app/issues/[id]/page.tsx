@@ -115,7 +115,11 @@ export default async function IssueDetailPage({
               {issue.status}
             </Badge>
             {canQuickStatus && (
-              <StatusQuickActions issueId={issue.id} currentStatus={issue.status} />
+              <StatusQuickActions
+                issueId={issue.id}
+                currentStatus={issue.status}
+                editHref={`/issues/${issue.id}#edit-section`}
+              />
             )}
             <Button asChild variant="outline" size="sm">
               <Link href="#comments-heading">Jump to comments</Link>

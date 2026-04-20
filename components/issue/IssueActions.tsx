@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -45,8 +45,22 @@ export function IssueActions({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
+  useEffect(() => {
+    if (!canEdit) return;
+
+    function openWhenHashMatches() {
+      if (window.location.hash === "#edit-section") {
+        setOpen(true);
+      }
+    }
+
+    openWhenHashMatches();
+    window.addEventListener("hashchange", openWhenHashMatches);
+    return () => window.removeEventListener("hashchange", openWhenHashMatches);
+  }, [canEdit]);
+
   return (
-    <section className="space-y-4" aria-label="Issue actions">
+    <section id="edit-section" className="space-y-4" aria-label="Issue actions">
       <div className="flex flex-wrap items-center gap-2">
         {canEdit ? (
           <Button
