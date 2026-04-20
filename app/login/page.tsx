@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, LogIn } from "lucide-react";
+import { ArrowRight, LogIn, ShieldCheck } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PendingSubmitButton } from "@/components/auth/PendingSubmitButton";
 import { applyAuthResponseCookies } from "@/lib/auth/apply-response-cookies";
@@ -79,7 +79,7 @@ export default async function LoginPage({
 
   return (
     <AuthShell>
-      <Card className="w-full max-w-md border-border/80 shadow-lg shadow-black/5">
+      <Card className="w-full max-w-md border-border/80 bg-card/95 shadow-lg shadow-black/5 backdrop-blur-sm">
         <CardHeader className="space-y-1.5 border-b border-border/60 bg-muted/20">
           <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <LogIn className="h-5 w-5" aria-hidden />
@@ -91,7 +91,13 @@ export default async function LoginPage({
             Continue with your account.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4 pt-5">
+          <div className="flex items-start gap-2 rounded-lg border border-border/70 bg-muted/25 px-3 py-2 text-xs text-muted-foreground">
+            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+            <p>
+              Protected sign-in. Your credentials are verified securely before redirect.
+            </p>
+          </div>
           <form action={signInWithPassword} className="space-y-4">
             {registered && (
               <div
@@ -114,7 +120,7 @@ export default async function LoginPage({
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Email"
+                placeholder="you@company.com"
                 autoComplete="email"
                 aria-describedby={errorMessage ? "login-error" : undefined}
                 required
@@ -126,7 +132,7 @@ export default async function LoginPage({
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Password"
+                placeholder="Enter your password"
                 autoComplete="current-password"
                 aria-describedby={errorMessage ? "login-error" : undefined}
                 required
