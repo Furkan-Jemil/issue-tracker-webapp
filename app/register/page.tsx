@@ -97,7 +97,7 @@ export default async function RegisterPage({
 
   return (
     <AuthShell>
-      <Card className="w-full max-w-md border-border/80 shadow-lg shadow-black/5">
+      <Card className="w-full max-w-md border-border/80 bg-card/95 shadow-lg shadow-black/5 backdrop-blur-sm">
         <CardHeader className="space-y-1.5 border-b border-border/60 bg-muted/20">
           <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <UserPlus className="h-5 w-5" aria-hidden />
@@ -109,7 +109,7 @@ export default async function RegisterPage({
             Join to report issues and collaborate with your team.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-5">
           <form action={registerUser} className="space-y-4">
             {errorMessage && (
               <div
