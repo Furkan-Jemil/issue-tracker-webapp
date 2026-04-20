@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Filter, Kanban, Rows3, StretchHorizontal } from "lucide-react";
+import { CalendarRange, Check, Filter, Kanban, Rows3, StretchHorizontal } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select } from "@/components/ui/select";
 
 type ReporterOption = {
@@ -49,42 +52,14 @@ export function IssuesFilterPopover({
   onResetHref: string;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const [selectedView, setSelectedView] = useState(view);
   const [selectedStatus, setSelectedStatus] = useState(status);
   const [selectedPriority, setSelectedPriority] = useState(priority);
   const [selectedSeverity, setSelectedSeverity] = useState(severity);
   const [selectedReporter, setSelectedReporter] = useState(reporter);
   const [selectedAssignee, setSelectedAssignee] = useState(assignee);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
-
-  useEffect(() => {
-    function onPointerDown(event: PointerEvent) {
-      if (!open) return;
-      const target = event.target as Node | null;
-      if (target && target instanceof Element && target.closest('[data-select-content="true"]')) {
-        return;
-      }
-      if (target && containerRef.current && !containerRef.current.contains(target)) {
-        setOpen(false);
-      }
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    }
-
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
+  const [selectedCreatedFrom, setSelectedCreatedFrom] = useState(createdFrom);
+  const [selectedCreatedTo, setSelectedCreatedTo] = useState(createdTo);
 
   const reporterOptions = useMemo(() => reporters, [reporters]);
 
@@ -111,6 +86,14 @@ export function IssuesFilterPopover({
   useEffect(() => {
     setSelectedAssignee(assignee);
   }, [assignee]);
+
+  useEffect(() => {
+    setSelectedCreatedFrom(createdFrom);
+  }, [createdFrom]);
+
+  useEffect(() => {
+    setSelectedCreatedTo(createdTo);
+  }, [createdTo]);
 
   function cycleViewMode() {
     setSelectedView((current) => {
@@ -140,163 +123,170 @@ export function IssuesFilterPopover({
     nextParams.set("view", selectedView);
     nextParams.set("page", "1");
     if (query) nextParams.set("q", query);
-    if (createdFrom) nextParams.set("createdFrom", createdFrom);
-    if (createdTo) nextParams.set("createdTo", createdTo);
+    if (selectedCreatedFrom) nextParams.set("createdFrom", selectedCreatedFrom);
+    if (selectedCreatedTo) nextParams.set("createdTo", selectedCreatedTo);
     if (selectedStatus) nextParams.set("status", selectedStatus);
     if (selectedPriority) nextParams.set("priority", selectedPriority);
     if (selectedSeverity) nextParams.set("severity", selectedSeverity);
     if (selectedReporter) nextParams.set("reporter", selectedReporter);
     if (selectedAssignee) nextParams.set("assignee", selectedAssignee);
-    setOpen(false);
     router.push(`${onSubmitHref}?${nextParams.toString()}`);
   }
 
   return (
-    <div ref={containerRef} className="relative z-40">
-      <Button
-        ref={triggerRef}
-        type="button"
-        variant="outline"
-        size="icon"
-        className="relative h-9 w-9 rounded-md border-border bg-background"
-        aria-label="Open filters"
-        title="Filters"
-        aria-expanded={open}
-        aria-controls="issues-filter-popover"
-        onClick={() => setOpen((current) => !current)}>
-        <Filter className="h-4 w-4" aria-hidden="true" />
-        {hasActiveFilters && (
-          <Badge variant="secondary" className="absolute -right-1.5 -top-1 min-w-4 px-1 py-0 text-[10px]">
-            {activeFilterCount}
-          </Badge>
-        )}
-      </Button>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="relative h-9 w-9 rounded-md border-border bg-background"
+          aria-label="Open filters"
+          title="Filters">
+          <Filter className="h-4 w-4" aria-hidden="true" />
+          {hasActiveFilters && (
+            <Badge variant="secondary" className="absolute -right-1.5 -top-1 min-w-4 px-1 py-0 text-[10px]">
+              {activeFilterCount}
+            </Badge>
+          )}
+        </Button>
+      </PopoverTrigger>
 
-      {open && (
-        <div
-          id="issues-filter-popover"
-          className="popover-surface absolute left-0 top-11 z-[80] w-[min(90vw,300px)] rounded-lg border border-border bg-card p-2.5 shadow-md md:left-auto md:right-0">
-          <form
-            className="space-y-2"
-            onSubmit={handleApply}>
-            <div className="flex items-center justify-between gap-1.5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Filter
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={cycleViewMode}
-                aria-label={`View mode: ${viewModeLabel}. Click to switch mode.`}
-                title={`View mode: ${viewModeLabel}`}
-                className="h-7 w-7 rounded-md">
-                <ViewModeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              </Button>
+      <PopoverContent id="issues-filter-popover" className="w-[min(92vw,340px)] p-3" align="end">
+        <form className="space-y-3" onSubmit={handleApply}>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.13em] text-muted-foreground">Filters</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={cycleViewMode}
+              aria-label={`View mode: ${viewModeLabel}. Click to switch mode.`}
+              title={`View mode: ${viewModeLabel}`}
+              className="h-8 w-8 rounded-md">
+              <ViewModeIcon className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </div>
+
+          {hasActiveFilters ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+              <Check className="h-3.5 w-3.5" aria-hidden="true" />
+              Active filters
+            </span>
+          ) : null}
+
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <Label htmlFor="issues-created-from" className="text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <CalendarRange className="h-3.5 w-3.5" aria-hidden="true" />
+                  Created from
+                </span>
+              </Label>
+              <Input
+                id="issues-created-from"
+                type="date"
+                value={selectedCreatedFrom}
+                onChange={(event) => setSelectedCreatedFrom(event.target.value)}
+                className="h-9 text-xs"
+              />
             </div>
-            {query ? <input type="hidden" name="q" value={query} /> : null}
-            {createdFrom ? <input type="hidden" name="createdFrom" value={createdFrom} /> : null}
-            {createdTo ? <input type="hidden" name="createdTo" value={createdTo} /> : null}
-            <input type="hidden" name="view" value={selectedView} />
-            <input type="hidden" name="page" value="1" />
 
-            {hasActiveFilters ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-                <Check className="h-3 w-3" aria-hidden="true" />
-                Active filters
-              </span>
+            <div className="space-y-1">
+              <Label htmlFor="issues-created-to" className="text-xs text-muted-foreground">
+                Created to
+              </Label>
+              <Input
+                id="issues-created-to"
+                type="date"
+                value={selectedCreatedTo}
+                onChange={(event) => setSelectedCreatedTo(event.target.value)}
+                className="h-9 text-xs"
+              />
+            </div>
+
+            {isAdmin ? (
+              <>
+                <Select
+                  id="issues-status-filter"
+                  name="status"
+                  value={selectedStatus}
+                  onValueChange={setSelectedStatus}
+                  className="h-9 rounded-md text-xs">
+                  <option value="">All statuses</option>
+                  <option value="OPEN">Open</option>
+                  <option value="IN_PROGRESS">In progress</option>
+                  <option value="RESOLVED">Resolved</option>
+                  <option value="CLOSED">Closed</option>
+                </Select>
+
+                <Select
+                  id="issues-priority-filter"
+                  name="priority"
+                  value={selectedPriority}
+                  onValueChange={setSelectedPriority}
+                  className="h-9 rounded-md text-xs">
+                  <option value="">All priorities</option>
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                </Select>
+
+                <Select
+                  id="issues-severity-filter"
+                  name="severity"
+                  value={selectedSeverity}
+                  onValueChange={setSelectedSeverity}
+                  className="h-9 rounded-md text-xs">
+                  <option value="">All severities</option>
+                  <option value="MINOR">Minor</option>
+                  <option value="MAJOR">Major</option>
+                  <option value="CRITICAL">Critical</option>
+                </Select>
+
+                <Select
+                  id="issues-reporter-filter"
+                  name="reporter"
+                  value={selectedReporter}
+                  onValueChange={setSelectedReporter}
+                  className="h-9 rounded-md text-xs">
+                  <option value="">All reporters</option>
+                  {reporterOptions.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.label}
+                    </option>
+                  ))}
+                </Select>
+
+                <Select
+                  id="issues-assignee-filter"
+                  name="assignee"
+                  value={selectedAssignee}
+                  onValueChange={setSelectedAssignee}
+                  className="h-9 rounded-md text-xs">
+                  <option value="">All assignees</option>
+                  {reporterOptions.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.label}
+                    </option>
+                  ))}
+                </Select>
+              </>
             ) : null}
+          </div>
 
-            <div className="grid grid-cols-1 gap-1.5">
-              {isAdmin && (
-                <div className="grid grid-cols-1 gap-1.5">
-                  <Select
-                    id="issues-status-filter"
-                    name="status"
-                    value={selectedStatus}
-                    onValueChange={(value) => {
-                      setSelectedStatus(value);
-                    }}
-                    className="h-8 rounded-md text-xs">
-                    <option value="">All Statuses</option>
-                    <option value="OPEN">Open</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="RESOLVED">Resolved</option>
-                    <option value="CLOSED">Closed</option>
-                  </Select>
-                  <Select
-                    id="issues-priority-filter"
-                    name="priority"
-                    value={selectedPriority}
-                    onValueChange={(value) => {
-                      setSelectedPriority(value);
-                    }}
-                    className="h-8 rounded-md text-xs">
-                    <option value="">All Priorities</option>
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                  </Select>
-                  <Select
-                    id="issues-severity-filter"
-                    name="severity"
-                    value={selectedSeverity}
-                    onValueChange={(value) => {
-                      setSelectedSeverity(value);
-                    }}
-                    className="h-8 rounded-md text-xs">
-                    <option value="">All Severities</option>
-                    <option value="MINOR">Minor</option>
-                    <option value="MAJOR">Major</option>
-                    <option value="CRITICAL">Critical</option>
-                  </Select>
-                  <Select
-                    id="issues-reporter-filter"
-                    name="reporter"
-                    value={selectedReporter}
-                    onValueChange={(value) => {
-                      setSelectedReporter(value);
-                    }}
-                    className="h-8 rounded-md text-xs">
-                    <option value="">All Reporters</option>
-                    {reporterOptions.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.label}
-                      </option>
-                    ))}
-                  </Select>
-                  <Select
-                    id="issues-assignee-filter"
-                    name="assignee"
-                    value={selectedAssignee}
-                    onValueChange={(value) => {
-                      setSelectedAssignee(value);
-                    }}
-                    className="h-8 rounded-md text-xs">
-                    <option value="">All Assignees</option>
-                    {reporterOptions.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-end gap-1.5 pt-0.5">
-              {hasActiveFilters && (
-                <Button asChild variant="outline" size="dense" onClick={() => setOpen(false)} className="rounded-md">
-                  <Link href={onResetHref}>Reset</Link>
-                </Button>
-              )}
-              <Button type="submit" size="dense" className="h-7 rounded-md px-2 text-[11px]">
-                Apply
+          <div className="flex items-center justify-end gap-2 border-t border-border/60 pt-2">
+            {hasActiveFilters ? (
+              <Button asChild variant="outline" size="dense" className="rounded-md">
+                <Link href={onResetHref}>Reset</Link>
               </Button>
-            </div>
-          </form>
-        </div>
-      )}
-    </div>
+            ) : null}
+            <Button type="submit" size="dense" className="rounded-md">
+              Apply
+            </Button>
+          </div>
+        </form>
+      </PopoverContent>
+    </Popover>
   );
 }
