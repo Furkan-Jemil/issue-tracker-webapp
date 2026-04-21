@@ -101,8 +101,8 @@ export default async function AdminAuditLogPage({
       <section className="space-y-3">
         <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
           <AutoSearchInput
-            placeholder="Search audit log (type at least two words)"
-            className="w-full max-w-md"
+            placeholder="Search audit log (type at least 2 letters)"
+            className="w-full max-w-sm"
           />
           <div className="flex items-center gap-2">
             <AuditEventFilterControl current={selectedEvent} query={query} />
