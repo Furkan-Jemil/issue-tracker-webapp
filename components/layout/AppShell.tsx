@@ -340,10 +340,10 @@ export function AppShell({
           "relative min-h-screen min-w-0 overflow-x-clip transition-[padding-left] duration-200 ease-out",
           contentOffsetClass,
         )}>
-        <header className="pointer-events-none fixed inset-x-0 top-0.5 z-30 bg-transparent">
-          <div className="page-shell flex justify-end px-2 py-0 md:px-3 lg:px-4">
+        <header className="sticky top-0 z-30 pointer-events-none">
+          <div className="page-shell flex justify-end px-2 py-1 md:px-3 lg:px-4">
             <div ref={profileMenuRef} className="pointer-events-auto relative">
-              <div className="flex items-center gap-1.5 rounded-lg bg-card/80 px-1.5 py-0.5">
+              <div className="flex items-center gap-1.5 px-1 py-0.5">
                 <Button
                   type="button"
                   variant="ghost"
@@ -408,10 +408,6 @@ export function AppShell({
                   </div>
                 </Card>
               )}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute -right-2 top-1/2 h-5 w-5 -translate-y-1/2 rounded-br-lg border-b border-r border-border/70"
-              />
             </div>
           </div>
         </header>
