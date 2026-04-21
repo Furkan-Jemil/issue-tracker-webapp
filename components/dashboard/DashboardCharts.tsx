@@ -16,15 +16,7 @@ import {
   Legend,
 } from "chart.js";
 import { SlidersHorizontal, ArrowUpRight } from "lucide-react";
-import {
-  Ticket,
-  CircleDot,
-  LoaderCircle,
-  BadgeCheck,
-  CheckCircle2,
-  Search,
-  X,
-} from "lucide-react";
+import { Ticket, CircleDot, LoaderCircle, BadgeCheck, CheckCircle2, Search, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -215,6 +207,21 @@ export default function DashboardCharts() {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [filtersOpen]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const trimmed = searchInput.trim();
+      if (trimmed.length === 0) {
+        setSearchQuery("");
+        return;
+      }
+      if (trimmed.length >= 2) {
+        setSearchQuery(trimmed);
+      }
+    }, 320);
+
+    return () => window.clearTimeout(timer);
+  }, [searchInput]);
 
   function openFiltersPanel() {
     setDraftStatusFilter(statusFilter);
@@ -563,44 +570,34 @@ export default function DashboardCharts() {
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-end gap-2">
-            <form
-              className="flex items-center gap-1.5"
-              onSubmit={(event) => {
-                event.preventDefault();
-                setSearchQuery(searchInput.trim());
-              }}>
-              <div className="relative">
-                <Search
-                  className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <Input
-                  value={searchInput}
-                  onChange={(event) => setSearchInput(event.target.value)}
-                  placeholder="Search title"
-                  aria-label="Search dashboard issues by title"
-                  className="h-8 w-[min(45vw,190px)] rounded-md pl-8 pr-8 text-xs"
-                />
-                {searchInput ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setSearchInput("");
-                      setSearchQuery("");
-                    }}
-                    aria-label="Clear search"
-                    className="absolute right-0.5 top-1/2 h-6 w-6 -translate-y-1/2 rounded-md">
-                    <X className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Button>
-                ) : null}
-              </div>
-              <Button type="submit" size="dense" className="h-8 px-2.5 text-xs">
-                Search
-              </Button>
-            </form>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="relative w-full max-w-sm">
+              <Search
+                className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <Input
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="Search dashboard (type at least 2 letters)"
+                aria-label="Search dashboard issues"
+                className="h-8 rounded-md pl-8 pr-8 text-xs"
+              />
+              {searchInput ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearchQuery("");
+                  }}
+                  aria-label="Clear search"
+                  className="absolute right-0.5 top-1/2 h-6 w-6 -translate-y-1/2 rounded-md">
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
+                </Button>
+              ) : null}
+            </div>
             <Select
               value={timeRange}
               onValueChange={setTimeRange}
