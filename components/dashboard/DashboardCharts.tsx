@@ -570,8 +570,9 @@ export default function DashboardCharts() {
         </div>
 
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="relative w-full max-w-sm">
+          <div className="rounded-xl border border-border/70 bg-muted/20 p-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative w-full max-w-[290px]">
               <Search
                 className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
                 aria-hidden="true"
@@ -598,43 +599,35 @@ export default function DashboardCharts() {
                 </Button>
               ) : null}
             </div>
-            <Select
-              value={timeRange}
-              onValueChange={setTimeRange}
-              className="h-8 w-32 text-xs">
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
-              <option value="365d">Last year</option>
-            </Select>
-            <div ref={filtersPanelRef} className="relative">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="relative h-8 w-8 rounded-md p-0"
-                aria-label="Toggle dashboard filters"
-                aria-expanded={filtersOpen}
-                aria-controls="dashboard-filters-popover"
-                onClick={() => {
-                  if (filtersOpen) {
-                    setFiltersOpen(false);
-                    return;
-                  }
-                  openFiltersPanel();
-                }}>
-                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-                {hasActiveFilters ? (
-                  <span
-                    aria-hidden="true"
-                    className="absolute -right-1 -top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                    {activeFilterCount}
-                  </span>
-                ) : null}
-              </Button>
+            <div className="ml-auto flex items-center gap-1.5">
+              <div ref={filtersPanelRef} className="relative">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="relative h-8 w-8 rounded-md p-0"
+                  aria-label="Toggle dashboard filters"
+                  aria-expanded={filtersOpen}
+                  aria-controls="dashboard-filters-popover"
+                  onClick={() => {
+                    if (filtersOpen) {
+                      setFiltersOpen(false);
+                      return;
+                    }
+                    openFiltersPanel();
+                  }}>
+                  <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+                  {hasActiveFilters ? (
+                    <span
+                      aria-hidden="true"
+                      className="absolute -right-1 -top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                      {activeFilterCount}
+                    </span>
+                  ) : null}
+                </Button>
 
-              {filtersOpen ? (
-                <Card id="dashboard-filters-popover" className="popover-surface absolute right-0 top-9 z-30 w-[min(88vw,220px)] border-border bg-card shadow-lg">
+                {filtersOpen ? (
+                  <Card id="dashboard-filters-popover" className="popover-surface absolute right-0 top-9 z-30 w-[min(88vw,220px)] border-border bg-card shadow-lg">
                   <CardContent className="space-y-1.5 p-2">
                     <Select
                       value={draftStatusFilter}
@@ -688,8 +681,19 @@ export default function DashboardCharts() {
                       </Button>
                     </div>
                   </CardContent>
-                </Card>
-              ) : null}
+                  </Card>
+                ) : null}
+              </div>
+              <Select
+                value={timeRange}
+                onValueChange={setTimeRange}
+                className="h-8 w-[124px] text-xs">
+                <option value="7d">7 days</option>
+                <option value="30d">30 days</option>
+                <option value="90d">90 days</option>
+                <option value="365d">1 year</option>
+              </Select>
+            </div>
             </div>
           </div>
 
