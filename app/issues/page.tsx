@@ -176,7 +176,7 @@ export default async function IssuesListPage({
     createdToRaw,
   ].filter(Boolean).length;
   const tableColumnCount =
-    5 + (showDetails ? 2 : 0) + (isAdmin && showDetails ? 2 : 0);
+    6 + (showDetails ? 2 : 0) + (isAdmin && showDetails ? 2 : 0);
   const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${filteredTotal} filtered issues), ${view} view`;
   const cellPaddingClass = showDetails ? "py-2.5" : "py-1.5";
   const headPaddingClass = showDetails ? "h-10 py-1.5" : "h-9 py-1";
@@ -249,8 +249,8 @@ export default async function IssuesListPage({
       <section className="space-y-3">
           <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
               <AutoSearchInput
-                placeholder="Search issues (type at least two words)"
-                className="w-full max-w-md"
+                placeholder="Search issues (type at least 2 letters)"
+                className="w-full max-w-sm"
               />
               <div className="flex items-center gap-1.5 md:justify-self-end">
                 <IssuesFilterPopover
@@ -320,6 +320,7 @@ export default async function IssuesListPage({
                   <TableHead scope="col" className={headPaddingClass}>
                     Status
                   </TableHead>
+                  <TableHead scope="col" className={cn(headPaddingClass, "text-right")}>Action</TableHead>
                   {isAdmin && showDetails && (
                     <TableHead scope="col" className={headPaddingClass}>
                       Assignee
@@ -371,14 +372,20 @@ export default async function IssuesListPage({
                       <TableCell className={cellPaddingClass}>
                         <div className="flex flex-wrap items-center gap-1.5">
                           <IssueSemanticBadge kind="status" value={issue.status} />
-                          {canQuickStatus && (
+                        </div>
+                      </TableCell>
+                      <TableCell className={cn(cellPaddingClass, "text-right")}>
+                        {canQuickStatus ? (
+                          <div className="flex justify-end">
                             <StatusQuickActions
                               issueId={issue.id}
                               currentStatus={issue.status}
                               editHref={`/issues/${issue.id}#edit-section`}
                             />
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       {isAdmin && showDetails && (
                         <TableCell className={cellPaddingClass}>
