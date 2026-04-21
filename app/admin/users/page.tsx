@@ -50,8 +50,8 @@ export default function AdminUsersPage() {
 
   const pageSize = 20;
 
-  function countWords(value: string) {
-    return value.trim().split(/\s+/).filter(Boolean).length;
+  function countChars(value: string) {
+    return value.trim().length;
   }
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function AdminUsersPage() {
         setPage(1);
         return;
       }
-      if (countWords(trimmed) >= 2) {
+      if (countChars(trimmed) >= 2) {
         setDebouncedSearch(trimmed);
         setPage(1);
       }
@@ -176,10 +176,10 @@ export default function AdminUsersPage() {
             <Input
               aria-label="Search users"
               type="text"
-              placeholder="Search users (type at least two words)"
+              placeholder="Search users (type at least 2 letters)"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              className="w-full max-w-md"
+              className="w-full max-w-sm"
             />
             <div className="flex items-center gap-2 sm:ml-auto">
               <Select
