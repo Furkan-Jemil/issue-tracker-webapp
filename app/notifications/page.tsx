@@ -136,12 +136,12 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const view = searchParams.get("view") === "unread" ? "unread" : "all";
   const query = (searchParams.get("q") || "").trim();
-  const queryWordCount = query.split(/\s+/).filter(Boolean).length;
+  const queryCharCount = query.length;
 
   const visibleNotifications =
     view === "unread" ? notifications.filter((n) => !n.isRead) : notifications;
   const filteredNotifications =
-    queryWordCount >= 2
+    queryCharCount >= 2
       ? visibleNotifications.filter((n) => {
           const haystack = `${n.message} ${n.issue?.title || ""}`.toLowerCase();
           return haystack.includes(query.toLowerCase());
@@ -156,7 +156,7 @@ export default function NotificationsPage() {
       />
       <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
         <AutoSearchInput
-          placeholder="Search notifications (type at least two words)"
+          placeholder="Search notifications (type at least 2 letters)"
           className="w-full max-w-sm"
         />
         <div className="flex flex-wrap items-center justify-end gap-2">
