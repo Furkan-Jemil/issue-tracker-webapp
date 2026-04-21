@@ -8,21 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-function countWords(value: string) {
-  const words = value.trim().split(/\s+/).filter(Boolean);
-  return words.length;
-}
-
 export function AutoSearchInput({
   placeholder = "Search",
   queryParam = "q",
-  minWords = 2,
+  minChars = 2,
   resetPageParam = "page",
   className,
 }: {
   placeholder?: string;
   queryParam?: string;
-  minWords?: number;
+  minChars?: number;
   resetPageParam?: string;
   className?: string;
 }) {
@@ -40,9 +35,9 @@ export function AutoSearchInput({
 
   function applySearch(nextValue: string) {
     const trimmed = nextValue.trim();
-    const words = countWords(trimmed);
+    const charCount = trimmed.length;
 
-    if (trimmed !== "" && words < minWords) {
+    if (trimmed !== "" && charCount < minChars) {
       return;
     }
 
