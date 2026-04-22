@@ -13,7 +13,7 @@ const fontSans = Manrope({
 
 function buildNavItems(role: string | undefined): AppNavItem[] {
   const items: AppNavItem[] = [];
-  if (role === "ADMIN") {
+  if (role) {
     items.push({ href: "/dashboard", label: "Dashboard", icon: "dashboard", section: "primary" });
   }
   items.push({ href: "/issues", label: "Issues", icon: "issues", section: "primary" });
