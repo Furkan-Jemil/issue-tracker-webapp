@@ -66,6 +66,7 @@ export default async function IssuesListPage({
 
   const isAdmin = session.user.role === "ADMIN";
   const canQuickStatus = session.user.role === "ADMIN";
+  const canEditIssue = true;
 
   const view =
     params?.view === "board"
@@ -299,6 +300,7 @@ export default async function IssuesListPage({
               issues={boardIssues}
               assigneeLabelById={assigneeLabelById}
               canManageStatus={canQuickStatus}
+              canEditIssue={canEditIssue}
             />
           ) : (
             <Table className="bg-transparent">
@@ -375,12 +377,13 @@ export default async function IssuesListPage({
                         </div>
                       </TableCell>
                       <TableCell className={cn(cellPaddingClass, "text-right")}>
-                        {canQuickStatus ? (
+                        {canQuickStatus || canEditIssue ? (
                           <div className="flex justify-end">
                             <StatusQuickActions
                               issueId={issue.id}
                               currentStatus={issue.status}
                               editHref={`/issues/${issue.id}#edit-section`}
+                              allowStatusChange={canQuickStatus}
                             />
                           </div>
                         ) : (
