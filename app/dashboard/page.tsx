@@ -17,34 +17,34 @@ export default async function DashboardPage() {
   if (!session?.user) {
     redirect("/login");
   }
-
-  if (session.user.role !== "ADMIN") {
-    return (
-      <div className="page-stack">
-        <Card>
-          <CardHeader>
-            <CardTitle>Admin Access Required</CardTitle>
-            <CardDescription>
-              The Dashboard is restricted to Admin users. You can continue on
-              the Issues page.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline">
-              <Link href="/issues">Go to Issues</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const isAdmin = session.user.role === "ADMIN";
 
   return (
     <div className="page-stack">
       <PageHeader
         title="Dashboard"
-        description="Track issue activity, status, and trends in one view."
+        description={
+          isAdmin
+            ? "Track issue activity, status, and trends across the full workspace."
+            : "Track issue activity, status, and trends for your own issues."
+        }
       />
+      {!isAdmin ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Personal Workspace View</CardTitle>
+            <CardDescription>
+              This dashboard only includes issues you created. Admin dashboards
+              include full workspace data.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link href="/issues">Open My Issues</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
       <DashboardCharts />
     </div>
   );
