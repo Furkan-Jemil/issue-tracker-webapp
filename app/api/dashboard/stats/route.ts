@@ -15,10 +15,7 @@ export async function GET(req: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    if (session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const isAdmin = session.user.role === "ADMIN";
 
     const { searchParams } = new URL(req.url);
     const status = parseIssueStatus(searchParams.get("status"));
@@ -27,7 +24,9 @@ export async function GET(req: NextRequest) {
     const query = searchParams.get("q")?.trim() || "";
     const range = parseDashboardRange(searchParams.get("range"));
 
-    const baseWhere: Prisma.IssueWhereInput = {};
+    const baseWhere: Prisma.IssueWhereInput = {
+      ...(isAdmin ? {} : { createdBy: session.user.id }),
+    };
     if (status) baseWhere.status = status;
     if (priority) baseWhere.priority = priority;
     if (severity) baseWhere.severity = severity;
