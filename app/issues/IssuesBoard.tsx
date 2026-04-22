@@ -172,10 +172,12 @@ export function IssuesBoard({
   issues,
   assigneeLabelById,
   canManageStatus,
+  canEditIssue,
 }: {
   issues: BoardIssue[];
   assigneeLabelById: Record<string, string>;
   canManageStatus: boolean;
+  canEditIssue: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -228,7 +230,9 @@ export function IssuesBoard({
   return (
     <div className="space-y-3">
       <div className="rounded-xl border border-border/70 bg-background/70 px-3 py-2 text-sm text-muted-foreground">
-        Drag cards to any lane and exact position (top, middle, bottom). Status updates are applied immediately.
+        {canManageStatus
+          ? "Drag cards to any lane and exact position (top, middle, bottom). Status updates are applied immediately."
+          : "You can open each issue and edit details, but only admins can change issue status from the board."}
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {STATUS_ORDER.map((status) => {
@@ -351,13 +355,16 @@ export function IssuesBoard({
                                   {issue.title}
                                 </Link>
                               </div>
-                              {canManageStatus ? (
+                              {canManageStatus || canEditIssue ? (
                                 <div className="flex items-center gap-1">
-                                  <GripVertical className="h-4 w-4 text-muted-foreground/70" aria-hidden="true" />
+                                  {canManageStatus ? (
+                                    <GripVertical className="h-4 w-4 text-muted-foreground/70" aria-hidden="true" />
+                                  ) : null}
                                   <StatusQuickActions
                                     issueId={issue.id}
                                     currentStatus={issue.status}
                                     editHref={`/issues/${issue.id}#edit-section`}
+                                    allowStatusChange={canManageStatus}
                                   />
                                 </div>
                               ) : null}
