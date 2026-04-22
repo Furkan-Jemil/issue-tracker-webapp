@@ -27,13 +27,16 @@ export function StatusQuickActions({
   issueId,
   currentStatus,
   editHref,
+  allowStatusChange = true,
 }: {
   issueId: string;
   currentStatus: QuickStatus;
   editHref?: string;
+  allowStatusChange?: boolean;
 }) {
   const options = NEXT_STATUS[currentStatus] ?? [];
-  if (options.length === 0) {
+  const visibleOptions = allowStatusChange ? options : [];
+  if (!editHref && visibleOptions.length === 0) {
     return null;
   }
 
@@ -62,8 +65,8 @@ export function StatusQuickActions({
             </Link>
           </PopoverClose>
         ) : null}
-        {editHref ? <div className="my-1 h-px bg-border/70" /> : null}
-        {options.map((status) => (
+        {editHref && visibleOptions.length > 0 ? <div className="my-1 h-px bg-border/70" /> : null}
+        {visibleOptions.map((status) => (
           <PopoverClose asChild key={status}>
             <button
               type="button"
