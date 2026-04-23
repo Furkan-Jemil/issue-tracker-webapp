@@ -151,14 +151,6 @@ function buildComparisonBuckets(points: TimelinePoint[]) {
   return buckets;
 }
 
-function EmptyChartState({ message }: { message: string }) {
-  return (
-    <div className="flex h-full min-h-[190px] w-full items-center justify-center rounded-lg border border-dashed border-border/70 bg-muted/20 px-4 text-center text-xs text-muted-foreground lg:min-h-[210px]">
-      {message}
-    </div>
-  );
-}
-
 export default function DashboardCharts() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -488,6 +480,8 @@ export default function DashboardCharts() {
     [timelinePoints],
   );
 
+  const hasRecentIssues = (data.recentIssues?.length ?? 0) > 0;
+
   if (loading) {
     return (
       <Card>
@@ -730,7 +724,9 @@ export default function DashboardCharts() {
             </div>
           </div>
 
+          {hasStatusMixData || hasComparisonData ? (
           <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+          {hasStatusMixData ? (
           <Card className="min-w-0 border-border bg-card shadow-sm">
             <CardHeader className="border-b border-border/60 pb-2.5">
               <CardTitle className="text-base font-semibold">
@@ -742,7 +738,6 @@ export default function DashboardCharts() {
             </CardHeader>
             <CardContent className="space-y-2 p-2.5">
               <div className="mx-auto h-[190px] w-full max-w-[220px] lg:h-[210px] lg:max-w-[240px]">
-                {hasStatusMixData ? (
                   <Doughnut
                     key={`status-${themeMode}`}
                     data={statusData}
@@ -792,9 +787,6 @@ export default function DashboardCharts() {
                       },
                     }}
                   />
-                ) : (
-                  <EmptyChartState message="No status records available for the current filters." />
-                )}
               </div>
               <div className="border-t border-border/60 pt-2 text-center">
                 <p className="text-sm font-medium text-foreground">
@@ -806,6 +798,8 @@ export default function DashboardCharts() {
               </div>
             </CardContent>
           </Card>
+          ) : null}
+          {hasComparisonData ? (
           <Card className="min-w-0 border-border bg-card shadow-sm">
             <CardHeader className="border-b border-border/60 pb-2.5">
               <CardTitle className="text-base font-semibold">
@@ -817,7 +811,6 @@ export default function DashboardCharts() {
             </CardHeader>
             <CardContent className="space-y-2 p-2.5">
               <div className="h-[190px] w-full lg:h-[210px]">
-                {hasComparisonData ? (
                   <Bar
                     key={`comparison-${themeMode}`}
                     data={comparisonData}
@@ -888,9 +881,6 @@ export default function DashboardCharts() {
                       },
                     }}
                   />
-                ) : (
-                  <EmptyChartState message="No comparison data to display for the selected range." />
-                )}
               </div>
               <div className="border-t border-border/60 pt-2 text-center">
                 <p className="text-sm font-medium text-foreground">
@@ -902,9 +892,12 @@ export default function DashboardCharts() {
               </div>
             </CardContent>
           </Card>
+          ) : null}
           </div>
+          ) : null}
         </div>
 
+        {hasTrendData ? (
         <Card className="min-w-0 border-border bg-card shadow-sm">
           <CardHeader className="border-b border-border/60 pb-2.5">
             <CardTitle className="text-base font-semibold">Issue Trend</CardTitle>
@@ -914,7 +907,6 @@ export default function DashboardCharts() {
           </CardHeader>
           <CardContent className="p-2.5">
             <div className="h-[210px] w-full lg:h-[230px]">
-              {hasTrendData ? (
                 <Line
                   key={`trend-${themeMode}`}
                   data={trendData}
@@ -991,14 +983,13 @@ export default function DashboardCharts() {
                     },
                   }}
                 />
-              ) : (
-                <EmptyChartState message="No trend points available for the selected filters and date range." />
-              )}
             </div>
           </CardContent>
         </Card>
+        ) : null}
       </section>
 
+      {hasRecentIssues ? (
       <Card className="hidden border-border/70 bg-card/95 2xl:block">
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-base font-semibold text-foreground/90">
@@ -1045,6 +1036,7 @@ export default function DashboardCharts() {
           </ul>
         </CardContent>
       </Card>
+      ) : null}
     </div>
   );
 }
