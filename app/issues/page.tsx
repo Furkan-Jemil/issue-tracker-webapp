@@ -167,6 +167,7 @@ export default async function IssuesListPage({
   const hasActiveFilterFields = Boolean(
     status || priority || severity || reporter || assignee || createdFrom || createdTo,
   );
+  const showActionsColumn = canQuickStatus || issues.some((issue) => canEditIssue && issue.status === "OPEN");
   const activeFilterCount = [
     status,
     priority,
@@ -177,7 +178,7 @@ export default async function IssuesListPage({
     createdToRaw,
   ].filter(Boolean).length;
   const tableColumnCount =
-    6 + (showDetails ? 2 : 0) + (isAdmin && showDetails ? 2 : 0);
+    5 + (showActionsColumn ? 1 : 0) + (showDetails ? 2 : 0) + (isAdmin && showDetails ? 2 : 0);
   const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${filteredTotal} filtered issues), ${view} view`;
   const cellPaddingClass = showDetails ? "py-2.5" : "py-1.5";
   const headPaddingClass = showDetails ? "h-10 py-1.5" : "h-9 py-1";
@@ -322,7 +323,9 @@ export default async function IssuesListPage({
                   <TableHead scope="col" className={headPaddingClass}>
                     Status
                   </TableHead>
-                  <TableHead scope="col" className={cn(headPaddingClass, "text-right")}>Action</TableHead>
+                  {showActionsColumn ? (
+                    <TableHead scope="col" className={cn(headPaddingClass, "text-right")}>Action</TableHead>
+                  ) : null}
                   {isAdmin && showDetails && (
                     <TableHead scope="col" className={headPaddingClass}>
                       Assignee
@@ -380,21 +383,21 @@ export default async function IssuesListPage({
                           <IssueSemanticBadge kind="status" value={issue.status} />
                         </div>
                       </TableCell>
-                      <TableCell className={cn(cellPaddingClass, "text-right")}>
-                        {canShowActions ? (
-                          <div className="flex justify-end">
-                            <StatusQuickActions
-                              issueId={issue.id}
-                              currentStatus={issue.status}
-                              editHref={`/issues/${issue.id}#edit-section`}
-                              allowStatusChange={canQuickStatus}
-                              allowEdit={canEditThisIssue}
-                            />
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
+                      {showActionsColumn ? (
+                        <TableCell className={cn(cellPaddingClass, "text-right")}>
+                          {canShowActions ? (
+                            <div className="flex justify-end">
+                              <StatusQuickActions
+                                issueId={issue.id}
+                                currentStatus={issue.status}
+                                editHref={`/issues/${issue.id}#edit-section`}
+                                allowStatusChange={canQuickStatus}
+                                allowEdit={canEditThisIssue}
+                              />
+                            </div>
+                          ) : null}
+                        </TableCell>
+                      ) : null}
                       {isAdmin && showDetails && (
                         <TableCell className={cellPaddingClass}>
                           {issue.assigneeId ? (
