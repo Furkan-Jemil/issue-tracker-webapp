@@ -480,7 +480,7 @@ export default function DashboardCharts() {
     [timelinePoints],
   );
 
-  const hasRecentIssues = (data.recentIssues?.length ?? 0) > 0;
+  const hasRecentIssues = (data?.recentIssues?.length ?? 0) > 0;
 
   if (loading) {
     return (
