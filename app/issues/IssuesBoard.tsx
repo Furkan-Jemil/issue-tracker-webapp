@@ -303,6 +303,9 @@ export function IssuesBoard({
                   </div>
                 ) : (
                   items.map((issue, index) => {
+                    const canEditThisIssue = canEditIssue && issue.status === "OPEN";
+                    const canShowActions = canManageStatus || canEditThisIssue;
+
                     return (
                       <div
                         key={issue.id}
@@ -355,7 +358,7 @@ export function IssuesBoard({
                                   {issue.title}
                                 </Link>
                               </div>
-                              {canManageStatus || canEditIssue ? (
+                              {canShowActions ? (
                                 <div className="flex items-center gap-1">
                                   {canManageStatus ? (
                                     <GripVertical className="h-4 w-4 text-muted-foreground/70" aria-hidden="true" />
@@ -365,6 +368,7 @@ export function IssuesBoard({
                                     currentStatus={issue.status}
                                     editHref={`/issues/${issue.id}#edit-section`}
                                     allowStatusChange={canManageStatus}
+                                    allowEdit={canEditThisIssue}
                                   />
                                 </div>
                               ) : null}
