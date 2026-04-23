@@ -173,11 +173,13 @@ export function IssuesBoard({
   assigneeLabelById,
   canManageStatus,
   canEditIssue,
+  canEditAllIssues,
 }: {
   issues: BoardIssue[];
   assigneeLabelById: Record<string, string>;
   canManageStatus: boolean;
   canEditIssue: boolean;
+  canEditAllIssues: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -303,7 +305,7 @@ export function IssuesBoard({
                   </div>
                 ) : (
                   items.map((issue, index) => {
-                    const canEditThisIssue = canEditIssue && issue.status === "OPEN";
+                    const canEditThisIssue = canEditIssue && (canEditAllIssues || issue.status === "OPEN");
                     const canShowActions = canManageStatus || canEditThisIssue;
 
                     return (

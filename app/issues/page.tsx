@@ -167,7 +167,7 @@ export default async function IssuesListPage({
   const hasActiveFilterFields = Boolean(
     status || priority || severity || reporter || assignee || createdFrom || createdTo,
   );
-  const showActionsColumn = canQuickStatus || issues.some((issue) => canEditIssue && issue.status === "OPEN");
+  const showActionsColumn = canQuickStatus || issues.some((issue) => canEditIssue && (isAdmin || issue.status === "OPEN"));
   const activeFilterCount = [
     status,
     priority,
@@ -302,6 +302,7 @@ export default async function IssuesListPage({
               assigneeLabelById={assigneeLabelById}
               canManageStatus={canQuickStatus}
               canEditIssue={canEditIssue}
+              canEditAllIssues={isAdmin}
             />
           ) : (
             <Table className="bg-transparent">
@@ -351,7 +352,7 @@ export default async function IssuesListPage({
               <TableBody>
                 {issues.length > 0 ? (
                   issues.map((issue) => {
-                    const canEditThisIssue = canEditIssue && issue.status === "OPEN";
+                    const canEditThisIssue = canEditIssue && (isAdmin || issue.status === "OPEN");
                     const canShowActions = canQuickStatus || canEditThisIssue;
 
                     return (
