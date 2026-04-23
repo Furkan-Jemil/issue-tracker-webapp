@@ -347,7 +347,11 @@ export default async function IssuesListPage({
               </TableHeader>
               <TableBody>
                 {issues.length > 0 ? (
-                  issues.map((issue) => (
+                  issues.map((issue) => {
+                    const canEditThisIssue = canEditIssue && issue.status === "OPEN";
+                    const canShowActions = canQuickStatus || canEditThisIssue;
+
+                    return (
                     <TableRow key={issue.id}>
                       <TableCell className={cellPaddingClass}>
                         <Link
@@ -377,13 +381,14 @@ export default async function IssuesListPage({
                         </div>
                       </TableCell>
                       <TableCell className={cn(cellPaddingClass, "text-right")}>
-                        {canQuickStatus || canEditIssue ? (
+                        {canShowActions ? (
                           <div className="flex justify-end">
                             <StatusQuickActions
                               issueId={issue.id}
                               currentStatus={issue.status}
                               editHref={`/issues/${issue.id}#edit-section`}
                               allowStatusChange={canQuickStatus}
+                              allowEdit={canEditThisIssue}
                             />
                           </div>
                         ) : (
@@ -421,7 +426,8 @@ export default async function IssuesListPage({
                         </TableCell>
                       )}
                     </TableRow>
-                  ))
+                    );
+                  })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={tableColumnCount} className="py-10">
