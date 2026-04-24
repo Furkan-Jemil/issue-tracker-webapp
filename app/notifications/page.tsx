@@ -31,7 +31,10 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [markAllPending, setMarkAllPending] = useState(false);
-  const [inlineNotice, setInlineNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [inlineNotice, setInlineNotice] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [undoCandidateId, setUndoCandidateId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -58,7 +61,9 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     return () => {
-      pendingReadTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+      pendingReadTimersRef.current.forEach((timerId) =>
+        window.clearTimeout(timerId),
+      );
       pendingReadTimersRef.current.clear();
     };
   }, []);
@@ -73,12 +78,18 @@ export default function NotificationsPage() {
         throw new Error(data?.error || "Failed to mark notifications as read.");
       }
       await loadNotifications();
-      setInlineNotice({ type: "success", text: "All notifications marked as read." });
+      setInlineNotice({
+        type: "success",
+        text: "All notifications marked as read.",
+      });
       router.refresh();
     } catch (err) {
       setInlineNotice({
         type: "error",
-        text: err instanceof Error ? err.message : "Failed to mark notifications as read.",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Failed to mark notifications as read.",
       });
     } finally {
       setMarkAllPending(false);
@@ -95,12 +106,17 @@ export default function NotificationsPage() {
       prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
     );
     setUndoCandidateId(id);
-    setInlineNotice({ type: "success", text: "Notification marked read. Undo?" });
+    setInlineNotice({
+      type: "success",
+      text: "Notification marked read. Undo?",
+    });
 
     const timerId = window.setTimeout(async () => {
       pendingReadTimersRef.current.delete(id);
       try {
-        const res = await fetch(`/api/notifications/${id}`, { method: "PATCH" });
+        const res = await fetch(`/api/notifications/${id}`, {
+          method: "PATCH",
+        });
         if (!res.ok) {
           throw new Error("Failed to save notification state.");
         }
@@ -108,7 +124,10 @@ export default function NotificationsPage() {
         setNotifications((prev) =>
           prev.map((n) => (n.id === id ? { ...n, isRead: false } : n)),
         );
-        setInlineNotice({ type: "error", text: "Could not mark notification as read." });
+        setInlineNotice({
+          type: "error",
+          text: "Could not mark notification as read.",
+        });
       } finally {
         setUndoCandidateId((current) => (current === id ? null : current));
         router.refresh();
@@ -156,16 +175,42 @@ export default function NotificationsPage() {
         />
         <div className="flex flex-wrap items-center justify-end gap-2">
           <div className="flex items-center gap-1 rounded-md bg-muted/25 p-1">
-          <Button asChild size="dense" variant={view === "all" ? "default" : "ghost"} className="h-7 rounded-md px-2 text-xs">
-            <Link href={query ? `/notifications?view=all&q=${encodeURIComponent(query)}` : "/notifications?view=all"}>All</Link>
+            <Button
+              asChild
+              size="dense"
+              variant={view === "all" ? "default" : "ghost"}
+              className="h-7 rounded-md px-2 text-xs">
+              <Link
+                href={
+                  query
+                    ? `/notifications?view=all&q=${encodeURIComponent(query)}`
+                    : "/notifications?view=all"
+                }>
+                All
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="dense"
+              variant={view === "unread" ? "default" : "ghost"}
+              className="h-7 rounded-md px-2 text-xs">
+              <Link
+                href={
+                  query
+                    ? `/notifications?view=unread&q=${encodeURIComponent(query)}`
+                    : "/notifications?view=unread"
+                }>
+                Unread
+              </Link>
+            </Button>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            onClick={markAllAsRead}
+            disabled={markAllPending}>
+            {markAllPending ? "Marking..." : "Mark all read"}
           </Button>
-          <Button asChild size="dense" variant={view === "unread" ? "default" : "ghost"} className="h-7 rounded-md px-2 text-xs">
-            <Link href={query ? `/notifications?view=unread&q=${encodeURIComponent(query)}` : "/notifications?view=unread"}>Unread</Link>
-          </Button>
-        </div>
-        <Button type="button" size="sm" onClick={markAllAsRead} disabled={markAllPending}>
-          {markAllPending ? "Marking..." : "Mark all read"}
-        </Button>
         </div>
       </div>
       {inlineNotice && (
@@ -176,19 +221,24 @@ export default function NotificationsPage() {
             inlineNotice.type === "success"
               ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
               : "border-red-500/40 bg-red-500/10 text-red-300"
-          }`}
-        >
+          }`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span>{inlineNotice.text}</span>
             {undoCandidateId && inlineNotice.type === "success" ? (
-              <Button type="button" size="dense" variant="soft" onClick={undoMarkRead}>
+              <Button
+                type="button"
+                size="dense"
+                variant="soft"
+                onClick={undoMarkRead}>
                 Undo
               </Button>
             ) : null}
           </div>
         </div>
       )}
-      <p className="text-xs text-muted-foreground">Total {notifications.length} | Unread {unreadCount}</p>
+      <p className="text-xs text-muted-foreground">
+        Total {notifications.length} | Unread {unreadCount}
+      </p>
       {error && (
         <div
           role="alert"
@@ -197,27 +247,40 @@ export default function NotificationsPage() {
         </div>
       )}
       {loading ? (
-        <div className="rounded-md bg-muted/20 px-3 py-2 text-sm text-muted-foreground" aria-live="polite">
+        <div
+          className="rounded-md bg-muted/20 px-3 py-2 text-sm text-muted-foreground"
+          aria-live="polite">
           Loading notifications...
         </div>
       ) : filteredNotifications.length === 0 ? (
-        <div className="rounded-md bg-muted/20 px-3 py-2 text-sm text-muted-foreground">No notifications for this view.</div>
+        <div className="rounded-md bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
+          No notifications for this view.
+        </div>
       ) : (
-        <Table className="bg-transparent" aria-live="polite" aria-busy={loading}>
+        <Table
+          className="bg-transparent"
+          aria-live="polite"
+          aria-busy={loading}>
           <caption className="sr-only">Notifications list</caption>
           <TableHeader>
             <TableRow>
               <TableHead scope="col">Message</TableHead>
-              <TableHead scope="col" className="hidden md:table-cell">Time</TableHead>
+              <TableHead scope="col" className="hidden md:table-cell">
+                Time
+              </TableHead>
               <TableHead scope="col">State</TableHead>
-              <TableHead scope="col" className="text-right">Action</TableHead>
+              <TableHead scope="col" className="text-right">
+                Action
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredNotifications.map((n) => (
               <TableRow key={n.id}>
                 <TableCell>
-                  <Link href={n.issue ? `/issues/${n.issue.id}` : "#"} className="break-words text-primary hover:underline">
+                  <Link
+                    href={n.issue ? `/issues/${n.issue.id}` : "#"}
+                    className="break-words text-primary hover:underline">
                     {n.message}
                   </Link>
                 </TableCell>
