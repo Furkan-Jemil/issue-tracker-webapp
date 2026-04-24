@@ -2,11 +2,9 @@ import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Ticket } from "lucide-react";
 import { CommentThread } from "@/components/issue/CommentThread";
 import { IssueActions } from "@/components/issue/IssueActions";
 import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,51 +80,41 @@ export default async function IssueDetailPage({
 
   return (
     <div className="page-stack">
-      <PageHeader
-        title={issue.title}
-        description={issue.description}
-        icon={Ticket}
-        breadcrumbs={[
-          { label: "Issues", href: "/issues" },
-          { label: "Details" },
-        ]}
-        actions={
-          <>
-            <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
-              {issue.status}
-            </Badge>
-            <Badge variant="outline" className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
-              {issue.priority}
-            </Badge>
-            <Badge variant="outline" className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
-              {issue.severity}
-            </Badge>
-          </>
-        }
-      />
+      <div className="flex w-full justify-end">
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
+            {issue.status}
+          </Badge>
+          <Badge variant="outline" className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
+            {issue.priority}
+          </Badge>
+          <Badge variant="outline" className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
+            {issue.severity}
+          </Badge>
+        </div>
+      </div>
 
-      <Card tone="soft" density="dense" className="sticky top-[4.25rem] z-20 border-border/70 bg-background/95 backdrop-blur">
-        <CardContent className="flex flex-wrap items-center justify-between gap-2 p-3">
-          <p className="text-sm text-muted-foreground">
-            Keep this issue moving: update status, assign owner, then add context in comments.
-          </p>
-          <div className="flex items-center gap-2">
-            <Badge variant={statusVariant(issue.status)} className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.16em]">
-              {issue.status}
-            </Badge>
-            {canQuickStatus && (
-              <StatusQuickActions
-                issueId={issue.id}
-                currentStatus={issue.status}
-                editHref={`/issues/${issue.id}#edit-section`}
-              />
-            )}
-            <Button asChild variant="outline" size="sm">
-              <Link href="#comments-heading">Jump to comments</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex w-full justify-end">
+        <Card tone="soft" density="dense" className="sticky top-[4.25rem] z-20 w-full max-w-2xl border-border/70 bg-background/95 backdrop-blur">
+          <CardContent className="flex flex-wrap items-center justify-end gap-2 p-3">
+            <p className="hidden text-sm text-muted-foreground lg:block">
+              Keep this issue moving: update status, assign owner, then add context in comments.
+            </p>
+            <div className="flex items-center gap-2">
+              {canQuickStatus && (
+                <StatusQuickActions
+                  issueId={issue.id}
+                  currentStatus={issue.status}
+                  editHref={`/issues/${issue.id}#edit-section`}
+                />
+              )}
+              <Button asChild variant="outline" size="sm">
+                <Link href="#comments-heading">Jump to comments</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
         {[
