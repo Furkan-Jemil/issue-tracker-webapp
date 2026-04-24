@@ -2,8 +2,6 @@ import prisma from "@/lib/prisma";
 import { Role } from "@prisma/client";
 import { getAppSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-import { UsersRound } from "lucide-react";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -50,7 +48,6 @@ export default async function EditUserPage({
 
   return (
     <div className="page-stack">
-      <PageHeader title="Edit User" description="Update the user role and account details." icon={UsersRound} />
       <Card id="edit-section">
         <CardHeader>
           <CardTitle className="text-xl">Edit User</CardTitle>
