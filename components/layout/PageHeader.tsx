@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 
+import { AppShellControls } from "@/components/layout/AppShellControls";
 import { ICON_STROKE, ICON_STYLE } from "@/lib/uiTokens";
 import { cn } from "@/lib/utils";
 
@@ -73,11 +74,10 @@ export function PageHeader({
             ) : null}
           </div>
         </div>
-        {actions ? (
-          <div className="flex flex-wrap items-center gap-1.5 md:justify-end">
-            {actions}
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-1.5 md:justify-end">
+          {actions}
+          <AppShellControls className="pointer-events-auto relative" />
+        </div>
       </div>
     </header>
   );
