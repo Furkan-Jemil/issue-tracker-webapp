@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
@@ -21,14 +20,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="page-stack">
-      <PageHeader
-        title="Dashboard"
-        description={
-          isAdmin
-            ? "Track issue activity, status, and trends across the full workspace."
-            : "Track issue activity, status, and trends for your own issues."
-        }
-      />
       {!isAdmin ? (
         <Card>
           <CardHeader>
