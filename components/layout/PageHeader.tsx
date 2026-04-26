@@ -32,16 +32,33 @@ export function PageHeader({
   icon?: PageHeaderIcon;
 }) {
   return (
-    <header className={cn("space-y-1.5", className)}>
+    <header
+      className={cn(
+        "relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-card via-card to-muted/25 p-4 shadow-sm md:p-5",
+        className,
+      )}>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-primary/10 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-28 -left-20 h-64 w-64 rounded-full bg-[hsl(198_78%_64%/0.08)] blur-3xl"
+      />
+
       {breadcrumbs?.length ? (
         <nav
           aria-label="Breadcrumb"
-          className="flex flex-wrap items-center gap-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+          className="relative z-10 mb-3 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
           {breadcrumbs.map((item, index) => (
             <span
               key={`${item.label}-${index}`}
               className="flex items-center gap-1">
-              {index > 0 && <span aria-hidden="true">/</span>}
+              {index > 0 && (
+                <span aria-hidden="true" className="text-muted-foreground/50">
+                  /
+                </span>
+              )}
               {item.href ? (
                 <Link
                   href={item.href}
@@ -56,10 +73,10 @@ export function PageHeader({
         </nav>
       ) : null}
 
-      <div className="flex flex-col gap-2 px-0.5 py-0.5 md:flex-row md:items-start md:justify-between">
-        <div className="flex min-w-0 items-start gap-2.5">
+      <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
+        <div className="flex min-w-0 items-start gap-3">
           {Icon ? (
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/85">
+            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background/80 text-muted-foreground shadow-sm">
               <Icon
                 className={ICON_STYLE.header}
                 strokeWidth={ICON_STROKE.header}
@@ -67,16 +84,24 @@ export function PageHeader({
               />
             </div>
           ) : null}
-          <div className="space-y-0.5">
-            <h1 className="page-title leading-tight">{title}</h1>
+          <div className="space-y-1">
+            <h1 className="page-title text-balance leading-tight">{title}</h1>
             {description ? (
-              <p className="page-subtitle max-w-xl text-muted-foreground/95">{description}</p>
+              <p className="page-subtitle max-w-2xl text-balance text-muted-foreground/95">
+                {description}
+              </p>
             ) : null}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5 md:justify-end">
-          {actions}
-          <AppShellControls className="pointer-events-auto relative" />
+        <div className="flex flex-wrap items-center gap-2 md:justify-end">
+          {actions ? (
+            <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border/70 bg-background/75 p-2 shadow-sm">
+              {actions}
+            </div>
+          ) : null}
+          <div className="rounded-2xl border border-border/70 bg-background/75 p-1.5 shadow-sm">
+            <AppShellControls className="pointer-events-auto relative" />
+          </div>
         </div>
       </div>
     </header>
