@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getAppSession } from "@/lib/auth/session";
 import { defineAbilitiesFor } from "@/lib/casl";
 import { NewIssueForm } from "@/components/issue/NewIssueForm";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import type { IssueStatus } from "@prisma/client";
 import {
@@ -182,17 +183,23 @@ export default async function NewIssuePage({
             : "";
 
   return (
-    <Card className="border-0 bg-transparent shadow-none">
-      <NewIssueForm
-        action={createIssue}
-        errorMessage={errorMessage}
-        isAdmin={session.user.role === "ADMIN"}
-        loggedByLabel={session.user.name || session.user.email}
-        assignees={assignableUsers.map((u) => ({
-          id: u.id,
-          label: u.name || u.email,
-        }))}
+    <div className="page-stack">
+      <PageHeader
+        title="Create issue"
+        description="Capture bugs, requests, or blockers with the details needed to move work forward."
       />
-    </Card>
+      <Card className="border-0 bg-transparent shadow-none">
+        <NewIssueForm
+          action={createIssue}
+          errorMessage={errorMessage}
+          isAdmin={session.user.role === "ADMIN"}
+          loggedByLabel={session.user.name || session.user.email}
+          assignees={assignableUsers.map((u) => ({
+            id: u.id,
+            label: u.name || u.email,
+          }))}
+        />
+      </Card>
+    </div>
   );
 }
