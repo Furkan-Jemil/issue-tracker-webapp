@@ -8,6 +8,7 @@ import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 function formatDate(d: Date | string): string {
   const date = new Date(d);
@@ -80,6 +81,15 @@ export default async function IssueDetailPage({
 
   return (
     <div className="page-stack">
+      <PageHeader
+        title="Issue details"
+        description={issue.title}
+        breadcrumbs={[
+          { label: "Issues", href: "/issues" },
+          { label: issue.id.slice(0, 8).toUpperCase() },
+        ]}
+      />
+
       <div className="flex w-full justify-end">
         <div className="flex flex-wrap items-center justify-end gap-1.5">
           <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
