@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -164,6 +165,10 @@ export default function AdminUsersPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   return (
     <div className="page-stack">
+      <PageHeader
+        title="Users"
+        description="Manage user accounts, access roles, and operational permissions."
+      />
       <section className="space-y-3">
         <div className="border-b border-border/60 bg-muted/20 py-3">
           <div className="flex flex-wrap items-center justify-between gap-2.5">
