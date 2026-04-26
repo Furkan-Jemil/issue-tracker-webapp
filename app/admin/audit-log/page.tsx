@@ -6,6 +6,7 @@ import { History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AutoSearchInput } from "@/components/ui/auto-search-input";
+import { PageHeader } from "@/components/layout/PageHeader";
 import AuditEventFilterControl from "./AuditEventFilterControl";
 import ExportDataButton from "../settings/ExportDataButton";
 import {
@@ -93,6 +94,10 @@ export default async function AdminAuditLogPage({
 
   return (
     <div className="page-stack">
+      <PageHeader
+        title="Audit Log"
+        description="Review tracked system changes, comments, and status transitions."
+      />
       <section className="space-y-3">
         <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
           <AutoSearchInput
