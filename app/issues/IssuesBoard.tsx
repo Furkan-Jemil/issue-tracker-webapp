@@ -240,17 +240,13 @@ export function IssuesBoard({
 
   return (
     <div className="space-y-3">
-      <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-card via-card to-muted/30 p-4 shadow-sm md:p-5">
-        <div className="pointer-events-none absolute -right-16 -top-24 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-28 -left-12 h-64 w-64 rounded-full bg-[hsl(198_78%_64%/0.08)] blur-3xl" />
-
-        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded-full border border-border/70 bg-background/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              <span className="inline-flex items-center rounded-full bg-muted/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                 Issue board
               </span>
-              <span className="inline-flex items-center rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
+              <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
                 Live updates
               </span>
             </div>
@@ -266,15 +262,15 @@ export function IssuesBoard({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border/70 bg-background/75 p-2 shadow-sm">
-            <div className="rounded-xl border border-border/70 bg-background px-3 py-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="rounded-xl bg-muted/30 px-3 py-2">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Total</p>
               <p className="mt-0.5 text-base font-semibold text-foreground">{totalIssues}</p>
             </div>
             {boardStats.map((stat) => (
               <div
                 key={stat.label}
-                className="min-w-[108px] rounded-xl border border-border/70 bg-background px-3 py-2">
+                className="min-w-[108px] rounded-xl bg-muted/30 px-3 py-2">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                     {stat.label}
@@ -286,7 +282,6 @@ export function IssuesBoard({
               </div>
             ))}
           </div>
-        </div>
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {STATUS_ORDER.map((status) => {

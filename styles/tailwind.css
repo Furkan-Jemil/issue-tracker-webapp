@@ -33,7 +33,7 @@
     --density-scale: 1;
     --space-page-y: 0.95rem;
     --space-page-x: 0.75rem;
-    --space-main-top: 0.95rem;
+    --space-main-top: 0.45rem;
     --space-stack: 0.95rem;
     --card-pad: 0.95rem;
     --card-gap: 0.8rem;
@@ -144,7 +144,7 @@
     --density-scale: 0.88;
     --space-page-y: 0.625rem;
     --space-page-x: 0.5rem;
-    --space-main-top: 0.7rem;
+    --space-main-top: 0.4rem;
     --space-stack: 0.625rem;
     --card-pad: 0.625rem;
     --card-gap: 0.5rem;
