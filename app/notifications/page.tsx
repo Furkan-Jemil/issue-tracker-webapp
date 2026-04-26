@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AutoSearchInput } from "@/components/ui/auto-search-input";
+import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Table,
   TableBody,
@@ -168,6 +169,10 @@ export default function NotificationsPage() {
 
   return (
     <div className="page-stack">
+      <PageHeader
+        title="Notifications"
+        description="Stay on top of issue updates and assignments."
+      />
       <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
         <AutoSearchInput
           placeholder="Search notifications (type at least 2 letters)"

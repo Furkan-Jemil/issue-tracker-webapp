@@ -12,6 +12,7 @@ import { IssuesFilterPopover } from "@/app/issues/IssuesFilterPopover";
 import { IssuesBoard } from "@/app/issues/IssuesBoard";
 import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import { IssueSemanticBadge } from "@/components/issue/IssueSemanticBadge";
+import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Card,
   CardContent,
@@ -243,6 +244,10 @@ export default async function IssuesListPage({
 
   return (
     <div className="page-stack">
+      <PageHeader
+        title="Issues"
+        description="Track, prioritize, and move issues through the workflow."
+      />
       <section className="space-y-3">
           <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
               <AutoSearchInput
