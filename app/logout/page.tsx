@@ -1,4 +1,5 @@
 import { PendingSubmitButton } from "@/components/auth/PendingSubmitButton";
+import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Card,
   CardContent,
@@ -25,12 +26,16 @@ async function signOut() {
 
 export default function LogoutPage() {
   return (
-    <div className="mx-auto flex w-full max-w-md items-center justify-center px-4 py-8 md:py-14">
+    <div className="page-stack mx-auto w-full max-w-md px-4 py-8 md:py-14">
+      <PageHeader
+        title="Sign out"
+        description="End your current session and return to the login screen."
+      />
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Sign Out</CardTitle>
+          <CardTitle>Confirm sign out</CardTitle>
           <CardDescription>
-            End your current session and return to login.
+            You will be returned to the login page after signing out.
           </CardDescription>
         </CardHeader>
         <CardContent>
