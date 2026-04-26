@@ -34,7 +34,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-card via-card to-muted/25 p-4 shadow-sm md:p-5",
+        "relative rounded-3xl border border-border/70 bg-gradient-to-br from-card via-card to-muted/25 p-4 shadow-sm md:p-5",
         className,
       )}>
       <div
