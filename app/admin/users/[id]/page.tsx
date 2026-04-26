@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { parseEnumValue } from "@/lib/issueValidation";
 
 export default async function EditUserPage({
@@ -48,6 +49,15 @@ export default async function EditUserPage({
 
   return (
     <div className="page-stack">
+      <PageHeader
+        title="Edit User"
+        description="Update the user role and account details."
+        breadcrumbs={[
+          { label: "Admin", href: "/admin/users" },
+          { label: "Users", href: "/admin/users" },
+          { label: user.email },
+        ]}
+      />
       <Card id="edit-section">
         <CardHeader>
           <CardTitle className="text-xl">Edit User</CardTitle>
