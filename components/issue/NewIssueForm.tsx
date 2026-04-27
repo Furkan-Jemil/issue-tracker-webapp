@@ -89,8 +89,8 @@ export function NewIssueForm({
     }
     formData.set("screenshotsMeta", JSON.stringify(screenshotsMeta));
     formData.set("attachmentsMeta", JSON.stringify(attachmentsMeta));
-    startTransition(() => {
-      action(formData);
+    startTransition(async () => {
+      await action(formData);
     });
   }
 
