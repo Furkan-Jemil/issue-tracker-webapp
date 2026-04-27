@@ -140,7 +140,7 @@ export async function updateIssue(issueId: string, formData: FormData) {
           assigneeChanged,
           previousAssigneeId: issue.assigneeId,
           newAssigneeId: nextAssigneeId,
-          reportedAt,
+          reportedAt: reportedAt ? reportedAt.toISOString() : null,
           sourceNotes,
         },
       },

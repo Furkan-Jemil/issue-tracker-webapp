@@ -139,7 +139,7 @@ async function createIssue(formData: FormData) {
         severity: issue.severity,
         status: issue.status,
         assigneeId: issue.assigneeId,
-        reportedAt: issue.reportedAt,
+        reportedAt: issue.reportedAt ? issue.reportedAt.toISOString() : null,
         sourceNotes: issue.sourceNotes,
         screenshotCount: issue.screenshots.length,
         attachmentCount: issue.attachments.length,
