@@ -90,62 +90,72 @@ async function createIssue(formData: FormData) {
     assigneeId = assignee?.id ?? null;
   }
 
-  const issue = await prisma.issue.create({
-    data: {
-      title,
-      description,
-      type,
-      priority,
-      severity,
-      status,
-      url,
-      sourceNotes,
-      reportedAt,
-      assigneeId,
-      createdBy: session.user.id,
-      screenshots: {
-        create: screenshots.map((file, idx: number) => ({
-          url: file.url,
-          filename: file.filename,
-          mimeType: file.mimeType,
-          sizeBytes: file.sizeBytes,
-          order: idx,
-        })),
+  let issue;
+  try {
+    issue = await prisma.issue.create({
+      data: {
+        title,
+        description,
+        type,
+        priority,
+        severity,
+        status,
+        url,
+        sourceNotes,
+        reportedAt,
+        assigneeId,
+        createdBy: session.user.id,
+        screenshots: {
+          create: screenshots.map((file, idx: number) => ({
+            url: file.url,
+            filename: file.filename,
+            mimeType: file.mimeType,
+            sizeBytes: file.sizeBytes,
+            order: idx,
+          })),
+        },
+        attachments: {
+          create: attachments.map((file, idx: number) => ({
+            url: file.url,
+            filename: file.filename,
+            mimeType: file.mimeType,
+            sizeBytes: file.sizeBytes,
+            uploaderId: session.user.id,
+            order: idx,
+          })),
+        },
       },
-      attachments: {
-        create: attachments.map((file, idx: number) => ({
-          url: file.url,
-          filename: file.filename,
-          mimeType: file.mimeType,
-          sizeBytes: file.sizeBytes,
-          uploaderId: session.user.id,
-          order: idx,
-        })),
-      },
-    },
-    include: { screenshots: true, attachments: true },
-  });
+      include: { screenshots: true, attachments: true },
+    });
+  } catch (error) {
+    console.error("Failed to create issue", error);
+    redirect("/issues/new?error=create-failed");
+  }
 
-  await prisma.issueHistory.create({
-    data: {
-      issueId: issue.id,
-      actorId: session.user.id,
-      eventType: "CREATED",
-      description: `Issue created by ${session.user.name || "Unknown"} (${formatRole(session.user.role)})`,
-      metadata: {
-        title: issue.title,
-        type: issue.type,
-        priority: issue.priority,
-        severity: issue.severity,
-        status: issue.status,
-        assigneeId: issue.assigneeId,
-        reportedAt: issue.reportedAt ? issue.reportedAt.toISOString() : null,
-        sourceNotes: issue.sourceNotes,
-        screenshotCount: issue.screenshots.length,
-        attachmentCount: issue.attachments.length,
+  try {
+    await prisma.issueHistory.create({
+      data: {
+        issueId: issue.id,
+        actorId: session.user.id,
+        eventType: "CREATED",
+        description: `Issue created by ${session.user.name || "Unknown"} (${formatRole(session.user.role)})`,
+        metadata: {
+          title: issue.title,
+          type: issue.type,
+          priority: issue.priority,
+          severity: issue.severity,
+          status: issue.status,
+          assigneeId: issue.assigneeId,
+          reportedAt: issue.reportedAt ? issue.reportedAt.toISOString() : null,
+          sourceNotes: issue.sourceNotes,
+          screenshotCount: issue.screenshots.length,
+          attachmentCount: issue.attachments.length,
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error("Failed to write issue creation history", error);
+  }
 
   redirect("/issues");
 }
@@ -180,6 +190,8 @@ export default async function NewIssuePage({
           ? "Invalid screenshot metadata. Please retry upload."
           : params?.error === "invalid-attachments-meta"
             ? "Invalid attachment metadata. Please retry upload."
+            : params?.error === "create-failed"
+              ? "Unable to create issue right now. Please try again."
             : "";
 
   return (
