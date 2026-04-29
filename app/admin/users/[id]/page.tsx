@@ -2,13 +2,9 @@ import prisma from "@/lib/prisma";
 import { Role } from "@prisma/client";
 import { getAppSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { parseEnumValue } from "@/lib/issueValidation";
+import { UserEditForm } from "../UserEditForm";
 
 export default async function EditUserPage({
   params,
@@ -58,32 +54,14 @@ export default async function EditUserPage({
           { label: user.email },
         ]}
       />
-      <Card id="edit-section">
-        <CardHeader>
-          <CardTitle className="text-xl">Edit User</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form action={updateRole} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="user-name">Name</Label>
-              <Input id="user-name" value={user.name} readOnly />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="user-email">Email</Label>
-              <Input id="user-email" value={user.email} readOnly />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="role">Role</Label>
-              <Select id="role" name="role" defaultValue={user.role}>
-                <option value="USER">User</option>
-                <option value="TESTER">Tester</option>
-                <option value="ADMIN">Admin</option>
-              </Select>
-            </div>
-            <Button type="submit">Update Role</Button>
-          </form>
-        </CardContent>
-      </Card>
+      <UserEditForm
+        user={{
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        }}
+        onSubmit={updateRole}
+      />
     </div>
   );
 }
