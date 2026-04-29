@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -17,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { UsersToolbar } from "./UsersToolbar";
 import { UserRowActionsMenu } from "./UserRowActionsMenu";
 
 type UserRow = {
@@ -170,46 +169,22 @@ export default function AdminUsersPage() {
         description="Manage user accounts, access roles, and operational permissions."
       />
       <section className="space-y-3">
-        <div className="border-b border-border/60 bg-muted/20 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-2.5">
-            <Input
-              aria-label="Search users"
-              type="text"
-              placeholder="Search users (type at least 2 letters)"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              className="w-full max-w-sm"
-            />
-            <div className="flex items-center gap-2 sm:ml-auto">
-              <Select
-                aria-label="Filter users by role"
-                value={roleFilter}
-                onChange={(event) => {
-                  setRoleFilter(event.target.value);
-                  setPage(1);
-                }}
-                className="w-28 md:w-36">
-                <option value="">All roles</option>
-                <option value="USER">User</option>
-                <option value="TESTER">Tester</option>
-                <option value="ADMIN">Admin</option>
-              </Select>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearch("");
-                  setRoleFilter("");
-                  setPage(1);
-                  setDebouncedSearch("");
-                  void loadUsers(1, "", "");
-                }}>
-                Clear
-              </Button>
-            </div>
-          </div>
-        </div>
+        <UsersToolbar
+          search={search}
+          roleFilter={roleFilter}
+          onSearchChange={setSearch}
+          onRoleChange={(value) => {
+            setRoleFilter(value);
+            setPage(1);
+          }}
+          onClear={() => {
+            setSearch("");
+            setRoleFilter("");
+            setPage(1);
+            setDebouncedSearch("");
+            void loadUsers(1, "", "");
+          }}
+        />
         <div className="space-y-3">
           {roleNotice && (
             <div
