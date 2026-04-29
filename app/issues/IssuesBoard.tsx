@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { GripVertical } from "lucide-react";
+import { GripVertical, Info } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { IssueSemanticBadge } from "@/components/issue/IssueSemanticBadge";
 import { changeIssueStatusQuick } from "@/app/issues/quick-actions";
 import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 type BoardStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 
@@ -185,6 +187,7 @@ export function IssuesBoard({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const draggingIdRef = useRef<string | null>(null);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [columns, setColumns] = useState<Record<BoardStatus, BoardIssue[]>>(() => buildColumns(issues));
 
   useEffect(() => {
@@ -251,14 +254,30 @@ export function IssuesBoard({
               </span>
             </div>
             <div className="space-y-0.5">
-              <h2 className="text-xl font-semibold tracking-tight text-foreground md:text-[1.7rem]">
-                Keep work moving across every stage.
-              </h2>
-              <p className="max-w-2xl text-sm leading-5 text-muted-foreground md:text-[14px]">
-                {canManageStatus
-                  ? "Drag cards to any lane or exact position. Status updates are applied immediately so the board stays current."
-                  : "Review the workflow at a glance. You can open issues and update details, while only admins can move status from the board."}
-              </p>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-semibold tracking-tight text-foreground md:text-[1.7rem]">
+                  Keep work moving across every stage.
+                </h2>
+                <Popover open={helpOpen} onOpenChange={setHelpOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onMouseEnter={() => setHelpOpen(true)}
+                      onMouseLeave={() => setHelpOpen(false)}
+                      onFocus={() => setHelpOpen(true)}
+                      onBlur={() => setHelpOpen(false)}
+                      aria-label="Board help">
+                      <Info className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-2 text-sm">
+                    {canManageStatus
+                      ? "Drag cards to reorder. Status updates apply instantly."
+                      : "Review the workflow at a glance. Only admins can move status from the board."}
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </div>
 
