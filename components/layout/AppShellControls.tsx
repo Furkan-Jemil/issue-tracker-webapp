@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { LogOut, Moon, SunMedium } from "lucide-react";
+import { ChevronDown, LogOut, Moon, SunMedium } from "lucide-react";
 
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ICON_STROKE } from "@/lib/uiTokens";
 import { useAppShellProfile } from "@/components/layout/AppShellProfileContext";
 
@@ -17,8 +17,6 @@ export function AppShellControls({ className }: { className?: string }) {
   const initialTheme = profile?.initialTheme ?? "light";
 
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const themeTransitionTimeoutRef = useRef<number | null>(null);
 
   const profileInitials =
@@ -67,29 +65,6 @@ export function AppShellControls({ className }: { className?: string }) {
     };
   }, []);
 
-  useEffect(() => {
-    function onPointerDown(event: PointerEvent) {
-      if (!profileMenuOpen) return;
-      const target = event.target as Node | null;
-      if (target && profileMenuRef.current && !profileMenuRef.current.contains(target)) {
-        setProfileMenuOpen(false);
-      }
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setProfileMenuOpen(false);
-      }
-    }
-
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [profileMenuOpen]);
-
   function toggleTheme() {
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
@@ -98,7 +73,7 @@ export function AppShellControls({ className }: { className?: string }) {
   }
 
   return (
-    <div ref={profileMenuRef} className={className ?? "pointer-events-auto relative"}>
+    <div className={className ?? "pointer-events-auto relative"}>
       <div className="flex items-center gap-1.5 px-1 py-0.5">
         <Button
           type="button"
@@ -115,37 +90,37 @@ export function AppShellControls({ className }: { className?: string }) {
           )}
         </Button>
         <NotificationBell className="h-8 w-8 text-muted-foreground" />
-        <Button
-          type="button"
-          variant="ghost"
-          aria-label={`Profile menu for ${profileName}`}
-          aria-expanded={profileMenuOpen}
-          onClick={() => setProfileMenuOpen((current) => !current)}
-          className="group h-8 gap-0 rounded-md px-1 text-xs font-medium text-foreground">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-[10px] font-semibold text-foreground">
-            {profileInitials}
-          </span>
-          <span className="ml-2 max-w-[120px] overflow-hidden whitespace-nowrap opacity-100 transition-all duration-200">
-            {profileName}
-          </span>
-        </Button>
-      </div>
-
-      {profileMenuOpen && (
-        <Card className="absolute right-0 top-12 z-50 w-64 rounded-xl border-border p-2.5 shadow-md">
-          <div className="rounded-lg border border-border bg-muted/20 p-3">
-            <p className="truncate text-xs text-muted-foreground">{profileEmail}</p>
-          </div>
-          <div className="mt-2">
-            <Button asChild variant="outline" className="h-9 w-full rounded-md border-border bg-card px-3 text-xs">
-              <Link href="/logout">
-                <LogOut className="h-4 w-4" aria-hidden="true" />
-                Logout
-              </Link>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              aria-label={`Profile menu for ${profileName}`}
+              className="group h-8 gap-0 rounded-md px-1 text-xs font-medium text-foreground">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-[10px] font-semibold text-foreground">
+                {profileInitials}
+              </span>
+              <span className="ml-2 max-w-[120px] overflow-hidden whitespace-nowrap opacity-100 transition-all duration-200">
+                {profileName}
+              </span>
+              <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-60" aria-hidden="true" />
             </Button>
-          </div>
-        </Card>
-      )}
+          </PopoverTrigger>
+          <PopoverContent className="w-64 rounded-xl border-border p-2.5 shadow-md">
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
+              <p className="truncate text-xs text-muted-foreground">{profileEmail}</p>
+            </div>
+            <div className="mt-2">
+              <Button asChild variant="outline" className="h-9 w-full rounded-md border-border bg-card px-3 text-xs">
+                <Link href="/logout">
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
+                  Logout
+                </Link>
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
   );
 }
