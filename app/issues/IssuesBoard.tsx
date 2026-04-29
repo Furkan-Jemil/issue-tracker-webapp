@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { GripVertical, Info } from "lucide-react";
+import { GripVertical, Kanban } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { changeIssueStatusQuick } from "@/app/issues/quick-actions";
 import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 
 type BoardStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 
@@ -260,16 +259,15 @@ export function IssuesBoard({
                 </h2>
                 <Popover open={helpOpen} onOpenChange={setHelpOpen}>
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                    <button
                       onMouseEnter={() => setHelpOpen(true)}
                       onMouseLeave={() => setHelpOpen(false)}
                       onFocus={() => setHelpOpen(true)}
                       onBlur={() => setHelpOpen(false)}
-                      aria-label="Board help">
-                      <Info className="h-4 w-4" />
-                    </Button>
+                      aria-label="Board help"
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/30">
+                      <Kanban className="h-4 w-4" />
+                    </button>
                   </PopoverTrigger>
                   <PopoverContent className="p-2 text-sm">
                     {canManageStatus
