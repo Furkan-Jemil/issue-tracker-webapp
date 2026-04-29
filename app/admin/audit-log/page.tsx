@@ -5,10 +5,8 @@ import type { HistoryEvent } from "@prisma/client";
 import { History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AutoSearchInput } from "@/components/ui/auto-search-input";
 import { PageHeader } from "@/components/layout/PageHeader";
-import AuditEventFilterControl from "./AuditEventFilterControl";
-import ExportDataButton from "../settings/ExportDataButton";
+import { AuditLogToolbar } from "./AuditLogToolbar";
 import {
   Table,
   TableBody,
@@ -99,21 +97,7 @@ export default async function AdminAuditLogPage({
         description="Review tracked system changes, comments, and status transitions."
       />
       <section className="space-y-3">
-        <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-          <AutoSearchInput
-            placeholder="Search audit log (type at least 2 letters)"
-            className="w-full max-w-sm"
-          />
-          <div className="flex items-center gap-2">
-            <AuditEventFilterControl current={selectedEvent} query={query} />
-            <ExportDataButton compact className="shrink-0" />
-            <Button asChild variant="ghost" size="icon" className="h-8 w-8" title="System records">
-              <Link href="/issues" aria-label="System records">
-                <History className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <AuditLogToolbar currentEvent={selectedEvent} query={query} />
         <div>
           <Table className="bg-transparent">
             <caption className="sr-only">Recent issue history events</caption>
