@@ -28,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AutoSearchInput } from "@/components/ui/auto-search-input";
+import { IssuesToolbar } from "@/app/issues/IssuesToolbar";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
@@ -249,38 +249,27 @@ export default async function IssuesListPage({
         description="Track, prioritize, and move issues through the workflow."
       />
       <section className="space-y-3">
-          <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-              <AutoSearchInput
-                placeholder="Search issues (type at least 2 letters)"
-                className="w-full max-w-sm"
-              />
-              <div className="flex items-center gap-1.5 md:justify-self-end">
-                <IssuesFilterPopover
-                  view={view}
-                  isAdmin={isAdmin}
-                  hasActiveFilters={hasActiveFilterFields}
-                  activeFilterCount={activeFilterCount}
-                  query={query}
-                  createdFrom={createdFromRaw}
-                  createdTo={createdToRaw}
-                  status={status}
-                  priority={priority}
-                  severity={severity}
-                  reporter={reporter}
-                  assignee={assignee}
-                  reporters={reporters.map((user) => ({
-                    id: user.id,
-                    label: user.name || user.email,
-                    role: user.role,
-                  }))}
-                  onSubmitHref="/issues"
-                  onResetHref={buildClearFiltersHref()}
-                />
-                <Button asChild size="sm">
-                  <Link href="/issues/new">Create Issue</Link>
-                </Button>
-              </div>
-            </div>
+        <IssuesToolbar
+          view={view}
+          isAdmin={isAdmin}
+          hasActiveFilters={hasActiveFilterFields}
+          activeFilterCount={activeFilterCount}
+          query={query}
+          createdFrom={createdFromRaw}
+          createdTo={createdToRaw}
+          status={status}
+          priority={priority}
+          severity={severity}
+          reporter={reporter}
+          assignee={assignee}
+          reporters={reporters.map((user) => ({
+            id: user.id,
+            label: user.name || user.email,
+            role: user.role,
+          }))}
+          onSubmitHref="/issues"
+          onResetHref={buildClearFiltersHref()}
+        />
           {notice === "admin-dashboard-only" && (
             <Card className="border-amber-300 bg-amber-50/60">
               <CardHeader className="pb-2">
