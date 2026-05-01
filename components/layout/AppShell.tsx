@@ -144,6 +144,23 @@ export function AppShell({
               IssueTracker
             </span>
           </Link>
+          <div className="flex items-center">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+              aria-pressed={sidebarExpanded}
+              onClick={() => setSidebarExpanded((current) => !current)}
+              title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+              className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
+              {sidebarExpanded ? (
+                <PanelLeft className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+              ) : (
+                <PanelRight className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+              )}
+            </Button>
+          </div>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1.5 p-2 pt-1.5">
@@ -248,26 +265,6 @@ export function AppShell({
           "relative min-h-screen min-w-0 overflow-x-clip transition-[padding-left] duration-200 ease-out",
           contentOffsetClass,
         )}>
-        {/* Floating toggle placed outside the sidebar so it doesn't sit inside the rail */}
-        <div
-          className="pointer-events-auto absolute z-50 md:top-2"
-          style={{ left: sidebarExpanded ? "12rem" : "3.5rem", top: "0.5rem" }}>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            aria-pressed={sidebarExpanded}
-            onClick={() => setSidebarExpanded((current) => !current)}
-            title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
-            {sidebarExpanded ? (
-              <PanelLeft className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
-            ) : (
-              <PanelRight className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
-            )}
-          </Button>
-        </div>
         <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme }}>
           <main
             id="main-content"
