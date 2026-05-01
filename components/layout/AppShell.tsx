@@ -7,9 +7,9 @@ import {
   ClipboardList,
   History,
   LayoutDashboard,
+  PanelLeft,
+  PanelRight,
   UsersRound,
-  ChevronsLeft,
-  ChevronsRight,
   Ticket,
 } from "lucide-react";
 
@@ -133,13 +133,13 @@ export function AppShell({
             title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
             className="h-9 w-9 shrink-0 rounded-md border-border bg-background text-muted-foreground md:h-8 md:w-8">
             {sidebarExpanded ? (
-              <ChevronsLeft
+              <PanelLeft
                 className={ICON_STYLE.control}
                 strokeWidth={ICON_STROKE.control}
                 aria-hidden="true"
               />
             ) : (
-              <ChevronsRight
+              <PanelRight
                 className={ICON_STYLE.control}
                 strokeWidth={ICON_STROKE.control}
                 aria-hidden="true"
