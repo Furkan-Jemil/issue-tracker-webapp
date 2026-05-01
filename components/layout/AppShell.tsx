@@ -249,7 +249,9 @@ export function AppShell({
           contentOffsetClass,
         )}>
         {/* Floating toggle placed outside the sidebar so it doesn't sit inside the rail */}
-        <div className="pointer-events-auto absolute left-0 top-3 z-50 md:top-2">
+        <div
+          className="pointer-events-auto absolute z-50 md:top-2"
+          style={{ left: sidebarExpanded ? "12rem" : "3.5rem", top: "0.5rem" }}>
           <Button
             type="button"
             variant="outline"
@@ -258,19 +260,11 @@ export function AppShell({
             aria-pressed={sidebarExpanded}
             onClick={() => setSidebarExpanded((current) => !current)}
             title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            className="h-9 w-9 shrink-0 -translate-x-1/2 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
+            className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
             {sidebarExpanded ? (
-              <PanelLeft
-                className={ICON_STYLE.control}
-                strokeWidth={ICON_STROKE.control}
-                aria-hidden="true"
-              />
+              <PanelLeft className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
             ) : (
-              <PanelRight
-                className={ICON_STYLE.control}
-                strokeWidth={ICON_STROKE.control}
-                aria-hidden="true"
-              />
+              <PanelRight className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
             )}
           </Button>
         </div>
