@@ -144,26 +144,39 @@ export function AppShell({
               IssueTracker
             </span>
           </Link>
-          <div className="flex items-center">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-              aria-pressed={sidebarExpanded}
-              onClick={() => setSidebarExpanded((current) => !current)}
-              title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-              className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
-              {sidebarExpanded ? (
+          {sidebarExpanded ? (
+            <div className="flex items-center">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label="Collapse sidebar"
+                aria-pressed={sidebarExpanded}
+                onClick={() => setSidebarExpanded((current) => !current)}
+                title="Collapse sidebar"
+                className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
                 <PanelLeft className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
-              ) : (
-                <PanelRight className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
-              )}
-            </Button>
-          </div>
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <nav className="flex flex-1 flex-col gap-1.5 p-2 pt-1.5">
+          {!sidebarExpanded ? (
+            <div className="mb-1 flex justify-center border-b border-border/50 pb-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label="Expand sidebar"
+                aria-pressed={sidebarExpanded}
+                onClick={() => setSidebarExpanded((current) => !current)}
+                title="Expand sidebar"
+                className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
+                <PanelRight className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+              </Button>
+            </div>
+          ) : null}
           {primaryNavItems.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = getIcon(item.icon);
