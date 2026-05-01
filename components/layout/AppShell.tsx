@@ -62,6 +62,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const hideSidebar = pathname.startsWith("/login") || pathname.startsWith("/register");
 
   useEffect(() => {
     const stored = window.localStorage.getItem("app-shell-sidebar-expanded");
@@ -98,6 +99,27 @@ export function AppShell({
   const primaryNavItems = navItems.filter((item) => item.section !== "admin");
   const adminNavItems = navItems.filter((item) => item.section === "admin");
 
+  if (hideSidebar) {
+    return (
+      <div className="min-h-screen overflow-x-clip bg-background">
+        <div className="relative min-h-screen min-w-0 overflow-x-clip">
+          <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme }}>
+            <main
+              id="main-content"
+              className="page-enter page-shell w-full min-w-0"
+              style={{
+                paddingInline: "var(--space-page-x)",
+                paddingTop: "var(--space-main-top)",
+                paddingBottom: "var(--space-page-y)",
+              }}>
+              {children}
+            </main>
+          </AppShellProfileProvider>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen overflow-x-clip bg-background">
       <aside
@@ -122,30 +144,6 @@ export function AppShell({
               IssueTracker
             </span>
           </Link>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            aria-pressed={sidebarExpanded}
-            onClick={() => setSidebarExpanded((current) => !current)}
-            title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            className="h-9 w-9 shrink-0 rounded-md border-border bg-background text-muted-foreground md:h-8 md:w-8">
-            {sidebarExpanded ? (
-              <PanelLeft
-                className={ICON_STYLE.control}
-                strokeWidth={ICON_STROKE.control}
-                aria-hidden="true"
-              />
-            ) : (
-              <PanelRight
-                className={ICON_STYLE.control}
-                strokeWidth={ICON_STROKE.control}
-                aria-hidden="true"
-              />
-            )}
-          </Button>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1.5 p-2 pt-1.5">
@@ -250,6 +248,32 @@ export function AppShell({
           "relative min-h-screen min-w-0 overflow-x-clip transition-[padding-left] duration-200 ease-out",
           contentOffsetClass,
         )}>
+        {/* Floating toggle placed outside the sidebar so it doesn't sit inside the rail */}
+        <div className="pointer-events-auto absolute left-0 top-3 z-50 md:top-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            aria-pressed={sidebarExpanded}
+            onClick={() => setSidebarExpanded((current) => !current)}
+            title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            className="h-9 w-9 shrink-0 -translate-x-1/2 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
+            {sidebarExpanded ? (
+              <PanelLeft
+                className={ICON_STYLE.control}
+                strokeWidth={ICON_STROKE.control}
+                aria-hidden="true"
+              />
+            ) : (
+              <PanelRight
+                className={ICON_STYLE.control}
+                strokeWidth={ICON_STROKE.control}
+                aria-hidden="true"
+              />
+            )}
+          </Button>
+        </div>
         <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme }}>
           <main
             id="main-content"
