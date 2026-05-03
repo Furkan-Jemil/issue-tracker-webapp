@@ -6,6 +6,7 @@ type AppShellProfileContextValue = {
   profileName: string;
   profileEmail: string;
   initialTheme: "light" | "dark";
+  role?: string | null;
 };
 
 const AppShellProfileContext = createContext<AppShellProfileContextValue | null>(null);
