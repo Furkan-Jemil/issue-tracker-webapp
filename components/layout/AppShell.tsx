@@ -63,7 +63,8 @@ export function AppShell({
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const hideSidebar = pathname.startsWith("/login") || pathname.startsWith("/register");
-
+  initialTheme: "light" | "dark";
+  profileRole?: string | null;
   useEffect(() => {
     const stored = window.localStorage.getItem("app-shell-sidebar-expanded");
     if (window.innerWidth < 1024) {
@@ -108,7 +109,7 @@ export function AppShell({
               id="main-content"
               className="page-enter page-shell w-full min-w-0"
               style={{
-                paddingInline: "var(--space-page-x)",
+          <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme, role: profileRole }}>
                 paddingTop: "var(--space-main-top)",
                 paddingBottom: "var(--space-page-y)",
               }}>
