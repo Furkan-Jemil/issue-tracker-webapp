@@ -38,6 +38,7 @@ export default async function RootLayout({
   const session = await getAppSession();
   const profileName = session?.user?.name?.trim() || "Signed-in User";
   const profileEmail = session?.user?.email?.trim() || "No email";
+  const profileRole = session?.user?.role ?? null;
   const navItems = buildNavItems(session?.user?.role);
 
   return (
@@ -65,6 +66,7 @@ export default async function RootLayout({
           navItems={navItems}
           profileName={profileName}
           profileEmail={profileEmail}
+          profileRole={profileRole}
           initialTheme={initialTheme}>
           {children}
         </AppShell>
