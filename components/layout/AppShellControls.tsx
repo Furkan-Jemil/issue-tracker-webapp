@@ -100,9 +100,17 @@ export function AppShellControls({ className }: { className?: string }) {
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-[10px] font-semibold text-foreground">
                 {profileInitials}
               </span>
-              <span className="ml-2 max-w-[120px] overflow-hidden whitespace-nowrap opacity-100 transition-all duration-200">
-                {profileName}
-              </span>
+              <div className="ml-2 flex items-center gap-2">
+                <span className="max-w-[120px] overflow-hidden whitespace-nowrap opacity-100 transition-all duration-200">{profileName}</span>
+                {profile?.role ? (
+                  <span className={cn(
+                    "rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
+                    profile.role === "ADMIN" ? "bg-rose-100 text-rose-900 border border-rose-200" : profile.role === "TESTER" ? "bg-sky-100 text-sky-900 border border-sky-200" : "bg-zinc-100 text-zinc-900 border border-zinc-200",
+                  )}>
+                    {profile.role === "ADMIN" ? "Admin" : profile.role === "TESTER" ? "Tester" : "User"}
+                  </span>
+                ) : null}
+              </div>
               <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-60" aria-hidden="true" />
             </Button>
           </PopoverTrigger>
