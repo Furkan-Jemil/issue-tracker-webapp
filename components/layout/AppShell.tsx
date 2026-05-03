@@ -53,18 +53,19 @@ export function AppShell({
   profileName,
   profileEmail,
   initialTheme,
+  profileRole,
 }: {
   children: React.ReactNode;
   navItems: AppNavItem[];
   profileName: string;
   profileEmail: string;
   initialTheme: "light" | "dark";
+  profileRole?: string | null;
 }) {
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const hideSidebar = pathname.startsWith("/login") || pathname.startsWith("/register");
-  initialTheme: "light" | "dark";
-  profileRole?: string | null;
+
   useEffect(() => {
     const stored = window.localStorage.getItem("app-shell-sidebar-expanded");
     if (window.innerWidth < 1024) {
