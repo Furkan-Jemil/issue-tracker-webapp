@@ -8,6 +8,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ICON_STROKE } from "@/lib/uiTokens";
+import { cn } from "@/lib/utils";
 import { useAppShellProfile } from "@/components/layout/AppShellProfileContext";
 
 export function AppShellControls({ className }: { className?: string }) {
