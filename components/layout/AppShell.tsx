@@ -105,12 +105,12 @@ export function AppShell({
     return (
       <div className="min-h-screen overflow-x-clip bg-background">
         <div className="relative min-h-screen min-w-0 overflow-x-clip">
-          <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme }}>
+          <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme, role: profileRole }}>
             <main
               id="main-content"
               className="page-enter page-shell w-full min-w-0"
               style={{
-          <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme, role: profileRole }}>
+                paddingInline: "var(--space-page-x)",
                 paddingTop: "var(--space-main-top)",
                 paddingBottom: "var(--space-page-y)",
               }}>
@@ -280,7 +280,7 @@ export function AppShell({
           "relative min-h-screen min-w-0 overflow-x-clip transition-[padding-left] duration-200 ease-out",
           contentOffsetClass,
         )}>
-        <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme }}>
+        <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme, role: profileRole }}>
           <main
             id="main-content"
             className="page-enter page-shell w-full min-w-0"
