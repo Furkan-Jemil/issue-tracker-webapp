@@ -46,7 +46,7 @@ export function IssuesToolbar({
   onResetHref: string;
 }) {
   return (
-    <div className="grid gap-2 bg-muted/20 py-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+    <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
       <SearchInput
         placeholder="Search issues (type at least 2 letters)"
         className="w-full max-w-sm"
