@@ -53,14 +53,12 @@ export function AppShell({
   profileName,
   profileEmail,
   initialTheme,
-  profileRole,
 }: {
   children: React.ReactNode;
   navItems: AppNavItem[];
   profileName: string;
   profileEmail: string;
   initialTheme: "light" | "dark";
-  profileRole?: string | null;
 }) {
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -105,7 +103,7 @@ export function AppShell({
     return (
       <div className="min-h-screen overflow-x-clip bg-background">
         <div className="relative min-h-screen min-w-0 overflow-x-clip">
-          <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme, role: profileRole }}>
+          <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme }}>
             <main
               id="main-content"
               className="page-enter page-shell w-full min-w-0"
@@ -280,7 +278,7 @@ export function AppShell({
           "relative min-h-screen min-w-0 overflow-x-clip transition-[padding-left] duration-200 ease-out",
           contentOffsetClass,
         )}>
-        <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme, role: profileRole }}>
+        <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme }}>
           <main
             id="main-content"
             className="page-enter page-shell w-full min-w-0"
