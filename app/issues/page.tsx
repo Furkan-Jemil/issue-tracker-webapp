@@ -313,6 +313,9 @@ export default async function IssuesListPage({
                   <TableHead scope="col" className={headPaddingClass}>
                     Status
                   </TableHead>
+                  {showActionsColumn ? (
+                    <TableHead scope="col" className={cn(headPaddingClass, "text-right")}>Action</TableHead>
+                  ) : null}
                   {isAdmin && showDetails && (
                     <TableHead scope="col" className={headPaddingClass}>
                       Assignee
@@ -333,9 +336,6 @@ export default async function IssuesListPage({
                       Created
                     </TableHead>
                   )}
-                  {showActionsColumn ? (
-                    <TableHead scope="col" className={cn(headPaddingClass, "text-right")}>Action</TableHead>
-                  ) : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -373,6 +373,21 @@ export default async function IssuesListPage({
                           <IssueSemanticBadge kind="status" value={issue.status} className="px-2 py-0.5 text-[9px]" />
                         </div>
                       </TableCell>
+                      {showActionsColumn ? (
+                        <TableCell className={cn(cellPaddingClass, "text-right")}>
+                          {canShowActions ? (
+                            <div className="flex justify-end">
+                              <StatusQuickActions
+                                issueId={issue.id}
+                                currentStatus={issue.status}
+                                editHref={`/issues/${issue.id}#edit-section`}
+                                allowStatusChange={canQuickStatus}
+                                allowEdit={canEditThisIssue}
+                              />
+                            </div>
+                          ) : null}
+                        </TableCell>
+                      ) : null}
                       {isAdmin && showDetails && (
                         <TableCell className={cellPaddingClass}>
                           {issue.assigneeId ? (
@@ -403,21 +418,6 @@ export default async function IssuesListPage({
                           {formatDate(issue.createdAt)}
                         </TableCell>
                       )}
-                      {showActionsColumn ? (
-                        <TableCell className={cn(cellPaddingClass, "text-right")}>
-                          {canShowActions ? (
-                            <div className="flex justify-end">
-                              <StatusQuickActions
-                                issueId={issue.id}
-                                currentStatus={issue.status}
-                                editHref={`/issues/${issue.id}#edit-section`}
-                                allowStatusChange={canQuickStatus}
-                                allowEdit={canEditThisIssue}
-                              />
-                            </div>
-                          ) : null}
-                        </TableCell>
-                      ) : null}
                     </TableRow>
                     );
                   })
