@@ -52,12 +52,14 @@ export function AppShell({
   navItems,
   profileName,
   profileEmail,
+  profileRole,
   initialTheme,
 }: {
   children: React.ReactNode;
   navItems: AppNavItem[];
   profileName: string;
   profileEmail: string;
+  profileRole: string | null;
   initialTheme: "light" | "dark";
 }) {
   const pathname = usePathname();
@@ -103,7 +105,7 @@ export function AppShell({
     return (
       <div className="min-h-screen overflow-x-clip bg-background">
         <div className="relative min-h-screen min-w-0 overflow-x-clip">
-          <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme }}>
+          <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme, role: profileRole }}>
             <main
               id="main-content"
               className="page-enter page-shell w-full min-w-0"
@@ -278,7 +280,7 @@ export function AppShell({
           "relative min-h-screen min-w-0 overflow-x-clip transition-[padding-left] duration-200 ease-out",
           contentOffsetClass,
         )}>
-        <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme }}>
+        <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme, role: profileRole }}>
           <main
             id="main-content"
             className="page-enter page-shell w-full min-w-0"

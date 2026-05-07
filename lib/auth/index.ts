@@ -37,7 +37,8 @@ export const auth = betterAuth({
     enabled: true,
   },
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXTAUTH_URL,
-  secret: process.env.AUTH_SECRET,
+  secret:
+    process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   trustedOrigins,
   plugins: [...(dashPlugin ? [dashPlugin] : []), nextCookies()],
 });

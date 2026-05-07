@@ -40,6 +40,9 @@ playwright-report/
 /PHASE13_CLOSEOUT.md
 /PHASE14_CLOSEOUT.md
 /PHASE7_CLOSEOUT.md
+/DOCKER_DESKTOP_DEPLOYMENT_GUIDE.md
+/Dockerfile
+/nano Dockerfile
 
 # env files (can opt-in for committing if needed)
 .env*
