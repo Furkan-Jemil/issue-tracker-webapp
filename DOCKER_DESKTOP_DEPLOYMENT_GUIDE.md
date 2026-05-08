@@ -93,15 +93,13 @@ So you will need a database connection string and auth secrets.
 
 ## 6. Important Notes For This Project
 
-This repository does not currently include a Dockerfile or Docker Compose file.
+This repository now includes a Dockerfile, Docker Compose file, and `.dockerignore`.
 
-That means Docker cannot build the app yet until you add a container definition.
-
-The steps below show both:
+The steps below show:
 
 - how to install Docker Desktop on Linux Mint Cinnamon
-- how to create a Dockerfile for this app
 - how to build and run the app in Docker Desktop
+- how to run the app with a local PostgreSQL container
 
 ## 7. Step-By-Step Guide On Linux Mint Cinnamon
 
@@ -165,64 +163,7 @@ docker compose version
 
 If those commands work, Docker is installed correctly.
 
-### Step 6: Create A Dockerfile For This App
-
-Because this repo does not have one yet, create a file named `Dockerfile` in the project root with this content:
-
-```dockerfile
-FROM node:22-alpine AS base
-WORKDIR /app
-RUN apk add --no-cache openssl libc6-compat
-
-FROM base AS deps
-COPY package.json package-lock.json ./
-RUN npm ci
-
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN npx prisma generate
-RUN npm run build
-
-FROM base AS runner
-ENV NODE_ENV=production
-WORKDIR /app
-
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/package-lock.json ./package-lock.json
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/next.config.ts ./next.config.ts
-COPY --from=builder /app/postcss.config.js ./postcss.config.js
-COPY --from=builder /app/tailwind.config.js ./tailwind.config.js
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
-COPY --from=builder /app/styles ./styles
-COPY --from=builder /app/lib ./lib
-COPY --from=builder /app/components ./components
-COPY --from=builder /app/app ./app
-
-EXPOSE 3000
-CMD ["npm", "run", "start"]
-```
-
-### Step 7: Create A `.dockerignore`
-
-Create a `.dockerignore` file in the project root:
-
-```dockerignore
-node_modules
-.next
-.git
-npm-debug.log
-Dockerfile
-.dockerignore
-.env
-```
-
-### Step 8: Prepare Environment Variables
+### Step 6: Prepare Environment Variables
 
 Create a `.env` file with the values your app needs.
 
@@ -242,7 +183,7 @@ Important:
 - `BETTER_AUTH_SECRET` must be a strong secret.
 - `DATABASE_URL` must point to a reachable PostgreSQL database.
 
-### Step 9: Build The Docker Image
+### Step 7: Build The Docker Image
 
 From the project root, run:
 
@@ -250,13 +191,37 @@ From the project root, run:
 docker build -t issue-tracker-webapp .
 ```
 
-### Step 10: Run The Container
+### Step 8: Run The Container
 
 Start the app:
 
 ```bash
 docker run --rm -p 3000:3000 --env-file .env issue-tracker-webapp
 ```
+
+### Step 9: Run App And Database Together With Docker Compose
+
+If you want the app and PostgreSQL together on your machine, use:
+
+```bash
+docker compose up --build
+```
+
+This starts:
+
+- `db` on port `5432`
+- `web` on port `3000`
+
+### Step 10: Create A Local `.env`
+
+Copy `.env.example` to `.env` and set your secrets before deploying.
+
+Use a strong random value for `BETTER_AUTH_SECRET` and `AUTH_SECRET`.
+
+Important:
+
+- If you use the compose file, the app uses the local PostgreSQL container.
+- If you run the app against Neon or another remote database, update `DATABASE_URL` accordingly.
 
 Then open:
 
