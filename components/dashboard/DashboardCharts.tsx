@@ -989,54 +989,7 @@ export default function DashboardCharts() {
         ) : null}
       </section>
 
-      {hasRecentIssues ? (
-      <Card className="hidden border-border/70 bg-card/95 2xl:block">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between text-base font-semibold text-foreground/90">
-            <span>Recent Issues</span>
-            <Link
-              href="/issues"
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
-              View all
-              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            {data.recentIssues?.slice(0, 4).map((issue) => (
-              <li key={issue.id}>
-                <Link
-                  href={`/issues/${issue.id}`}
-                  className="block rounded-lg border border-border/70 bg-background/70 p-3 transition hover:border-border hover:bg-background">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-semibold text-primary hover:underline">
-                      {issue.title}
-                    </span>
-                    <Badge variant="outline">{issue.status}</Badge>
-                  </div>
-                  <div className="mt-1 text-sm text-muted-foreground">
-                    {issue.creator?.name ||
-                      issue.creator?.email ||
-                      "Unknown reporter"}
-                  </div>
-                  <div className="mt-2">
-                    <Badge variant="secondary">
-                      Priority: {issue.priority}
-                    </Badge>
-                  </div>
-                </Link>
-              </li>
-            ))}
-            {(!data.recentIssues || data.recentIssues.length === 0) && (
-              <li className="text-sm text-muted-foreground">
-                No recent issues found.
-              </li>
-            )}
-          </ul>
-        </CardContent>
-      </Card>
-      ) : null}
+      {/* Recent Issues removed per request - charts and graphs remain */}
     </div>
   );
 }
