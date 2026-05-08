@@ -123,19 +123,19 @@ export function IssueSemanticBadge({
 }) {
   const meta = getMeta(kind, value);
   const Icon = meta.icon;
-  const showIcon = kind === "status" || kind === "type";
 
   return (
     <Badge
       variant="outline"
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium whitespace-nowrap",
+        "inline-flex items-center gap-1.5 rounded-full border-0 px-2.5 py-1 text-[12px] font-medium whitespace-nowrap shadow-sm",
         meta.className,
+        "ring-1 ring-inset ring-black/5 dark:ring-white/10",
         className,
       )}
     >
-      {showIcon ? <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden={true} /> : null}
       {meta.label}
+      <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden={true} />
     </Badge>
   );
 }
