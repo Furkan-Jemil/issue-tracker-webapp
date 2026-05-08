@@ -34,10 +34,11 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "prisma generate && next build",
     "db:push": "prisma db push",
-    "start": "next start",
+    "start": "NODE_OPTIONS=--max-old-space-size=512 next start",
     "create-admin": "tsx scripts/create-admin-user.ts"
   },
   "engines": {
