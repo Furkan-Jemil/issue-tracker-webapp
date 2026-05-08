@@ -57,3 +57,4 @@ next-env.d.ts
 /tmp/
 /jira-clickup-uiux-analysis.md
 scripts/seed-test-users.ts
+scripts/seed-test-issues.ts
