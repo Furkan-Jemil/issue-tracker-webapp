@@ -293,7 +293,7 @@ export default function AdminUsersPage() {
             <tfoot>
               <TableRow className="bg-muted/30 hover:bg-muted/30">
                 <TableCell colSpan={5} className="py-1.5 text-xs text-muted-foreground">
-                  <div className="flex items-center justify-between px-2">
+                  <div className="flex items-center justify-between px-[var(--table-cell-px)]">
                     <span>Page {page} / {totalPages}</span>
                     <span className="text-[11px]">{total} users</span>
                   </div>
@@ -303,9 +303,6 @@ export default function AdminUsersPage() {
           </Table>
 
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-sm text-muted-foreground">
-              Page {page} / {totalPages}
-            </span>
             <span className="text-xs text-muted-foreground">
               Total {totalRecords} | Filtered {total}
             </span>

@@ -445,7 +445,7 @@ export default async function IssuesListPage({
               <tfoot>
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
                   <TableCell colSpan={tableColumnCount} className="py-1.5 text-xs text-muted-foreground">
-                    <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center justify-between px-[var(--table-cell-px)]">
                       <span>Page {currentPage} / {totalPages}</span>
                       <span className="text-[11px]">{filteredTotal} filtered issues</span>
                     </div>
@@ -455,9 +455,6 @@ export default async function IssuesListPage({
             </Table>
           )}
           <div className="flex flex-col gap-2 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-            <p>
-              Page {currentPage} / {totalPages}
-            </p>
             <p className="text-xs text-muted-foreground">
               Total {totalVisible} | Filtered {filteredTotal}
             </p>

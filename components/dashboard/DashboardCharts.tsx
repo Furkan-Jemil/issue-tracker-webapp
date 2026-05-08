@@ -564,21 +564,21 @@ export default function DashboardCharts() {
             },
           ].map(({ href, label, value, icon: Icon, tone }) => (
             <Link key={label} href={href}>
-              <Card className="group h-full cursor-pointer border-0 bg-white dark:bg-card shadow-none transition-colors duration-150 hover:bg-accent/20 focus-within:ring-2 focus-within:ring-ring/50">
+              <Card className="group h-full cursor-pointer border border-white/10 bg-black text-white shadow-none transition-colors duration-150 hover:bg-black/90 focus-within:ring-2 focus-within:ring-ring/50">
                 <CardContent className="flex items-center justify-between gap-2.5 p-2.5">
                   <div>
-                    <p className="text-[12px] font-medium text-muted-foreground">
+                    <p className="text-[12px] font-medium text-white/70">
                       {label}
                     </p>
                     <p
                       className={`text-xl font-semibold leading-tight ${tone}`}>
                       {value}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground transition-colors group-hover:text-foreground">
+                    <p className="mt-0.5 text-[11px] text-white/60 transition-colors group-hover:text-white">
                       Open list
                     </p>
                   </div>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground/80">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md text-white/80">
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </div>
                 </CardContent>
@@ -695,6 +695,7 @@ export default function DashboardCharts() {
                           setDraftStatusFilter("");
                           setDraftPriorityFilter("");
                           setDraftSeverityFilter("");
+                          setFiltersOpen(false);
                         }}>
                         Clear
                       </Button>
