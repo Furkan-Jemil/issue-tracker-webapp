@@ -564,7 +564,7 @@ export default function DashboardCharts() {
             },
           ].map(({ href, label, value, icon: Icon, tone }) => (
             <Link key={label} href={href}>
-              <Card className="group h-full cursor-pointer border-0 bg-card/70 shadow-none transition-colors duration-150 hover:bg-accent/20 focus-within:ring-2 focus-within:ring-ring/50">
+              <Card className="group h-full cursor-pointer border-0 bg-white dark:bg-card shadow-none transition-colors duration-150 hover:bg-accent/20 focus-within:ring-2 focus-within:ring-ring/50">
                 <CardContent className="flex items-center justify-between gap-2.5 p-2.5">
                   <div>
                     <p className="text-[12px] font-medium text-muted-foreground">

@@ -290,6 +290,16 @@ export default function AdminUsersPage() {
                 </TableRow>
               )}
             </TableBody>
+            <tfoot>
+              <TableRow className="bg-muted/30 hover:bg-muted/30">
+                <TableCell colSpan={5} className="py-1.5 text-xs text-muted-foreground">
+                  <div className="flex items-center justify-between px-2">
+                    <span>Page {page} / {totalPages}</span>
+                    <span className="text-[11px]">{total} users</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </tfoot>
           </Table>
 
           <div className="flex flex-wrap items-center justify-between gap-3">

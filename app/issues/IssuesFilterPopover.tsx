@@ -52,6 +52,7 @@ export function IssuesFilterPopover({
   onResetHref: string;
 }) {
   const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
   const [selectedView, setSelectedView] = useState(view);
   const [selectedStatus, setSelectedStatus] = useState(status);
   const [selectedPriority, setSelectedPriority] = useState(priority);
@@ -130,11 +131,12 @@ export function IssuesFilterPopover({
     if (selectedSeverity) nextParams.set("severity", selectedSeverity);
     if (selectedReporter) nextParams.set("reporter", selectedReporter);
     if (selectedAssignee) nextParams.set("assignee", selectedAssignee);
+    setIsOpen(false);
     router.push(`${onSubmitHref}?${nextParams.toString()}`);
   }
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -277,8 +279,16 @@ export function IssuesFilterPopover({
 
           <div className="flex items-center justify-end gap-2 border-t border-border/60 pt-2">
             {hasActiveFilters ? (
-              <Button asChild variant="outline" size="dense" className="rounded-md">
-                <Link href={onResetHref}>Reset</Link>
+              <Button
+                variant="outline"
+                size="dense"
+                className="rounded-md"
+                onClick={() => {
+                  setIsOpen(false);
+                  router.push(onResetHref);
+                }}
+              >
+                Clear
               </Button>
             ) : null}
             <Button type="submit" size="dense" className="rounded-md">
