@@ -284,6 +284,13 @@ export function IssuesFilterPopover({
                 size="dense"
                 className="rounded-md"
                 onClick={() => {
+                  setSelectedStatus("");
+                  setSelectedPriority("");
+                  setSelectedSeverity("");
+                  setSelectedReporter("");
+                  setSelectedAssignee("");
+                  setSelectedCreatedFrom("");
+                  setSelectedCreatedTo("");
                   setIsOpen(false);
                   router.push(onResetHref);
                 }}
