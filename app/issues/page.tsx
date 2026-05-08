@@ -353,24 +353,24 @@ export default async function IssuesListPage({
                           {issue.title}
                         </Link>
                         <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground lg:hidden">
-                          <IssueSemanticBadge kind="status" value={issue.status} className="px-2 py-0.5 text-[9px]" />
-                          <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2 py-0.5 text-[9px]" />
-                          <IssueSemanticBadge kind="type" value={issue.type} className="px-2 py-0.5 text-[9px]" />
-                          <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2 py-0.5 text-[9px]" />
+                          <IssueSemanticBadge kind="status" value={issue.status} className="px-2.5 py-1 text-[11px]" />
+                          <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2.5 py-1 text-[11px]" />
+                          <IssueSemanticBadge kind="type" value={issue.type} className="px-2.5 py-1 text-[11px]" />
+                          <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2.5 py-1 text-[11px]" />
                         </div>
                       </TableCell>
                       <TableCell className={cn(cellPaddingClass, "hidden lg:table-cell")}>
-                        <IssueSemanticBadge kind="type" value={issue.type} className="px-2 py-0.5 text-[9px]" />
+                        <IssueSemanticBadge kind="type" value={issue.type} className="px-2.5 py-1 text-[11px]" />
                       </TableCell>
                       <TableCell className={cellPaddingClass}>
-                        <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2 py-0.5 text-[9px]" />
+                        <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2.5 py-1 text-[11px]" />
                       </TableCell>
                       <TableCell className={cn(cellPaddingClass, "hidden xl:table-cell")}>
-                        <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2 py-0.5 text-[9px]" />
+                        <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2.5 py-1 text-[11px]" />
                       </TableCell>
                       <TableCell className={cellPaddingClass}>
                         <div className="flex flex-wrap items-center gap-1">
-                          <IssueSemanticBadge kind="status" value={issue.status} className="px-2 py-0.5 text-[9px]" />
+                          <IssueSemanticBadge kind="status" value={issue.status} className="px-2.5 py-1 text-[11px]" />
                         </div>
                       </TableCell>
                       {showActionsColumn ? (
