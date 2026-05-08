@@ -445,9 +445,9 @@ export default async function IssuesListPage({
               <tfoot>
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
                   <TableCell colSpan={tableColumnCount} className="py-1.5 text-xs text-muted-foreground">
-                    <div className=\"flex items-center justify-between px-2\">
+                    <div className="flex items-center justify-between px-2">
                       <span>Page {currentPage} / {totalPages}</span>
-                      <span className=\"text-[11px]\">{filteredTotal} filtered issues</span>
+                      <span className="text-[11px]">{filteredTotal} filtered issues</span>
                     </div>
                   </TableCell>
                 </TableRow>
