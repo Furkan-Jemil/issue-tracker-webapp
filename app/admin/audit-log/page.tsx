@@ -157,14 +157,13 @@ export default async function AdminAuditLogPage({
                 <TableCell colSpan={5} className="py-1.5 text-xs text-muted-foreground">
                   <div className="flex items-center justify-between px-[var(--table-cell-px)]">
                     <span>Page 1 / 1</span>
-                    <span className="text-[11px]">{logs.length} of {totalRecords} records</span>
+                    <span className="text-[11px]">Total {totalRecords} | Filtered {logs.length}</span>
                   </div>
                 </TableCell>
               </TableRow>
             </tfoot>
           </Table>
         </div>
-        <p className="text-xs text-muted-foreground">Total {totalRecords} | Filtered {logs.length}</p>
       </section>
     </div>
   );
