@@ -282,7 +282,7 @@ export default function NotificationsPage() {
               <TableCell colSpan={4} className="py-1.5 text-xs text-muted-foreground">
                 <div className="flex items-center justify-between px-[var(--table-cell-px)]">
                   <span>Page 1 / 1</span>
-                  <span className="text-[11px]">{notifications.length} notifications</span>
+                  <span className="text-[11px]">Total {notifications.length} | Filtered {notifications.length}</span>
                 </div>
               </TableCell>
             </TableRow>
