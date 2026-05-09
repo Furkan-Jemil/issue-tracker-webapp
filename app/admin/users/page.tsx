@@ -295,7 +295,7 @@ export default function AdminUsersPage() {
                 <TableCell colSpan={5} className="py-1.5 text-xs text-muted-foreground">
                   <div className="flex items-center justify-between px-[var(--table-cell-px)]">
                     <span>Page {page} / {totalPages}</span>
-                    <span className="text-[11px]">{total} users</span>
+                    <span className="text-[11px]">Total {totalRecords} | Filtered {total}</span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -303,9 +303,7 @@ export default function AdminUsersPage() {
           </Table>
 
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-xs text-muted-foreground">
-              Total {totalRecords} | Filtered {total}
-            </span>
+            <div />
             <div className="flex gap-2">
               <Button
                 type="button"
