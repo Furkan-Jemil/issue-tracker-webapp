@@ -446,33 +446,35 @@ export default async function IssuesListPage({
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
                   <TableCell colSpan={tableColumnCount} className="py-1.5 text-xs text-muted-foreground">
                     <div className="flex items-center justify-between px-[var(--table-cell-px)]">
-                      <span>Page {currentPage} / {totalPages}</span>
                       <span className="text-[11px]">Total {totalVisible} | Filtered {filteredTotal}</span>
+                      <span>Page {currentPage} / {totalPages}</span>
                     </div>
                   </TableCell>
                 </TableRow>
               </tfoot>
             </Table>
           )}
-          <div className="flex flex-col gap-2 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-            <div />
-            <div className="flex gap-2">
-              <Button asChild variant="outline" size="sm" disabled={!hasPrev}>
-                <Link
-                  href={hasPrev ? buildIssuesHref(currentPage - 1) : "#"}
-                  aria-disabled={!hasPrev}>
-                  Previous
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="sm" disabled={!hasNext}>
-                <Link
-                  href={hasNext ? buildIssuesHref(currentPage + 1) : "#"}
-                  aria-disabled={!hasNext}>
-                  Next
-                </Link>
-              </Button>
+          {(hasPrev || hasNext) && (
+            <div className="flex flex-col gap-2 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+              <div />
+              <div className="flex gap-2">
+                <Button asChild variant="outline" size="sm" disabled={!hasPrev}>
+                  <Link
+                    href={hasPrev ? buildIssuesHref(currentPage - 1) : "#"}
+                    aria-disabled={!hasPrev}>
+                    Previous
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="sm" disabled={!hasNext}>
+                  <Link
+                    href={hasNext ? buildIssuesHref(currentPage + 1) : "#"}
+                    aria-disabled={!hasNext}>
+                    Next
+                  </Link>
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
       </section>
     </div>
   );
