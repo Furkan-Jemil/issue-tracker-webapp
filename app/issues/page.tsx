@@ -447,7 +447,7 @@ export default async function IssuesListPage({
                   <TableCell colSpan={tableColumnCount} className="py-1.5 text-xs text-muted-foreground">
                     <div className="flex items-center justify-between px-[var(--table-cell-px)]">
                       <span>Page {currentPage} / {totalPages}</span>
-                      <span className="text-[11px]">{filteredTotal} filtered issues</span>
+                      <span className="text-[11px]">Total {totalVisible} | Filtered {filteredTotal}</span>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -455,9 +455,7 @@ export default async function IssuesListPage({
             </Table>
           )}
           <div className="flex flex-col gap-2 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-            <p className="text-xs text-muted-foreground">
-              Total {totalVisible} | Filtered {filteredTotal}
-            </p>
+            <div />
             <div className="flex gap-2">
               <Button asChild variant="outline" size="sm" disabled={!hasPrev}>
                 <Link
