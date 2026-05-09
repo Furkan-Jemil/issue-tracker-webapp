@@ -47,7 +47,7 @@ export default function AdminUsersPage() {
     previousRole: string;
   } | null>(null);
 
-  const pageSize = 20;
+  const pageSize = 15;
 
   function countChars(value: string) {
     return value.trim().length;
