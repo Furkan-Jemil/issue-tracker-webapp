@@ -281,8 +281,8 @@ export default function NotificationsPage() {
             <TableRow className="bg-muted/30 hover:bg-muted/30">
               <TableCell colSpan={4} className="py-1.5 text-xs text-muted-foreground">
                 <div className="flex items-center justify-between px-[var(--table-cell-px)]">
-                  <span>Page 1 / 1</span>
                   <span className="text-[11px]">Total {notifications.length} | Filtered {notifications.length}</span>
+                  <span>Page 1 / 1</span>
                 </div>
               </TableCell>
             </TableRow>
