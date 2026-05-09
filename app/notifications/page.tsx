@@ -31,6 +31,7 @@ type NotificationItem = {
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const [markAllPending, setMarkAllPending] = useState(false);
   const [inlineNotice, setInlineNotice] = useState<{
     type: "success" | "error";
@@ -41,13 +42,15 @@ export default function NotificationsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pendingReadTimersRef = useRef<Map<string, number>>(new Map());
+  const pageSize = 15;
 
   async function loadNotifications() {
     try {
       setError("");
-      const res = await fetch("/api/notifications?limit=50");
+      const res = await fetch("/api/notifications?limit=150");
       const data = await res.json();
       setNotifications((data.notifications || []) as NotificationItem[]);
+      setPage(1);
     } catch {
       setError("Failed to load notifications.");
       setNotifications([]);
@@ -166,6 +169,12 @@ export default function NotificationsPage() {
           return haystack.includes(query.toLowerCase());
         })
       : visibleNotifications;
+  
+  const totalPages = Math.ceil(filteredNotifications.length / pageSize);
+  const paginatedNotifications = filteredNotifications.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
 
   return (
     <div className="page-stack">
@@ -241,7 +250,7 @@ export default function NotificationsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredNotifications.map((n) => (
+            {paginatedNotifications.map((n) => (
               <TableRow key={n.id}>
                 <TableCell>
                   <Link
@@ -281,13 +290,34 @@ export default function NotificationsPage() {
             <TableRow className="bg-muted/30 hover:bg-muted/30">
               <TableCell colSpan={4} className="py-1.5 text-xs text-muted-foreground">
                 <div className="flex items-center justify-between px-[var(--table-cell-px)]">
-                  <span className="text-[11px]">Total {notifications.length} | Filtered {notifications.length}</span>
-                  <span>Page 1 / 1</span>
+                  <span className="text-[11px]">Total {notifications.length} | Filtered {filteredNotifications.length}</span>
+                  <span>Page {page} / {totalPages}</span>
                 </div>
               </TableCell>
             </TableRow>
           </tfoot>
         </Table>
+      )}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between gap-3">
+          <div />
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page <= 1}>
+              Previous
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              disabled={page >= totalPages}>
+              Next
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
