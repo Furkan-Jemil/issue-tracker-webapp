@@ -692,6 +692,9 @@ export default function DashboardCharts() {
                         className="h-7 px-2 text-xs"
                         disabled={!hasDraftFilters}
                         onClick={() => {
+                          setStatusFilter("");
+                          setPriorityFilter("");
+                          setSeverityFilter("");
                           setDraftStatusFilter("");
                           setDraftPriorityFilter("");
                           setDraftSeverityFilter("");
