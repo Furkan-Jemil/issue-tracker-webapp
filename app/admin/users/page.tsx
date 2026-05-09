@@ -294,35 +294,37 @@ export default function AdminUsersPage() {
               <TableRow className="bg-muted/30 hover:bg-muted/30">
                 <TableCell colSpan={5} className="py-1.5 text-xs text-muted-foreground">
                   <div className="flex items-center justify-between px-[var(--table-cell-px)]">
-                    <span>Page {page} / {totalPages}</span>
                     <span className="text-[11px]">Total {totalRecords} | Filtered {total}</span>
+                    <span>Page {page} / {totalPages}</span>
                   </div>
                 </TableCell>
               </TableRow>
             </tfoot>
           </Table>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div />
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
-                disabled={page <= 1}>
-                Previous
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() =>
-                  setPage((current) => Math.min(totalPages, current + 1))
-                }
-                disabled={page >= totalPages}>
-                Next
-              </Button>
+          {totalPages > 1 && (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div />
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  disabled={page <= 1}>
+                  Previous
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    setPage((current) => Math.min(totalPages, current + 1))
+                  }
+                  disabled={page >= totalPages}>
+                  Next
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
     </div>
