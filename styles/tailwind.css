@@ -56,8 +56,8 @@
     --card-foreground: 210 12% 94%;
     --popover: 225 16% 11%;
     --popover-foreground: 210 12% 94%;
-    --primary: 210 92% 62%;
-    --primary-foreground: 220 50% 6%;
+    --primary: 87 67% 47%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 225 12% 17%;
     --secondary-foreground: 210 12% 94%;
     --muted: 225 10% 17%;
@@ -68,8 +68,8 @@
     --destructive-foreground: 0 0% 100%;
     --border: 219 14% 25%;
     --input: 219 14% 25%;
-    --ring: 210 92% 62%;
-    --chart-1: 210 92% 62%;
+    --ring: 87 67% 47%;
+    --chart-1: 87 67% 47%;
     --chart-2: 42 95% 62%;
     --chart-3: 142 48% 53%;
     --chart-4: 352 82% 64%;
