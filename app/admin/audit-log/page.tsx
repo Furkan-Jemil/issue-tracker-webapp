@@ -40,7 +40,7 @@ function formatDate(d: Date | string): string {
 export default async function AdminAuditLogPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ event?: string; q?: string }>;
+  searchParams?: Promise<{ event?: string; q?: string; page?: string }>;
 }) {
   const session = await getAppSession();
   if (!session?.user || session.user.role !== "ADMIN") {
@@ -60,6 +60,8 @@ export default async function AdminAuditLogPage({
       : undefined;
   const selectedEvent = eventFilter ?? "ALL";
   const query = (params?.q || "").trim();
+  const pageSize = 15;
+  const currentPage = Math.max(1, parseInt(params?.page || "1", 10));
   const where = {
     ...(eventFilter ? { eventType: eventFilter } : {}),
     ...(query
@@ -78,11 +80,13 @@ export default async function AdminAuditLogPage({
     prisma.issueHistory.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      take: 100,
+      take: pageSize,
+      skip: (currentPage - 1) * pageSize,
       include: auditLogInclude,
     }),
     prisma.issueHistory.count(),
   ]);
+  const totalPages = Math.ceil(totalRecords / pageSize);
   function eventVariant(eventType: string) {
     if (eventType === "CREATED") return "secondary" as const;
     if (eventType === "STATUS_CHANGED") return "warning" as const;
@@ -157,13 +161,44 @@ export default async function AdminAuditLogPage({
                 <TableCell colSpan={5} className="py-1.5 text-xs text-muted-foreground">
                   <div className="flex items-center justify-between px-[var(--table-cell-px)]">
                     <span className="text-[11px]">Total {totalRecords} | Filtered {logs.length}</span>
-                    <span>Page 1 / 1</span>
+                    <span>Page {currentPage} / {totalPages}</span>
                   </div>
                 </TableCell>
               </TableRow>
             </tfoot>
           </Table>
         </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-3">
+            <div />
+            <div className="flex gap-2">
+              <Button
+                asChild
+                variant="outline"
+                disabled={currentPage <= 1}
+              >
+                <Link
+                  href={currentPage > 1 ? `?page=${currentPage - 1}${eventFilter ? `&event=${eventFilter}` : ""}${query ? `&q=${query}` : ""}` : "#"}
+                  aria-disabled={currentPage <= 1}
+                >
+                  Previous
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                disabled={currentPage >= totalPages}
+              >
+                <Link
+                  href={currentPage < totalPages ? `?page=${currentPage + 1}${eventFilter ? `&event=${eventFilter}` : ""}${query ? `&q=${query}` : ""}` : "#"}
+                  aria-disabled={currentPage >= totalPages}
+                >
+                  Next
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );
