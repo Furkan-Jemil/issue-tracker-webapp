@@ -180,8 +180,14 @@ export default async function IssuesListPage({
   const tableColumnCount =
     5 + (showActionsColumn ? 1 : 0) + (showDetails ? 2 : 0) + (isAdmin && showDetails ? 2 : 0);
   const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${filteredTotal} filtered issues), ${view} view`;
-  const cellPaddingClass = showDetails ? "py-1.5" : "py-1";
+  const cellPaddingClass = showDetails ? "py-2.5" : "py-1";
   const headPaddingClass = showDetails ? "h-8 py-0.5" : "h-8 py-0.5";
+  const detailHintByKind = {
+    type: "What kind of work it is",
+    priority: "How quickly it needs attention",
+    severity: "How much impact it has",
+    status: "Where it is in the workflow",
+  } as const;
   const boardIssues = issues.map((issue) => ({
     ...issue,
     status: issue.status as "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED",
@@ -360,17 +366,45 @@ export default async function IssuesListPage({
                         </div>
                       </TableCell>
                       <TableCell className={cn(cellPaddingClass, "hidden lg:table-cell")}>
-                        <IssueSemanticBadge kind="type" value={issue.type} className="px-2.5 py-1 text-[11px]" />
+                        <div className="space-y-1">
+                          <IssueSemanticBadge kind="type" value={issue.type} className="px-2.5 py-1 text-[11px]" />
+                          {showDetails ? (
+                            <p className="max-w-[11rem] text-[11px] leading-snug text-muted-foreground">
+                              {detailHintByKind.type}
+                            </p>
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell className={cellPaddingClass}>
-                        <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2.5 py-1 text-[11px]" />
+                        <div className="space-y-1">
+                          <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2.5 py-1 text-[11px]" />
+                          {showDetails ? (
+                            <p className="max-w-[11rem] text-[11px] leading-snug text-muted-foreground">
+                              {detailHintByKind.priority}
+                            </p>
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell className={cn(cellPaddingClass, "hidden xl:table-cell")}>
-                        <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2.5 py-1 text-[11px]" />
+                        <div className="space-y-1">
+                          <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2.5 py-1 text-[11px]" />
+                          {showDetails ? (
+                            <p className="max-w-[11rem] text-[11px] leading-snug text-muted-foreground">
+                              {detailHintByKind.severity}
+                            </p>
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell className={cellPaddingClass}>
-                        <div className="flex flex-wrap items-center gap-1">
-                          <IssueSemanticBadge kind="status" value={issue.status} className="px-2.5 py-1 text-[11px]" />
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-1">
+                            <IssueSemanticBadge kind="status" value={issue.status} className="px-2.5 py-1 text-[11px]" />
+                          </div>
+                          {showDetails ? (
+                            <p className="max-w-[11rem] text-[11px] leading-snug text-muted-foreground">
+                              {detailHintByKind.status}
+                            </p>
+                          ) : null}
                         </div>
                       </TableCell>
                       {showActionsColumn ? (
