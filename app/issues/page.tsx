@@ -31,8 +31,8 @@ import {
 import { IssuesToolbar } from "@/app/issues/IssuesToolbar";
 import { cn } from "@/lib/utils";
 
-const PAGE_SIZE = 20;
-const BOARD_PAGE_SIZE = 40;
+import { DEFAULT_PAGE_SIZE, ISSUES_PAGE_SIZE } from "@/lib/constants";
+import { getPaginationMeta, getTotalPages } from "@/lib/pagination";
 
 function formatDate(d: Date | string): string {
   const date = new Date(d);
@@ -76,7 +76,7 @@ export default async function IssuesListPage({
         : "compact";
   const isBoard = view === "board";
   const currentPage = Math.max(1, Number(params?.page || "1") || 1);
-  const pageSize = isBoard ? BOARD_PAGE_SIZE : PAGE_SIZE;
+  const pageSize = isBoard ? ISSUES_PAGE_SIZE : DEFAULT_PAGE_SIZE;
   const showDetails = view === "details";
   const query = params?.q?.trim() || "";
   const status = isAdmin ? parseIssueStatus(params?.status) || "" : "";
@@ -159,10 +159,7 @@ export default async function IssuesListPage({
   const reporterById = new Map(
     reporters.map((user) => [user.id, user]),
   );
-  const totalPages = Math.max(1, Math.ceil(filteredTotal / pageSize));
-
-  const hasPrev = currentPage > 1;
-  const hasNext = currentPage < totalPages;
+  const { totalPages, hasPrev, hasNext } = getPaginationMeta(filteredTotal, pageSize, currentPage);
 
   const hasActiveFilterFields = Boolean(
     status || priority || severity || reporter || assignee || createdFrom || createdTo,
@@ -179,7 +176,7 @@ export default async function IssuesListPage({
   ].filter(Boolean).length;
   const tableColumnCount =
     5 + (showActionsColumn ? 1 : 0) + (showDetails ? 2 : 0) + (isAdmin && showDetails ? 2 : 0);
-  const issuesTableCaption = `Showing page ${currentPage} of ${totalPages} (${filteredTotal} filtered issues), ${view} view`;
+  const issuesTableCaption = `Showing page ${currentPage} of ${getTotalPages(filteredTotal, pageSize)} (${filteredTotal} filtered issues), ${view} view`;
   const cellPaddingClass = showDetails ? "py-2.5" : "py-1";
   const headPaddingClass = showDetails ? "h-8 py-0.5" : "h-8 py-0.5";
   const detailHintByKind = {
