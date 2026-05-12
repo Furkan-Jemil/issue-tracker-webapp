@@ -356,14 +356,14 @@ export default async function IssuesListPage({
                           {issue.title}
                         </Link>
                         <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground lg:hidden">
-                          <IssueSemanticBadge kind="status" value={issue.status} className="px-2.5 py-1 text-[11px]" />
-                          <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2.5 py-1 text-[11px]" />
+                          <IssueSemanticBadge kind="status" value={issue.status} className="px-2.5 py-1 text-[11px]" title={detailHintByKind.status} />
+                          <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2.5 py-1 text-[11px]" title={detailHintByKind.priority} />
                           <IssueSemanticBadge kind="type" value={issue.type} className="px-2.5 py-1 text-[11px]" />
-                          <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2.5 py-1 text-[11px]" />
+                          <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2.5 py-1 text-[11px]" title={detailHintByKind.severity} />
                         </div>
                       </TableCell>
                       <TableCell className={cn(cellPaddingClass, "hidden lg:table-cell")}>
-                        <IssueSemanticBadge kind="type" value={issue.type} className="px-2.5 py-1 text-[11px]" title={detailHintByKind.type} />
+                        <IssueSemanticBadge kind="type" value={issue.type} className="px-2.5 py-1 text-[11px]" />
                       </TableCell>
                       <TableCell className={cellPaddingClass}>
                         <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2.5 py-1 text-[11px]" title={detailHintByKind.priority} />
