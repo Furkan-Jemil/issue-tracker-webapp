@@ -260,6 +260,38 @@ If something fails, check the container logs:
 docker logs <container_id>
 ```
 
+### Step 13: Check Health And Logs
+
+This project exposes a basic health endpoint at:
+
+```text
+/api/health
+```
+
+Use it to confirm the app and database are responding:
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+For local monitoring, keep an eye on:
+
+- container restart count
+- `docker compose logs -f web`
+- `docker compose logs -f db`
+- the health endpoint returning `status: ok`
+
+### Step 14: Deploy Checklist
+
+Before promoting a build, make sure:
+
+- `npm test` passes
+- `npm run build` passes
+- Prisma schema changes have been applied to the target database
+- `DATABASE_URL`, `BETTER_AUTH_URL`, and `BETTER_AUTH_SECRET` are set correctly
+- `/api/health` is reachable from the deployment target
+- you have a rollback plan for database changes
+
 ## 8. Recommended Docker Compose Setup
 
 For beginners, Docker Compose is often easier than plain `docker run` because it can manage the web app and PostgreSQL together.
