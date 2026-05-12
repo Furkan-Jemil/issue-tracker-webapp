@@ -158,6 +158,7 @@ model Issue {
   @@index([createdAt])
   @@index([status, priority])
   @@index([createdBy, status])
+  @@index([assigneeId, status])
   @@index([assigneeId])
   @@index([reportedAt])
   @@map("issues")
@@ -247,6 +248,7 @@ model Notification {
 
   @@index([userId])
   @@index([userId, isRead])
+  @@index([userId, createdAt])
   @@index([issueId])
   @@map("notifications")
 }
