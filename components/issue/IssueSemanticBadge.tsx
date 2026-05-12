@@ -129,14 +129,14 @@ export function IssueSemanticBadge({
     <Badge
       variant="outline"
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border-0 px-2.5 py-1 text-[11px] font-medium leading-none whitespace-nowrap shadow-sm",
+        "inline-flex items-center gap-2 rounded-full border-0 px-3 py-1.5 text-[13px] font-medium leading-tight whitespace-nowrap shadow-sm",
         meta.className,
         "ring-1 ring-inset ring-black/5 dark:ring-white/10",
         className,
       )}
     >
       {showIcon ? (
-        <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden={true} />
+        <Icon className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden={true} />
       ) : null}
       <span>{meta.label}</span>
     </Badge>

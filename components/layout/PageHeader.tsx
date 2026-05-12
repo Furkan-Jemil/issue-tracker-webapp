@@ -73,9 +73,9 @@ export function PageHeader({
             </div>
           ) : null}
           <div className="space-y-1">
-            <h1 className="page-title text-balance leading-tight">{title}</h1>
+            <h1 className="page-title text-lg md:text-xl font-semibold leading-tight">{title}</h1>
             {description ? (
-              <p className="page-subtitle max-w-2xl text-balance text-muted-foreground/95">
+              <p className="page-subtitle max-w-2xl text-sm text-muted-foreground/95">
                 {description}
               </p>
             ) : null}
