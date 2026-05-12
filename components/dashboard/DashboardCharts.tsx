@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { useFilters } from "@/lib/useFilters";
 
 const Line = dynamic(() => import("react-chartjs-2").then((mod) => mod.Line), {
   ssr: false,
@@ -160,23 +161,30 @@ export default function DashboardCharts() {
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
   const [severityFilter, setSeverityFilter] = useState("");
-  const [draftStatusFilter, setDraftStatusFilter] = useState("");
-  const [draftPriorityFilter, setDraftPriorityFilter] = useState("");
-  const [draftSeverityFilter, setDraftSeverityFilter] = useState("");
+
+  const { drafts, setField, apply, clear, isOpen: filtersOpen, setIsOpen } = useFilters(
+    { status: statusFilter, priority: priorityFilter, severity: severityFilter },
+    {
+      onApply: (d) => {
+        setStatusFilter(d.status ?? "");
+        setPriorityFilter(d.priority ?? "");
+        setSeverityFilter(d.severity ?? "");
+        setIsOpen(false);
+      },
+    },
+  );
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [timeRange, setTimeRange] = useState("30d");
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  
   const filtersPanelRef = useRef<HTMLDivElement | null>(null);
   const hasActiveFilters = Boolean(statusFilter || priorityFilter || severityFilter);
   const activeFilterCount = [statusFilter, priorityFilter, severityFilter].filter(Boolean).length;
-  const hasDraftFilters = Boolean(
-    draftStatusFilter || draftPriorityFilter || draftSeverityFilter,
-  );
+  const hasDraftFilters = Boolean(drafts.status || drafts.priority || drafts.severity);
   const hasPendingFilterChanges =
-    draftStatusFilter !== statusFilter ||
-    draftPriorityFilter !== priorityFilter ||
-    draftSeverityFilter !== severityFilter;
+    (drafts.status ?? "") !== statusFilter ||
+    (drafts.priority ?? "") !== priorityFilter ||
+    (drafts.severity ?? "") !== severityFilter;
 
   useEffect(() => {
     function onPointerDown(event: PointerEvent) {
@@ -185,18 +193,14 @@ export default function DashboardCharts() {
       if (target && target instanceof Element && target.closest('[data-select-content="true"]')) {
         return;
       }
-      if (
-        target &&
-        filtersPanelRef.current &&
-        !filtersPanelRef.current.contains(target)
-      ) {
-        setFiltersOpen(false);
+      if (target && filtersPanelRef.current && !filtersPanelRef.current.contains(target)) {
+        setIsOpen(false);
       }
     }
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setFiltersOpen(false);
+        setIsOpen(false);
       }
     }
 
@@ -224,17 +228,14 @@ export default function DashboardCharts() {
   }, [searchInput]);
 
   function openFiltersPanel() {
-    setDraftStatusFilter(statusFilter);
-    setDraftPriorityFilter(priorityFilter);
-    setDraftSeverityFilter(severityFilter);
-    setFiltersOpen(true);
+    setField("status", statusFilter);
+    setField("priority", priorityFilter);
+    setField("severity", severityFilter);
+    setIsOpen(true);
   }
 
   function applyDraftFilters() {
-    setStatusFilter(draftStatusFilter);
-    setPriorityFilter(draftPriorityFilter);
-    setSeverityFilter(draftSeverityFilter);
-    setFiltersOpen(false);
+    apply();
   }
 
   useEffect(() => {
@@ -638,7 +639,7 @@ export default function DashboardCharts() {
                   aria-controls="dashboard-filters-popover"
                   onClick={() => {
                     if (filtersOpen) {
-                      setFiltersOpen(false);
+                      setIsOpen(false);
                       return;
                     }
                     openFiltersPanel();
@@ -657,8 +658,8 @@ export default function DashboardCharts() {
                   <Card id="dashboard-filters-popover" className="popover-surface absolute right-0 top-9 z-30 w-[min(88vw,220px)] border-border bg-card shadow-lg">
                   <CardContent className="space-y-1.5 p-2">
                     <Select
-                      value={draftStatusFilter}
-                      onValueChange={setDraftStatusFilter}
+                      value={drafts.status ?? ""}
+                      onValueChange={(v) => setField("status", v)}
                       className="h-8 text-xs">
                       <option value="">All Statuses</option>
                       <option value="OPEN">Open</option>
@@ -667,8 +668,8 @@ export default function DashboardCharts() {
                       <option value="CLOSED">Closed</option>
                     </Select>
                     <Select
-                      value={draftPriorityFilter}
-                      onValueChange={setDraftPriorityFilter}
+                      value={drafts.priority ?? ""}
+                      onValueChange={(v) => setField("priority", v)}
                       className="h-8 text-xs">
                       <option value="">All Priorities</option>
                       <option value="LOW">Low</option>
@@ -676,8 +677,8 @@ export default function DashboardCharts() {
                       <option value="HIGH">High</option>
                     </Select>
                     <Select
-                      value={draftSeverityFilter}
-                      onValueChange={setDraftSeverityFilter}
+                      value={drafts.severity ?? ""}
+                      onValueChange={(v) => setField("severity", v)}
                       className="h-8 text-xs">
                       <option value="">All Severities</option>
                       <option value="MINOR">Minor</option>
@@ -692,13 +693,7 @@ export default function DashboardCharts() {
                         className="h-7 px-2 text-xs"
                         disabled={!hasDraftFilters}
                         onClick={() => {
-                          setStatusFilter("");
-                          setPriorityFilter("");
-                          setSeverityFilter("");
-                          setDraftStatusFilter("");
-                          setDraftPriorityFilter("");
-                          setDraftSeverityFilter("");
-                          setFiltersOpen(false);
+                          clear();
                         }}>
                         Clear
                       </Button>
