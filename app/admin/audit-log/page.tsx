@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AuditLogToolbar } from "./AuditLogToolbar";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
+import { getPaginationMeta, getTotalPages } from "@/lib/pagination";
 import {
   Table,
   TableBody,
@@ -60,7 +62,7 @@ export default async function AdminAuditLogPage({
       : undefined;
   const selectedEvent = eventFilter ?? "ALL";
   const query = (params?.q || "").trim();
-  const pageSize = 15;
+  const pageSize = DEFAULT_PAGE_SIZE;
   const currentPage = Math.max(1, parseInt(params?.page || "1", 10));
   const where = {
     ...(eventFilter ? { eventType: eventFilter } : {}),
@@ -86,7 +88,8 @@ export default async function AdminAuditLogPage({
     }),
     prisma.issueHistory.count(),
   ]);
-  const totalPages = Math.ceil(totalRecords / pageSize);
+  const { totalPages, hasPrev, hasNext } = getPaginationMeta(totalRecords, pageSize, currentPage);
+  const pageSummary = `Page ${currentPage} / ${getTotalPages(totalRecords, pageSize)}`;
   function eventVariant(eventType: string) {
     if (eventType === "CREATED") return "secondary" as const;
     if (eventType === "STATUS_CHANGED") return "warning" as const;
@@ -161,7 +164,7 @@ export default async function AdminAuditLogPage({
                 <TableCell colSpan={5} className="py-1.5 text-xs text-muted-foreground">
                   <div className="flex items-center justify-between px-[var(--table-cell-px)]">
                     <span className="text-[11px]">Total {totalRecords} | Filtered {logs.length}</span>
-                    <span>Page {currentPage} / {totalPages}</span>
+                    <span>{pageSummary}</span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -175,11 +178,11 @@ export default async function AdminAuditLogPage({
               <Button
                 asChild
                 variant="outline"
-                disabled={currentPage <= 1}
+                disabled={!hasPrev}
               >
                 <Link
-                  href={currentPage > 1 ? `?page=${currentPage - 1}${eventFilter ? `&event=${eventFilter}` : ""}${query ? `&q=${query}` : ""}` : "#"}
-                  aria-disabled={currentPage <= 1}
+                  href={hasPrev ? `?page=${currentPage - 1}${eventFilter ? `&event=${eventFilter}` : ""}${query ? `&q=${query}` : ""}` : "#"}
+                  aria-disabled={!hasPrev}
                 >
                   Previous
                 </Link>
@@ -187,11 +190,11 @@ export default async function AdminAuditLogPage({
               <Button
                 asChild
                 variant="outline"
-                disabled={currentPage >= totalPages}
+                disabled={!hasNext}
               >
                 <Link
-                  href={currentPage < totalPages ? `?page=${currentPage + 1}${eventFilter ? `&event=${eventFilter}` : ""}${query ? `&q=${query}` : ""}` : "#"}
-                  aria-disabled={currentPage >= totalPages}
+                  href={hasNext ? `?page=${currentPage + 1}${eventFilter ? `&event=${eventFilter}` : ""}${query ? `&q=${query}` : ""}` : "#"}
+                  aria-disabled={!hasNext}
                 >
                   Next
                 </Link>
