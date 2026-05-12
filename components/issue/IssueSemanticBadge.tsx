@@ -116,10 +116,12 @@ export function IssueSemanticBadge({
   kind,
   value,
   className,
+  title,
 }: {
   kind: Kind;
   value: string;
   className?: string;
+  title?: string;
 }) {
   const meta = getMeta(kind, value);
   const Icon = meta.icon;
@@ -128,6 +130,7 @@ export function IssueSemanticBadge({
   return (
     <Badge
       variant="outline"
+      title={title}
       className={cn(
         "inline-flex items-center gap-2 rounded-full border-0 px-3 py-1.5 text-[13px] font-medium leading-tight whitespace-nowrap shadow-sm",
         meta.className,
