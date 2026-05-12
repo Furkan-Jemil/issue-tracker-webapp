@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { NotificationsToolbar } from "@/app/notifications/NotificationsToolbar";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -42,7 +43,7 @@ export default function NotificationsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pendingReadTimersRef = useRef<Map<string, number>>(new Map());
-  const pageSize = 15;
+  const pageSize = DEFAULT_PAGE_SIZE;
 
   async function loadNotifications() {
     try {

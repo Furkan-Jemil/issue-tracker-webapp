@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { UsersToolbar } from "./UsersToolbar";
 import { UserRowActionsMenu } from "./UserRowActionsMenu";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 
 type UserRow = {
   id: string;
@@ -47,7 +48,7 @@ export default function AdminUsersPage() {
     previousRole: string;
   } | null>(null);
 
-  const pageSize = 15;
+  const pageSize = DEFAULT_PAGE_SIZE;
 
   function countChars(value: string) {
     return value.trim().length;
