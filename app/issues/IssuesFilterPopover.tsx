@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useFilters } from "@/lib/useFilters";
 import { CalendarRange, Check, Filter, Kanban, Rows3, StretchHorizontal } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -51,57 +51,44 @@ export function IssuesFilterPopover({
   onSubmitHref: string;
   onResetHref: string;
 }) {
-  const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedView, setSelectedView] = useState(view);
-  const [selectedStatus, setSelectedStatus] = useState(status);
-  const [selectedPriority, setSelectedPriority] = useState(priority);
-  const [selectedSeverity, setSelectedSeverity] = useState(severity);
-  const [selectedReporter, setSelectedReporter] = useState(reporter);
-  const [selectedAssignee, setSelectedAssignee] = useState(assignee);
-  const [selectedCreatedFrom, setSelectedCreatedFrom] = useState(createdFrom);
-  const [selectedCreatedTo, setSelectedCreatedTo] = useState(createdTo);
+  const {
+    drafts,
+    setField,
+    apply,
+    clear,
+    isOpen,
+    setIsOpen,
+  } = useFilters(
+    {
+      view,
+      q: query,
+      createdFrom,
+      createdTo,
+      status,
+      priority,
+      severity,
+      reporter,
+      assignee,
+    },
+    { onSubmitHref, onResetHref },
+  );
+
+  const selectedView = drafts.view ?? view;
+  const selectedStatus = drafts.status ?? "";
+  const selectedPriority = drafts.priority ?? "";
+  const selectedSeverity = drafts.severity ?? "";
+  const selectedReporter = drafts.reporter ?? "";
+  const selectedAssignee = drafts.assignee ?? "";
+  const selectedCreatedFrom = drafts.createdFrom ?? "";
+  const selectedCreatedTo = drafts.createdTo ?? "";
 
   const reporterOptions = useMemo(() => reporters, [reporters]);
 
-  useEffect(() => {
-    setSelectedView(view);
-  }, [view]);
-
-  useEffect(() => {
-    setSelectedStatus(status);
-  }, [status]);
-
-  useEffect(() => {
-    setSelectedPriority(priority);
-  }, [priority]);
-
-  useEffect(() => {
-    setSelectedSeverity(severity);
-  }, [severity]);
-
-  useEffect(() => {
-    setSelectedReporter(reporter);
-  }, [reporter]);
-
-  useEffect(() => {
-    setSelectedAssignee(assignee);
-  }, [assignee]);
-
-  useEffect(() => {
-    setSelectedCreatedFrom(createdFrom);
-  }, [createdFrom]);
-
-  useEffect(() => {
-    setSelectedCreatedTo(createdTo);
-  }, [createdTo]);
-
   function cycleViewMode() {
-    setSelectedView((current) => {
-      if (current === "compact") return "details";
-      if (current === "details") return "board";
-      return "compact";
-    });
+    setField(
+      "view",
+      selectedView === "compact" ? "details" : selectedView === "details" ? "board" : "compact",
+    );
   }
 
   const viewModeLabel =
@@ -111,29 +98,9 @@ export function IssuesFilterPopover({
         ? "Detailed"
         : "Board";
 
-  const ViewModeIcon =
-    selectedView === "compact"
-      ? Rows3
-      : selectedView === "details"
-        ? StretchHorizontal
-        : Kanban;
+  const ViewModeIcon = selectedView === "compact" ? Rows3 : selectedView === "details" ? StretchHorizontal : Kanban;
 
-  function handleApply(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const nextParams = new URLSearchParams();
-    nextParams.set("view", selectedView);
-    nextParams.set("page", "1");
-    if (query) nextParams.set("q", query);
-    if (selectedCreatedFrom) nextParams.set("createdFrom", selectedCreatedFrom);
-    if (selectedCreatedTo) nextParams.set("createdTo", selectedCreatedTo);
-    if (selectedStatus) nextParams.set("status", selectedStatus);
-    if (selectedPriority) nextParams.set("priority", selectedPriority);
-    if (selectedSeverity) nextParams.set("severity", selectedSeverity);
-    if (selectedReporter) nextParams.set("reporter", selectedReporter);
-    if (selectedAssignee) nextParams.set("assignee", selectedAssignee);
-    setIsOpen(false);
-    router.push(`${onSubmitHref}?${nextParams.toString()}`);
-  }
+  const handleApply = (e?: React.FormEvent) => apply(e);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -189,7 +156,7 @@ export function IssuesFilterPopover({
                 id="issues-created-from"
                 type="date"
                 value={selectedCreatedFrom}
-                onChange={(event) => setSelectedCreatedFrom(event.target.value)}
+                onChange={(event) => setField("createdFrom", event.target.value)}
                 className="h-9 text-xs"
               />
             </div>
@@ -202,7 +169,7 @@ export function IssuesFilterPopover({
                 id="issues-created-to"
                 type="date"
                 value={selectedCreatedTo}
-                onChange={(event) => setSelectedCreatedTo(event.target.value)}
+                onChange={(event) => setField("createdTo", event.target.value)}
                 className="h-9 text-xs"
               />
             </div>
@@ -213,7 +180,7 @@ export function IssuesFilterPopover({
                   id="issues-status-filter"
                   name="status"
                   value={selectedStatus}
-                  onValueChange={setSelectedStatus}
+                  onValueChange={(v) => setField("status", v)}
                   className="h-9 rounded-md text-xs">
                   <option value="">All statuses</option>
                   <option value="OPEN">Open</option>
@@ -226,7 +193,7 @@ export function IssuesFilterPopover({
                   id="issues-priority-filter"
                   name="priority"
                   value={selectedPriority}
-                  onValueChange={setSelectedPriority}
+                  onValueChange={(v) => setField("priority", v)}
                   className="h-9 rounded-md text-xs">
                   <option value="">All priorities</option>
                   <option value="LOW">Low</option>
@@ -238,7 +205,7 @@ export function IssuesFilterPopover({
                   id="issues-severity-filter"
                   name="severity"
                   value={selectedSeverity}
-                  onValueChange={setSelectedSeverity}
+                  onValueChange={(v) => setField("severity", v)}
                   className="h-9 rounded-md text-xs">
                   <option value="">All severities</option>
                   <option value="MINOR">Minor</option>
@@ -250,7 +217,7 @@ export function IssuesFilterPopover({
                   id="issues-reporter-filter"
                   name="reporter"
                   value={selectedReporter}
-                  onValueChange={setSelectedReporter}
+                  onValueChange={(v) => setField("reporter", v)}
                   className="h-9 rounded-md text-xs">
                   <option value="">All reporters</option>
                   {reporterOptions.map((user) => (
@@ -264,7 +231,7 @@ export function IssuesFilterPopover({
                   id="issues-assignee-filter"
                   name="assignee"
                   value={selectedAssignee}
-                  onValueChange={setSelectedAssignee}
+                  onValueChange={(v) => setField("assignee", v)}
                   className="h-9 rounded-md text-xs">
                   <option value="">All assignees</option>
                   {reporterOptions.map((user) => (
@@ -283,17 +250,7 @@ export function IssuesFilterPopover({
                 variant="outline"
                 size="dense"
                 className="rounded-md"
-                onClick={() => {
-                  setSelectedStatus("");
-                  setSelectedPriority("");
-                  setSelectedSeverity("");
-                  setSelectedReporter("");
-                  setSelectedAssignee("");
-                  setSelectedCreatedFrom("");
-                  setSelectedCreatedTo("");
-                  setIsOpen(false);
-                  router.push(onResetHref);
-                }}
+                onClick={() => clear()}
               >
                 Clear
               </Button>
