@@ -46,10 +46,8 @@ export function CommentThread({
   return (
     <Card>
       <CardHeader className="border-b border-border/60 bg-muted/20">
-        <CardTitle className="text-lg">Comments</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Discussion and updates for this issue. {localComments.length} comment{localComments.length === 1 ? "" : "s"}.
-        </p>
+        <CardTitle id="comments-heading" className="text-lg">Comments</CardTitle>
+        <p className="text-sm text-muted-foreground">{localComments.length} comment{localComments.length === 1 ? "" : "s"}.</p>
       </CardHeader>
       <CardContent className="space-y-4">
         <ul
