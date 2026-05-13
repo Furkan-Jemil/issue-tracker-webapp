@@ -103,67 +103,55 @@ export default async function IssueDetailPage({
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-        <Card tone="soft" density="dense" className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50/30 to-transparent">
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
+        <Card tone="soft" density="dense" className="bg-card/80">
           <CardContent className="p-3">
-              <div className="flex items-center gap-1.5 mb-2">
-                <svg className="h-3.5 w-3.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" opacity="0.3"/><circle cx="10" cy="10" r="5"/></svg>
-                <p className="text-[10px] uppercase tracking-[0.18em] text-blue-700 font-semibold">Status</p>
-              </div>
-              <IssueSemanticBadge kind="status" value={issue.status} className="px-2.5 py-1 text-[11px]" />
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Status</p>
+              <IssueSemanticBadge kind="status" value={issue.status} className="mt-2 px-2.5 py-1 text-[11px]" />
             </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="border-l-4 border-l-amber-500 bg-gradient-to-br from-amber-50/30 to-transparent">
+        <Card tone="soft" density="dense" className="bg-card/80">
           <CardContent className="p-3">
-            <div className="flex items-center gap-1.5 mb-2">
-              <svg className="h-3.5 w-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-amber-700 font-semibold">Priority</p>
-            </div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Priority</p>
             <IssueSemanticBadge
               kind="priority"
               value={issue.priority}
-              className="px-2.5 py-1 text-[11px]"
+              className="mt-2 px-2.5 py-1 text-[11px]"
               title="When this needs attention"
             />
           </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="border-l-4 border-l-red-500 bg-gradient-to-br from-red-50/30 to-transparent">
+        <Card tone="soft" density="dense" className="bg-card/80">
           <CardContent className="p-3">
-            <div className="flex items-center gap-1.5 mb-2">
-              <svg className="h-3.5 w-3.5 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-red-700 font-semibold">Severity</p>
-            </div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Severity</p>
             <IssueSemanticBadge
               kind="severity"
               value={issue.severity}
-              className="px-2.5 py-1 text-[11px]"
+              className="mt-2 px-2.5 py-1 text-[11px]"
               title="How much this impacts users"
             />
           </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50/30 to-transparent sm:col-span-2 xl:col-span-3">
+        <Card tone="soft" density="dense" className="bg-card/80 sm:col-span-2 xl:col-span-3">
           <CardContent className="p-3">
-            <div className="flex items-center gap-1.5 mb-2">
-              <svg className="h-3.5 w-3.5 text-purple-600" fill="currentColor" viewBox="0 0 20 20"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></svg>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-purple-700 font-semibold">People & reporting</p>
-            </div>
-            <dl className="grid gap-x-3 gap-y-1.5 text-sm sm:grid-cols-3">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">People and reporting</p>
+            <dl className="mt-2 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
               <div>
                 <dt className="text-xs text-muted-foreground">Assignee</dt>
-                <dd className="font-semibold text-foreground text-sm">
+                <dd className="font-semibold text-foreground">
                   {issue.assignee ? issue.assignee.name || issue.assignee.email : "Unassigned"}
                 </dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Reporter</dt>
-                <dd className="font-semibold text-foreground text-sm">{issue.creator.name || issue.creator.email}</dd>
+                <dd className="font-semibold text-foreground">{issue.creator.name || issue.creator.email}</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Reported</dt>
-                <dd className="font-semibold text-foreground text-sm">{issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified"}</dd>
+                <dd className="font-semibold text-foreground">{issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified"}</dd>
               </div>
             </dl>
           </CardContent>
