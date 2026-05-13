@@ -103,98 +103,117 @@ export default async function IssueDetailPage({
         }
       />
 
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
-        <Card tone="soft" density="dense" className="border-border/70 bg-card/80">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+        <Card tone="soft" density="dense" className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50/30 to-transparent">
           <CardContent className="p-3">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Status</p>
-              <IssueSemanticBadge kind="status" value={issue.status} className="mt-2 px-2.5 py-1 text-[11px]" />
+              <div className="flex items-center gap-1.5 mb-2">
+                <svg className="h-3.5 w-3.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" opacity="0.3"/><circle cx="10" cy="10" r="5"/></svg>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-blue-700 font-semibold">Status</p>
+              </div>
+              <IssueSemanticBadge kind="status" value={issue.status} className="px-2.5 py-1 text-[11px]" />
             </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="bg-card/80">
+        <Card tone="soft" density="dense" className="border-l-4 border-l-amber-500 bg-gradient-to-br from-amber-50/30 to-transparent">
           <CardContent className="p-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Priority</p>
+            <div className="flex items-center gap-1.5 mb-2">
+              <svg className="h-3.5 w-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-amber-700 font-semibold">Priority</p>
+            </div>
             <IssueSemanticBadge
               kind="priority"
               value={issue.priority}
-              className="mt-2 px-2.5 py-1 text-[11px]"
+              className="px-2.5 py-1 text-[11px]"
               title="When this needs attention"
             />
           </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="bg-card/80">
+        <Card tone="soft" density="dense" className="border-l-4 border-l-red-500 bg-gradient-to-br from-red-50/30 to-transparent">
           <CardContent className="p-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Severity</p>
+            <div className="flex items-center gap-1.5 mb-2">
+              <svg className="h-3.5 w-3.5 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-red-700 font-semibold">Severity</p>
+            </div>
             <IssueSemanticBadge
               kind="severity"
               value={issue.severity}
-              className="mt-2 px-2.5 py-1 text-[11px]"
+              className="px-2.5 py-1 text-[11px]"
               title="How much this impacts users"
             />
           </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="bg-card/80 sm:col-span-2 xl:col-span-3">
+        <Card tone="soft" density="dense" className="border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50/30 to-transparent sm:col-span-2 xl:col-span-3">
           <CardContent className="p-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">People and reporting</p>
-            <dl className="mt-2 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
+            <div className="flex items-center gap-1.5 mb-2">
+              <svg className="h-3.5 w-3.5 text-purple-600" fill="currentColor" viewBox="0 0 20 20"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></svg>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-purple-700 font-semibold">People & reporting</p>
+            </div>
+            <dl className="grid gap-x-3 gap-y-1.5 text-sm sm:grid-cols-3">
               <div>
                 <dt className="text-xs text-muted-foreground">Assignee</dt>
-                <dd className="font-semibold text-foreground">
+                <dd className="font-semibold text-foreground text-sm">
                   {issue.assignee ? issue.assignee.name || issue.assignee.email : "Unassigned"}
                 </dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Reporter</dt>
-                <dd className="font-semibold text-foreground">{issue.creator.name || issue.creator.email}</dd>
+                <dd className="font-semibold text-foreground text-sm">{issue.creator.name || issue.creator.email}</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Reported</dt>
-                <dd className="font-semibold text-foreground">{issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified"}</dd>
+                <dd className="font-semibold text-foreground text-sm">{issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified"}</dd>
               </div>
             </dl>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden border-0 shadow-sm">
         <CardContent className="grid gap-4 p-4 md:p-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:gap-5">
-          <section className="space-y-4">
-            <div>
-              <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Issue summary</h2>
-              <p className="mt-2 text-[15px] leading-7 text-foreground/95">{issue.description}</p>
+          <section className="space-y-5">
+            <div className="border-l-4 border-l-slate-300 pl-4">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-foreground mb-2">Issue summary</h2>
+              <p className="mt-2 text-[15px] leading-7 text-foreground/85 font-light">{issue.description}</p>
             </div>
             {issue.url && (
-              <p className="text-sm">
-                <span className="font-semibold">Page or feature:</span>{" "}
-                <a href={issue.url} target="_blank" rel="noopener noreferrer" className="break-all text-primary hover:underline">
-                  {issue.url}
-                </a>
-              </p>
+              <div className="flex items-start gap-3 rounded-lg bg-blue-50/50 p-3">
+                <svg className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-blue-900 mb-1">Related page or feature:</p>
+                  <a href={issue.url} target="_blank" rel="noopener noreferrer" className="break-all text-sm text-blue-600 hover:text-blue-700 hover:underline font-medium">
+                    {issue.url}
+                  </a>
+                </div>
+              </div>
             )}
             {issue.sourceNotes && (
-              <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">Context note:</span>{" "}
-                {issue.sourceNotes}
-              </p>
+              <div className="flex items-start gap-3 rounded-lg bg-amber-50/50 p-3">
+                <svg className="h-4 w-4 text-amber-600 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1h2v2H7V4zm2 4H7v2h2V8zm2-4h2v2h-2V4zm2 4h-2v2h2V8z" /></svg>
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-amber-900 mb-1">Context note:</p>
+                  <p className="text-sm text-amber-800">{issue.sourceNotes}</p>
+                </div>
+              </div>
             )}
             
-            {issue.screenshots.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Evidence</p>
-                <div className="mt-2 flex flex-wrap gap-2" role="list">
+            {(issue.screenshots.length > 0 || issue.attachments.length > 0) && (
+              <div className="pt-2 border-t border-border/50">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground mb-3">Evidence attached</p>
+                <div className="flex flex-wrap gap-2" role="list">
                   {issue.screenshots.map((s) => (
-                    <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" role="listitem" className="group overflow-hidden rounded border border-border/40 bg-background/80 hover:border-border/70">
-                      <img src={s.url} alt={`Screenshot: ${s.filename}`} className="h-16 w-16 object-cover transition-transform duration-200 group-hover:scale-110" />
+                    <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" role="listitem" className="group relative overflow-hidden rounded-md border border-border/50 bg-gradient-to-br from-slate-100 to-slate-50 hover:border-border hover:shadow-sm transition-all">
+                      <img src={s.url} alt={`Screenshot: ${s.filename}`} className="h-20 w-20 object-cover transition-transform duration-200 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                        <svg className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4m-4-4l-8 8" /></svg>
+                      </div>
                     </a>
                   ))}
                   {issue.attachments.map((file) => (
-                    <a key={file.id} href={file.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded border border-border/40 bg-background/80 px-2.5 py-1.5 text-xs font-medium text-primary hover:border-border/70 hover:bg-background">
-                      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                      {file.filename}
+                    <a key={file.id} href={file.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md border border-border/50 bg-gradient-to-br from-slate-100 to-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition-all group">
+                      <svg className="h-3.5 w-3.5 text-slate-600 group-hover:text-slate-800" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0113 2.586V4h2.828a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 011 1v6H6v-6z"/></svg>
+                      <span className="truncate max-w-[120px]">{file.filename}</span>
                     </a>
                   ))}
                 </div>
