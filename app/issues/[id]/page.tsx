@@ -87,22 +87,21 @@ export default async function IssueDetailPage({
           { label: "Issues", href: "/issues" },
           { label: issue.id.slice(0, 8).toUpperCase() },
         ]}
+        actions={
+          <div className="flex items-center gap-2">
+            {canQuickStatus && (
+              <StatusQuickActions
+                issueId={issue.id}
+                currentStatus={issue.status}
+                editHref={`/issues/${issue.id}#edit-section`}
+              />
+            )}
+            <Button asChild variant="outline" size="sm">
+              <Link href="#comments-heading">Jump to comments</Link>
+            </Button>
+          </div>
+        }
       />
-
-      <div className="flex justify-end mt-2">
-        <div className="flex items-center gap-2">
-          {canQuickStatus && (
-            <StatusQuickActions
-              issueId={issue.id}
-              currentStatus={issue.status}
-              editHref={`/issues/${issue.id}#edit-section`}
-            />
-          )}
-          <Button asChild variant="outline" size="sm">
-            <Link href="#comments-heading">Jump to comments</Link>
-          </Button>
-        </div>
-      </div>
 
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
         <Card tone="soft" density="dense" className="border-border/70 bg-card/80">
