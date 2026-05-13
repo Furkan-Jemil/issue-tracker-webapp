@@ -46,34 +46,30 @@ export function CommentThread({
   return (
     <Card>
       <CardHeader className="border-b border-border/60 bg-muted/20">
-        <CardTitle id="comments-heading" className="text-lg">Comments</CardTitle>
-        <p className="text-sm text-muted-foreground">{localComments.length} comment{localComments.length === 1 ? "" : "s"}.</p>
+        <div className="flex items-center justify-between">
+          <CardTitle id="comments-heading" className="text-lg">Comments</CardTitle>
+          <span className="text-xs font-medium text-muted-foreground">{localComments.length}</span>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <ul
-          className="space-y-2"
-          aria-live="polite"
-          aria-relevant="additions text">
-          {localComments.map((c, idx) => (
-            <li
-              key={c.id || idx}
-              className="rounded-lg border border-border/70 bg-background/80 px-3 py-2.5">
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                <span className="font-medium">{c.user?.name || "Unknown"}</span>
-                <span>{new Date(c.createdAt).toLocaleString()}</span>
-              </div>
-              <p className="pt-1.5 text-sm leading-6 text-foreground/95">{c.content}</p>
-            </li>
-          ))}
-          {localComments.length === 0 && (
-            <li className="rounded-lg border border-dashed border-border/70 bg-background/60 px-3 py-3 text-sm text-muted-foreground">
-              No comments yet. Start the conversation below.
-            </li>
-          )}
-        </ul>
+      <CardContent className="space-y-3 pt-4">
+        {localComments.length > 0 && (
+          <ul
+            className="space-y-3 border-b border-border/60 pb-4"
+            aria-live="polite"
+            aria-relevant="additions text">
+            {localComments.map((c, idx) => (
+              <li key={c.id || idx} className="text-sm">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-semibold text-foreground">{c.user?.name || "Unknown"}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</span>
+                </div>
+                <p className="mt-1 leading-6 text-foreground/90">{c.content}</p>
+              </li>
+            ))}
+          </ul>
+        )}
 
-        <form onSubmit={handleSubmit} className="space-y-2 border-t border-border/60 pt-3">
-          <Label htmlFor="comment-content">Add a comment</Label>
+        <form onSubmit={handleSubmit} className="space-y-2">
           <Textarea
             id="comment-content"
             value={content}
@@ -83,17 +79,18 @@ export function CommentThread({
             aria-describedby={error ? "comment-error" : undefined}
             disabled={posting}
             required
+            className="min-h-[80px]"
           />
           {error && (
             <div
               id="comment-error"
               role="alert"
-              className="text-sm text-destructive">
+              className="text-xs text-destructive">
               {error}
             </div>
           )}
-          <Button type="submit" disabled={posting}>
-            {posting ? "Posting..." : "Post comment"}
+          <Button type="submit" disabled={posting} size="sm">
+            {posting ? "Posting..." : "Comment"}
           </Button>
         </form>
       </CardContent>
