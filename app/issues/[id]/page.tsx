@@ -311,13 +311,11 @@ export default async function IssueDetailPage({
         </section>
       )}
 
-      <section className="mt-6 space-y-3" aria-labelledby="comments-heading">
-        <h2 id="comments-heading" className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Comments</h2>
+      <section className="mt-4" aria-labelledby="comments-heading">
         <CommentThread issueId={issue.id} comments={issue.comments} />
       </section>
 
-      <section className="mt-6 space-y-3" aria-labelledby="activity-heading">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Activity</h2>
+      <section className="mt-4" aria-labelledby="activity-heading">
         <Card>
           <CardHeader>
             <CardTitle id="activity-heading" className="text-lg">Activity Log</CardTitle>
