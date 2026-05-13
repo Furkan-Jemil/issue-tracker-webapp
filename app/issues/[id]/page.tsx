@@ -182,34 +182,22 @@ export default async function IssueDetailPage({
             
             {issue.screenshots.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Screenshots</h3>
-                <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3" role="list">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Evidence</p>
+                <div className="mt-2 flex flex-wrap gap-2" role="list">
                   {issue.screenshots.map((s) => (
-                    <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" role="listitem" className="group overflow-hidden rounded-lg bg-background/80">
-                      <img src={s.url} alt={`Screenshot: ${s.filename}`} className="h-24 w-full object-cover transition-transform duration-200 group-hover:scale-105" />
+                    <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" role="listitem" className="group overflow-hidden rounded border border-border/40 bg-background/80 hover:border-border/70">
+                      <img src={s.url} alt={`Screenshot: ${s.filename}`} className="h-16 w-16 object-cover transition-transform duration-200 group-hover:scale-110" />
+                    </a>
+                  ))}
+                  {issue.attachments.map((file) => (
+                    <a key={file.id} href={file.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded border border-border/40 bg-background/80 px-2.5 py-1.5 text-xs font-medium text-primary hover:border-border/70 hover:bg-background">
+                      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      {file.filename}
                     </a>
                   ))}
                 </div>
-              </div>
-            )}
-            
-            {issue.attachments.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Associated files</h3>
-                <ul className="mt-2 space-y-2 text-sm">
-                  {issue.attachments.map((file) => (
-                    <li key={file.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-background px-3 py-2">
-                      <div>
-                        <a href={file.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
-                          {file.filename}
-                        </a>
-                        <p className="break-words text-xs text-muted-foreground">
-                          {file.mimeType} • {(file.sizeBytes / 1024).toFixed(1)} KB • Uploaded by {file.uploader.name || file.uploader.email}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
               </div>
             )}
           </section>
