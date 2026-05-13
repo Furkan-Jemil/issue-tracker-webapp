@@ -14,6 +14,7 @@ export function CommentThread({
 }) {
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
+  const [posting, setPosting] = useState(false);
   const [localComments, setLocalComments] = useState(comments);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -23,17 +24,22 @@ export function CommentThread({
       setError("Comment cannot be empty.");
       return;
     }
-    const res = await fetch(`/api/comments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ issueId, content }),
-    });
-    if (res.ok) {
-      const newComment = await res.json();
-      setLocalComments([...localComments, newComment]);
-      setContent("");
-    } else {
-      setError("Failed to post comment.");
+    setPosting(true);
+    try {
+      const res = await fetch(`/api/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ issueId, content }),
+      });
+      if (res.ok) {
+        const newComment = await res.json();
+        setLocalComments([...localComments, newComment]);
+        setContent("");
+      } else {
+        setError("Failed to post comment.");
+      }
+    } finally {
+      setPosting(false);
     }
   }
 
@@ -41,6 +47,9 @@ export function CommentThread({
     <Card>
       <CardHeader className="border-b border-border/60 bg-muted/20">
         <CardTitle className="text-lg">Comments</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Discussion and updates for this issue. {localComments.length} comment{localComments.length === 1 ? "" : "s"}.
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <ul
@@ -74,6 +83,7 @@ export function CommentThread({
             placeholder="Add a comment..."
             aria-invalid={Boolean(error)}
             aria-describedby={error ? "comment-error" : undefined}
+            disabled={posting}
             required
           />
           {error && (
@@ -84,7 +94,9 @@ export function CommentThread({
               {error}
             </div>
           )}
-          <Button type="submit">Post comment</Button>
+          <Button type="submit" disabled={posting}>
+            {posting ? "Posting..." : "Post comment"}
+          </Button>
         </form>
       </CardContent>
     </Card>
