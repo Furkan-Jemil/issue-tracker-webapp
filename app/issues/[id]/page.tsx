@@ -89,48 +89,30 @@ export default async function IssueDetailPage({
         ]}
       />
 
-      <Card tone="soft" className="border-border/70 bg-card/90">
-        <CardContent className="flex flex-wrap items-start justify-between gap-3 p-4">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              Issue {issue.id.slice(0, 8).toUpperCase()}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Created {formatDate(issue.createdAt)}
-              {issue.reportedAt ? ` • Reported ${formatDate(issue.reportedAt)}` : ""}
-            </p>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <IssueSemanticBadge kind="status" value={issue.status} className="px-2.5 py-1 text-[11px]" />
-              <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2.5 py-1 text-[11px]" title="When this needs attention" />
-              <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2.5 py-1 text-[11px]" title="How much this impacts users" />
-              <IssueSemanticBadge kind="type" value={issue.type} className="px-2.5 py-1 text-[11px]" />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {canQuickStatus && (
-              <StatusQuickActions
-                issueId={issue.id}
-                currentStatus={issue.status}
-                editHref={`/issues/${issue.id}#edit-section`}
-              />
-            )}
-            <Button asChild variant="outline" size="sm">
-              <Link href="#comments-heading">Jump to comments</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex justify-end mt-2">
+        <div className="flex items-center gap-2">
+          {canQuickStatus && (
+            <StatusQuickActions
+              issueId={issue.id}
+              currentStatus={issue.status}
+              editHref={`/issues/${issue.id}#edit-section`}
+            />
+          )}
+          <Button asChild variant="outline" size="sm">
+            <Link href="#comments-heading">Jump to comments</Link>
+          </Button>
+        </div>
+      </div>
 
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
         <Card tone="soft" density="dense" className="border-border/70 bg-card/80">
           <CardContent className="p-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Status</p>
-            <IssueSemanticBadge kind="status" value={issue.status} className="mt-2 px-2.5 py-1 text-[11px]" />
-          </CardContent>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Status</p>
+              <IssueSemanticBadge kind="status" value={issue.status} className="mt-2 px-2.5 py-1 text-[11px]" />
+            </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="border-border/70 bg-card/80">
+        <Card tone="soft" density="dense" className="bg-card/80">
           <CardContent className="p-3">
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Priority</p>
             <IssueSemanticBadge
@@ -142,7 +124,7 @@ export default async function IssueDetailPage({
           </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="border-border/70 bg-card/80">
+        <Card tone="soft" density="dense" className="bg-card/80">
           <CardContent className="p-3">
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Severity</p>
             <IssueSemanticBadge
@@ -154,7 +136,7 @@ export default async function IssueDetailPage({
           </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="border-border/70 bg-card/80 sm:col-span-2 xl:col-span-3">
+        <Card tone="soft" density="dense" className="bg-card/80 sm:col-span-2 xl:col-span-3">
           <CardContent className="p-3">
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">People and reporting</p>
             <dl className="mt-2 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
@@ -200,7 +182,7 @@ export default async function IssueDetailPage({
             )}
           </section>
 
-          <aside className="rounded-xl border border-border/70 bg-muted/20 p-3 md:p-4">
+          <aside className="rounded-xl bg-muted/20 p-3 md:p-4">
             <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Tracking snapshot</h2>
             <dl className="mt-3 divide-y divide-border/50 text-sm">
               <div className="flex items-start justify-between gap-3 py-2 first:pt-0">
@@ -274,7 +256,7 @@ export default async function IssueDetailPage({
               <CardContent>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" role="list">
                   {issue.screenshots.map((s) => (
-                    <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" role="listitem" className="group overflow-hidden rounded-lg border border-border/70 bg-background/80">
+                    <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" role="listitem" className="group overflow-hidden rounded-lg bg-background/80">
                       <img src={s.url} alt={`Screenshot: ${s.filename}`} className="h-28 w-full object-cover transition-transform duration-200 group-hover:scale-105" />
                     </a>
                   ))}
@@ -292,7 +274,7 @@ export default async function IssueDetailPage({
               <CardContent>
                 <ul className="space-y-2 text-sm">
                   {issue.attachments.map((file) => (
-                    <li key={file.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/70 bg-background px-3 py-2.5">
+                    <li key={file.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-background px-3 py-2.5">
                       <div>
                         <a href={file.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
                           {file.filename}
