@@ -179,6 +179,39 @@ export default async function IssueDetailPage({
                 {issue.sourceNotes}
               </p>
             )}
+            
+            {issue.screenshots.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Screenshots</h3>
+                <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3" role="list">
+                  {issue.screenshots.map((s) => (
+                    <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" role="listitem" className="group overflow-hidden rounded-lg bg-background/80">
+                      <img src={s.url} alt={`Screenshot: ${s.filename}`} className="h-24 w-full object-cover transition-transform duration-200 group-hover:scale-105" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {issue.attachments.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Associated files</h3>
+                <ul className="mt-2 space-y-2 text-sm">
+                  {issue.attachments.map((file) => (
+                    <li key={file.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-background px-3 py-2">
+                      <div>
+                        <a href={file.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                          {file.filename}
+                        </a>
+                        <p className="break-words text-xs text-muted-foreground">
+                          {file.mimeType} • {(file.sizeBytes / 1024).toFixed(1)} KB • Uploaded by {file.uploader.name || file.uploader.email}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </section>
 
           <aside className="rounded-xl bg-muted/20 p-3 md:p-4">
@@ -239,58 +272,6 @@ export default async function IssueDetailPage({
           label: u.name || u.email,
         }))}
       />
-
-      {(issue.screenshots.length > 0 || issue.attachments.length > 0) && (
-        <section aria-labelledby="evidence-heading" className="space-y-3">
-          <h2 id="evidence-heading" className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Evidence
-          </h2>
-          <div className="grid gap-4 xl:grid-cols-2">
-          {issue.screenshots.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Screenshots</CardTitle>
-                <CardDescription>Visual proof attached to this issue.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" role="list">
-                  {issue.screenshots.map((s) => (
-                    <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" role="listitem" className="group overflow-hidden rounded-lg bg-background/80">
-                      <img src={s.url} alt={`Screenshot: ${s.filename}`} className="h-28 w-full object-cover transition-transform duration-200 group-hover:scale-105" />
-                    </a>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {issue.attachments.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Associated files</CardTitle>
-                <CardDescription>Reference files and uploads for this issue.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm">
-                  {issue.attachments.map((file) => (
-                    <li key={file.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-background px-3 py-2.5">
-                      <div>
-                        <a href={file.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
-                          {file.filename}
-                        </a>
-                        <p className="break-words text-xs text-muted-foreground">
-                          {file.mimeType} • {(file.sizeBytes / 1024).toFixed(1)} KB • Uploaded by {file.uploader.name || file.uploader.email}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-          </div>
-        </section>
-      )}
 
       <section className="mt-4" aria-labelledby="comments-heading">
         <CommentThread issueId={issue.id} comments={issue.comments} />
