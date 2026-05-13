@@ -61,41 +61,50 @@ export function IssueActions({
 
   return (
     <section id="edit-section" className="space-y-4" aria-label="Issue actions">
-      <div className="flex flex-wrap items-center gap-2">
-        {canEdit ? (
-          <Button
-            type="button"
-            variant={open ? "secondary" : "outline"}
-            onClick={() => setOpen((v) => !v)}>
-            {open ? "Close editor" : "Update issue"}
-          </Button>
-        ) : null}
-        {canDelete ? (
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={pending}
-            onClick={() => {
-              if (
-                !confirm(
-                  "Delete this issue and all related data? This cannot be undone.",
-                )
-              ) {
-                return;
-              }
-              startTransition(() => {
-                deleteIssue(issueId);
-              });
-            }}>
-            Delete issue
-          </Button>
-        ) : null}
+      <div className="rounded-xl border border-border/70 bg-card/80 p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="mr-2 text-xs uppercase tracking-[0.14em] text-muted-foreground">
+            Issue actions
+          </p>
+          {canEdit ? (
+            <Button
+              type="button"
+              variant={open ? "secondary" : "outline"}
+              onClick={() => setOpen((v) => !v)}>
+              {open ? "Close editor" : "Update issue"}
+            </Button>
+          ) : null}
+          {canDelete ? (
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={pending}
+              className="sm:ml-auto"
+              onClick={() => {
+                if (
+                  !confirm(
+                    "Delete this issue and all related data? This cannot be undone.",
+                  )
+                ) {
+                  return;
+                }
+                startTransition(() => {
+                  deleteIssue(issueId);
+                });
+              }}>
+              Delete issue
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {canEdit && open ? (
         <Card className="overflow-hidden">
           <CardHeader className="border-b border-border/60 bg-muted/20">
             <CardTitle className="text-lg">Update issue</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Refine issue details, update workflow fields, then save changes.
+            </p>
           </CardHeader>
           <CardContent>
             <form
@@ -130,6 +139,9 @@ export function IssueActions({
                 </div>
 
                 <div className="space-y-4 rounded-xl border border-border/70 bg-muted/20 p-3 md:p-4">
+                  <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                    Workflow and metadata
+                  </p>
                   <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-1">
                     <div className="space-y-1.5">
                       <Label htmlFor="edit-type">Type</Label>
@@ -241,6 +253,9 @@ export function IssueActions({
                   onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
+                <p className="text-xs text-muted-foreground sm:ml-auto">
+                  Saved updates appear immediately on this page.
+                </p>
               </div>
             </form>
           </CardContent>
