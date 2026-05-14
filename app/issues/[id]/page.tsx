@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CommentThread } from "@/components/issue/CommentThread";
 import { IssueActions } from "@/components/issue/IssueActions";
+import { IssueEvidenceList } from "@/components/issue/IssueEvidenceList";
 import { StatusQuickActions } from "@/app/issues/StatusQuickActions";
 import { Button } from "@/components/ui/button";
 import {
@@ -186,27 +187,7 @@ export default async function IssueDetailPage({
               </div>
             )}
             
-            {(issue.screenshots.length > 0 || issue.attachments.length > 0) && (
-              <div className="pt-2 border-t border-border/50">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground mb-3">Evidence attached</p>
-                <div className="flex flex-wrap gap-2" role="list">
-                  {issue.screenshots.map((s) => (
-                    <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" role="listitem" className="group relative overflow-hidden rounded-md border border-border/50 bg-gradient-to-br from-slate-100 to-slate-50 hover:border-border hover:shadow-sm transition-all">
-                      <img src={s.url} alt={`Screenshot: ${s.filename}`} className="h-20 w-20 object-cover transition-transform duration-200 group-hover:scale-110" />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                        <svg className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4m-4-4l-8 8" /></svg>
-                      </div>
-                    </a>
-                  ))}
-                  {issue.attachments.map((file) => (
-                    <a key={file.id} href={file.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md border border-border/50 bg-gradient-to-br from-slate-100 to-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition-all group">
-                      <svg className="h-3.5 w-3.5 text-slate-600 group-hover:text-slate-800" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0113 2.586V4h2.828a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 011 1v6H6v-6z"/></svg>
-                      <span className="truncate max-w-[120px]">{file.filename}</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+            <IssueEvidenceList screenshots={issue.screenshots} attachments={issue.attachments} />
           </section>
 
           <aside className="rounded-xl bg-muted/20 p-3 md:p-4">
