@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:16-alpine
@@ -34,7 +36,10 @@ services:
       AUTH_SECRET: change-me-to-a-long-random-secret
       BLOB_READ_WRITE_TOKEN: ""
     ports:
-      - "3000:3000"
+      - "3004:3000"
+    volumes:
+      - issue-tracker-uploads:/app/public/uploads
 
 volumes:
   issue-tracker-db-data:
+  issue-tracker-uploads:
