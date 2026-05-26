@@ -7,16 +7,7 @@
  * (set the env vars in your shell first)
  */
 import "dotenv/config";
-
-function normalizeDatabaseUrl() {
-  const u = process.env.DATABASE_URL;
-  if (!u) {
-    throw new Error("DATABASE_URL is not set. Check your .env file.");
-  }
-  if (u.includes("channel_binding=require")) {
-    process.env.DATABASE_URL = u.replace("&channel_binding=require", "");
-  }
-}
+import { applyDatabaseUrlNormalization } from "@/lib/database-url";
 
 async function main() {
   const EMAIL = process.env.ADMIN_EMAIL?.trim().toLowerCase();
@@ -29,7 +20,7 @@ async function main() {
     );
   }
 
-  normalizeDatabaseUrl();
+  applyDatabaseUrlNormalization();
 
   const { default: prisma } = await import("@/lib/prisma");
   const { auth } = await import("@/lib/auth");
