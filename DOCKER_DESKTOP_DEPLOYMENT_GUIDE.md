@@ -84,7 +84,8 @@ Before deploying this app in Docker Desktop, make sure you have:
 
 This project uses:
 
-- Next.js 15
+- Next.js 15 for the frontend
+- Hono for the API server
 - Prisma 7
 - PostgreSQL
 - Better Auth
@@ -93,7 +94,7 @@ So you will need a database connection string and auth secrets.
 
 ## 6. Important Notes For This Project
 
-This repository now includes a Dockerfile, Docker Compose file, and `.dockerignore`.
+This repository now includes a Dockerfile and Docker Compose file.
 
 The steps below show:
 
@@ -199,6 +200,12 @@ Start the app:
 docker run --rm -p 3000:3000 --env-file .env issue-tracker-webapp
 ```
 
+If you want to run just the API server during local development, use:
+
+```bash
+npm run server:dev
+```
+
 ### Step 9: Run App And Database Together With Docker Compose
 
 If you want the app and PostgreSQL together on your machine, use:
@@ -210,7 +217,8 @@ docker compose up --build
 This starts:
 
 - `db` on port `5432`
-- `web` on port `3000`
+ - `web` on port `3000`
+ - `api` on port `4000`
 
 ### Step 10: Create A Local `.env`
 
@@ -274,11 +282,19 @@ Use it to confirm the app and database are responding:
 curl http://localhost:3000/api/health
 ```
 
+The Hono API server also exposes a health endpoint locally:
+
+```bash
+curl http://localhost:4000/api/health
+```
+
 For local monitoring, keep an eye on:
 
 - container restart count
 - `docker compose logs -f web`
-- `docker compose logs -f db`
+ - `docker compose logs -f web`
+ - `docker compose logs -f api`
+ - `docker compose logs -f db`
 - the health endpoint returning `status: ok`
 
 ### Step 14: Deploy Checklist
