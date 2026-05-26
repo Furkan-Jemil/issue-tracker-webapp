@@ -35,10 +35,34 @@ services:
       BETTER_AUTH_SECRET: change-me-to-a-long-random-secret
       AUTH_SECRET: change-me-to-a-long-random-secret
       BLOB_READ_WRITE_TOKEN: ""
+      SKIP_DB_PUSH: "false"
     ports:
-      - "3004:3000"
+      - "3000:3000"
     volumes:
       - issue-tracker-uploads:/app/public/uploads
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: issue-tracker-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npm", "run", "server:start"]
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://issue_tracker:issue_tracker@db:5432/issue_tracker?schema=public
+      BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_SECRET: change-me-to-a-long-random-secret
+      AUTH_SECRET: change-me-to-a-long-random-secret
+      BLOB_READ_WRITE_TOKEN: ""
+      SKIP_DB_PUSH: "true"
+      WAIT_FOR_DB: "true"
+    ports:
+      - "4000:4000"
 
 volumes:
   issue-tracker-db-data:
