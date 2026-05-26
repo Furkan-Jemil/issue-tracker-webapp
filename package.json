@@ -1,8 +1,12 @@
 {
   "dependencies": {
+    "@better-auth/core": "^1.6.11",
+    "@better-auth/sso": "^1.6.11",
     "@better-auth/infra": "^0.1.13",
     "@casl/ability": "^6.8.0",
     "@casl/react": "^5.0.1",
+    "@hono/node-server": "^2.0.4",
+    "@opentelemetry/api": "^1.9.0",
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
     "@radix-ui/react-label": "^2.1.7",
@@ -19,6 +23,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.3.1",
+    "hono": "^4.12.23",
     "lucide-react": "^0.577.0",
     "next": "15.5.16",
     "next-auth": "^4.24.13",
@@ -37,7 +42,11 @@
     "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "server:dev": "tsx server/index.ts",
+    "server:start": "tsx server/index.ts",
     "test": "tsx --test tests/*.test.ts",
+    "test:auth-smoke": "tsx --test tests/http-auth-smoke.test.ts",
+    "db:check": "tsx scripts/check-db.ts",
     "db:push": "prisma db push",
     "start": "NODE_OPTIONS=--max-old-space-size=512 next start",
     "create-admin": "tsx scripts/create-admin-user.ts"
@@ -46,14 +55,20 @@
     "node": "22.x",
     "npm": "10.x"
   },
-  
   "devDependencies": {
     "@types/node": "25.5.0",
     "@types/pg": "^8.20.0",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "19.2.3",
     "playwright": "^1.59.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "zeptomatch": "^2.1.0"
+  },
+  "installConfig": {
+    "legacy-peer-deps": true
+  },
+  "overrides": {
+    "@better-auth/utils": "0.4.0"
   }
 }
