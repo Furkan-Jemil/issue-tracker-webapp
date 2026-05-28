@@ -1,0 +1,40 @@
+name: Docker Compose Smoke Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build and start services
+        run: |
+          docker compose up --build -d
+
+      - name: Wait for services to become healthy
+        run: |
+          for i in {1..60}; do
+            if curl -sSf http://localhost:4000/api/health >/dev/null 2>&1 && curl -sSf http://localhost:3000/api/health >/dev/null 2>&1; then
+              echo "services healthy"; break
+            fi
+            echo "waiting for services... ($i)"; sleep 2
+          done
+
+      - name: Run auth HTTP smoke test
+        run: npm run test:auth-smoke
+
+      - name: Teardown
+        if: always()
+        run: |
+          docker compose down -v
