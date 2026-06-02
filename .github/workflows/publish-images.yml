@@ -33,9 +33,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/issue-tracker-webapp:web:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/issue-tracker-webapp:web:latest
+          tags: ghcr.io/${{ github.repository_owner }}/issue-tracker-webapp-web:${{ github.sha }},ghcr.io/${{ github.repository_owner }}/issue-tracker-webapp-web:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -45,10 +43,6 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          build-args: |
-            SERVER_ONLY=true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/issue-tracker-webapp:api:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/issue-tracker-webapp:api:latest
+          tags: ghcr.io/${{ github.repository_owner }}/issue-tracker-webapp-api:${{ github.sha }},ghcr.io/${{ github.repository_owner }}/issue-tracker-webapp-api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
