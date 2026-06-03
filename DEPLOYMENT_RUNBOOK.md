@@ -9,7 +9,7 @@ Goals:
 - Provide clear rollback steps for database and application failures
 
 1) Prerequisites
-- CI publishes images to GHCR: `ghcr.io/<org>/issue-tracker-webapp:web:TAG` and `:api:TAG`.
+- CI publishes images to GHCR: `ghcr.io/<org>/issue-tracker-webapp-web:TAG` and `ghcr.io/<org>/issue-tracker-webapp-api:TAG`.
 - SSH access or container orchestrator (Kubernetes, Docker host) for deploy targets.
 - Stored secrets: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `AUTH_SECRET`, blob tokens.
 - Backups: scheduled PostgreSQL backups (dump or managed provider snapshots).
@@ -27,8 +27,8 @@ Goals:
 4) Docker Compose quick deploy (simple hosts)
 - Pull published images on target host and restart compose stack:
 ```bash
-docker pull ghcr.io/ORG/issue-tracker-webapp:web:TAG
-docker pull ghcr.io/ORG/issue-tracker-webapp:api:TAG
+docker pull ghcr.io/ORG/issue-tracker-webapp-web:TAG
+docker pull ghcr.io/ORG/issue-tracker-webapp-api:TAG
 docker compose -f /path/to/docker-compose.yml pull
 docker compose -f /path/to/docker-compose.yml up -d
 ```
