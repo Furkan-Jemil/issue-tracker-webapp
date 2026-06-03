@@ -45,7 +45,7 @@ export async function authHandler(c: Context): Promise<Response> {
       let storedPassword: string | null = user?.password ?? null
       if (!storedPassword && user?.id) {
         const acct = await prisma.account.findFirst({
-          where: { userId: user.id, providerId: 'email' },
+          where: { userId: user.id, providerId: { in: ['credential', 'email'] } },
           select: { password: true },
         })
         storedPassword = acct?.password ?? null
@@ -71,9 +71,19 @@ export async function authHandler(c: Context): Promise<Response> {
         data: { userId: user.id, token: sessionToken, expiresAt },
       })
 
+      const cookieParts = [
+        `better-auth.session_token=${sessionToken}`,
+        'Path=/',
+        'HttpOnly',
+        'SameSite=Lax',
+      ]
+      if (process.env.NODE_ENV === 'production') {
+        cookieParts.push('Secure')
+      }
+
       return new Response(JSON.stringify({ redirect: false, token: sessionToken, user: { id: user.id, email: user.email, name: user.name, role: user.role } }), {
         status: 200,
-        headers: { 'content-type': 'application/json', 'set-cookie': `better-auth.session_token=${sessionToken}; Path=/; HttpOnly; SameSite=Lax` },
+        headers: { 'content-type': 'application/json', 'set-cookie': cookieParts.join('; ') },
       })
     }
 
