@@ -20,6 +20,7 @@ services:
       retries: 10
 
   web:
+    image: ghcr.io/${GHCR_OWNER:-furkan-jemil}/issue-tracker-webapp-web:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -42,6 +43,7 @@ services:
       - issue-tracker-uploads:/app/public/uploads
 
   api:
+    image: ghcr.io/${GHCR_OWNER:-furkan-jemil}/issue-tracker-webapp-api:latest
     build:
       context: .
       dockerfile: Dockerfile
