@@ -127,8 +127,8 @@ This repository publishes Docker images to GitHub Container Registry on pushes t
 Pull example:
 
 ```bash
-docker pull ghcr.io/Furkan-Jemil/issue-tracker-webapp:web:latest
-docker pull ghcr.io/Furkan-Jemil/issue-tracker-webapp:api:latest
+docker pull ghcr.io/Furkan-Jemil/issue-tracker-webapp-web:latest
+docker pull ghcr.io/Furkan-Jemil/issue-tracker-webapp-api:latest
 ```
 
 ## Automated Deploy (CI)
