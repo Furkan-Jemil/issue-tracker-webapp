@@ -20,6 +20,7 @@ jobs:
           port: ${{ secrets.DEPLOY_PORT }}
           script: |
             set -e
+            export GHCR_OWNER='${{ github.repository_owner }}'
             cd ${DEPLOY_PATH:-$HOME}
             echo "Pulling images and restarting compose stack"
             docker compose pull
