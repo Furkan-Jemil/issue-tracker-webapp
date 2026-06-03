@@ -7,6 +7,7 @@
  * (set the env vars in your shell first)
  */
 import "dotenv/config";
+import bcrypt from "bcryptjs";
 import { applyDatabaseUrlNormalization } from "@/lib/database-url";
 
 async function main() {
@@ -23,7 +24,7 @@ async function main() {
   applyDatabaseUrlNormalization();
 
   const { default: prisma } = await import("@/lib/prisma");
-  const { auth } = await import("@/lib/auth");
+  const passwordHash = await bcrypt.hash(PASSWORD, 10);
 
   const existing = await prisma.user.findUnique({
     where: { email: EMAIL },
@@ -32,35 +33,48 @@ async function main() {
   if (existing) {
     await prisma.user.update({
       where: { id: existing.id },
-      data: { role: "ADMIN" },
+      data: { role: "ADMIN", password: passwordHash },
     });
+    const existingAccount = await prisma.account.findFirst({
+      where: { userId: existing.id, providerId: { in: ["credential", "email"] } },
+    });
+    if (existingAccount) {
+      await prisma.account.update({
+        where: { id: existingAccount.id },
+        data: { password: passwordHash, providerId: existingAccount.providerId || "credential", accountId: existingAccount.accountId || existing.id },
+      });
+    } else {
+      await prisma.account.create({
+        data: {
+          userId: existing.id,
+          accountId: existing.id,
+          providerId: "credential",
+          password: passwordHash,
+        },
+      });
+    }
     console.log(`User already exists: ${EMAIL}`);
     console.log("Role updated to ADMIN. Sign in with your existing password.");
     await prisma.$disconnect();
     return;
   }
 
-  const res = await auth.api.signUpEmail({
-    body: {
+  const user = await prisma.user.create({
+    data: {
       name: DISPLAY_NAME,
       email: EMAIL,
-      password: PASSWORD,
+      password: passwordHash,
+      role: "ADMIN",
     },
   });
 
-  const userId =
-    res && typeof res === "object" && "user" in res && res.user
-      ? (res.user as { id: string }).id
-      : null;
-
-  if (!userId) {
-    console.error("signUpEmail response:", res);
-    throw new Error("signUpEmail did not return a user id");
-  }
-
-  await prisma.user.update({
-    where: { id: userId },
-    data: { role: "ADMIN" },
+  await prisma.account.create({
+    data: {
+      userId: user.id,
+      accountId: user.id,
+      providerId: "credential",
+      password: passwordHash,
+    },
   });
 
   console.log("Admin user created successfully.");
