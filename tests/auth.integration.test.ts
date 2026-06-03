@@ -98,3 +98,46 @@ test('sign in -> get session (integration)', async () => {
     await prisma.$disconnect()
   }
 })
+
+test('sign in sets a Secure cookie in production', async () => {
+  const email = `itest-secure+${Date.now()}@example.com`
+  const password = 'TestPass123!'
+  const passwordHash = await bcrypt.hash(password, 10)
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      name: 'IT Secure Test',
+      password: passwordHash,
+      role: 'ADMIN',
+    },
+    select: { id: true },
+  })
+
+  const proc = spawn('./node_modules/.bin/tsx', ['server/index.ts'], {
+    stdio: 'inherit',
+    shell: false,
+    env: { ...process.env, PORT: String(PORT + 1), NODE_ENV: 'production' },
+  })
+
+  try {
+    await waitForPort(PORT + 1, '127.0.0.1', 15000)
+
+    const signinRes = await fetch(`http://127.0.0.1:${PORT + 1}/api/auth/sign-in/email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+      redirect: 'manual',
+    })
+
+    assert.equal(signinRes.ok, true)
+    const setCookie = signinRes.headers.get('set-cookie')
+    assert.ok(setCookie)
+    assert.match(setCookie!, /Secure/)
+  } finally {
+    proc.kill()
+    await prisma.session.deleteMany({ where: { userId: user.id } })
+    await prisma.user.delete({ where: { id: user.id } })
+    await prisma.$disconnect()
+  }
+})
