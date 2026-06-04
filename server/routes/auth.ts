@@ -12,13 +12,18 @@ export async function authHandler(c: Context): Promise<Response> {
     const url = c.req.url
     const method = c.req.method
     const parsed = new URL(url)
+    const normalizedPath = parsed.pathname
+      .replace('/api/auth/signin', '/api/auth/sign-in')
+      .replace('/api/auth/signup', '/api/auth/sign-up')
+      .replace('/api/auth/signout', '/api/auth/sign-out')
+      .replace('/api/auth/session', '/api/auth/get-session')
 
     // Direct Hono-handled endpoints for common auth flows. These provide a
     // deterministic Hono-native implementation while still falling back to the
     // Better Auth handler for other routes.
 
     // POST /api/auth/sign-in/email -> deterministic sign-in (Prisma + bcrypt)
-    if (method === 'POST' && parsed.pathname === '/api/auth/sign-in/email') {
+    if (method === 'POST' && normalizedPath === '/api/auth/sign-in/email') {
       let body: any = {}
       const contentType = c.req.header('content-type') || ''
       if (contentType.includes('application/json')) {
@@ -88,7 +93,7 @@ export async function authHandler(c: Context): Promise<Response> {
     }
 
     // POST /api/auth/sign-up/email -> use Better Auth API to register a user
-    if (method === 'POST' && parsed.pathname === '/api/auth/sign-up/email') {
+    if (method === 'POST' && normalizedPath === '/api/auth/sign-up/email') {
       const contentType = c.req.header('content-type') || ''
       let body: any = {}
       if (contentType.includes('application/json')) body = await c.req.json()
@@ -107,12 +112,52 @@ export async function authHandler(c: Context): Promise<Response> {
       return new Response(JSON.stringify(res), { status: 200, headers: { 'content-type': 'application/json' } })
     }
 
-    // GET /api/auth/get-session -> use Better Auth API getSession if available
-    if (method === 'GET' && parsed.pathname === '/api/auth/get-session') {
-      // Forward raw headers so Better Auth can read cookies
-      const headers = c.req.raw.headers as Headers
-      const session = await (auth as any).api.getSession({ headers } as any)
-      return new Response(JSON.stringify(session ?? null), { status: 200, headers: { 'content-type': 'application/json' } })
+    // GET /api/auth/get-session -> return the current user from the session cookie.
+    if (method === 'GET' && normalizedPath === '/api/auth/get-session') {
+      const cookieHeader = c.req.header('cookie') || ''
+      const cookies = cookieHeader.split(';').map((s) => s.trim())
+      const tokenCookie = cookies.find((v) => v.startsWith('better-auth.session_token='))
+      if (!tokenCookie) return new Response(JSON.stringify(null), { status: 200, headers: { 'content-type': 'application/json' } })
+
+      const token = tokenCookie.split('=')[1]
+      const session = await prisma.session.findUnique({ where: { token }, select: { userId: true, expiresAt: true } })
+      if (!session) return new Response(JSON.stringify(null), { status: 200, headers: { 'content-type': 'application/json' } })
+      if (session.expiresAt.getTime() < Date.now()) return new Response(JSON.stringify(null), { status: 200, headers: { 'content-type': 'application/json' } })
+
+      const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { id: true, email: true, name: true, role: true } })
+      if (!user) return new Response(JSON.stringify(null), { status: 200, headers: { 'content-type': 'application/json' } })
+
+      return new Response(JSON.stringify({ user }), { status: 200, headers: { 'content-type': 'application/json' } })
+    }
+
+    if (method === 'POST' && normalizedPath === '/api/auth/sign-out') {
+      const cookieHeader = c.req.header('cookie') || ''
+      const cookies = cookieHeader.split(';').map((s) => s.trim())
+      const tokenCookie = cookies.find((v) => v.startsWith('better-auth.session_token='))
+
+      if (tokenCookie) {
+        const token = tokenCookie.split('=')[1]
+        await prisma.session.deleteMany({ where: { token } })
+      }
+
+      const expiresCookie = [
+        'better-auth.session_token=',
+        'Path=/',
+        'HttpOnly',
+        'SameSite=Lax',
+        'Max-Age=0',
+      ]
+      if (process.env.NODE_ENV === 'production') {
+        expiresCookie.push('Secure')
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+          'set-cookie': expiresCookie.join('; '),
+        },
+      })
     }
 
     const handler = 'handler' in auth ? (auth as any).handler : auth as any

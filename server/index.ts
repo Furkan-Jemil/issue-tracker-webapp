@@ -35,25 +35,6 @@ app.get('/api/db-check', rateLimitMiddleware('db-check', 60, 60_000), async (c) 
 
 // Auth routes are handled centrally by `server/routes/auth.ts` via `authHandler`.
 
-app.get('/api/auth/get-session', async (c) => {
-  try {
-    const cookieHeader = c.req.header('cookie') || ''
-    const cookies = cookieHeader.split(';').map((s) => s.trim())
-    const tokenCookie = cookies.find((v) => v.startsWith('better-auth.session_token='))
-    if (!tokenCookie) return c.json(null)
-    const token = tokenCookie.split('=')[1]
-    const session = await prisma.session.findUnique({ where: { token }, select: { userId: true, expiresAt: true } })
-    if (!session) return c.json(null)
-    if (session.expiresAt.getTime() < Date.now()) return c.json(null)
-    const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { id: true, email: true, name: true, role: true } })
-    if (!user) return c.json(null)
-    return c.json({ user })
-  } catch (err) {
-    console.error('get-session error', err)
-    return c.json(null, { status: 500 })
-  }
-})
-
 app.all('/api/auth', async (c) => authHandler(c))
 app.all('/api/auth/*', async (c) => authHandler(c))
 
