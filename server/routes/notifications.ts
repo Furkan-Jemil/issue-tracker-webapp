@@ -5,7 +5,7 @@ import { getServerSession } from '../lib/session'
 
 export async function getNotifications(c: Context) {
   try {
-    const session = await getServerSession(c.req.raw.headers)
+    const session = (c as any).session || await getServerSession(c.req.raw.headers)
     if (!session?.user) return c.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { searchParams } = new URL(c.req.url)
@@ -23,7 +23,7 @@ export async function getNotifications(c: Context) {
 
 export async function patchNotifications(c: Context) {
   try {
-    const session = await getServerSession(c.req.raw.headers)
+    const session = (c as any).session || await getServerSession(c.req.raw.headers)
     if (!session?.user) return c.json({ error: 'Unauthorized' }, { status: 401 })
 
     const rate = checkRateLimit('notifications:patch-all', session.user.id, 30, 60_000)
@@ -40,7 +40,7 @@ export async function patchNotifications(c: Context) {
 
 export async function getUnreadNotifications(c: Context) {
   try {
-    const session = await getServerSession(c.req.raw.headers)
+    const session = (c as any).session || await getServerSession(c.req.raw.headers)
     if (!session?.user) return c.json({ error: 'Unauthorized' }, { status: 401 })
 
     const count = await prisma.notification.count({
@@ -61,7 +61,7 @@ export async function getNotificationById(c: Context) {
       return c.json({ error: 'Invalid notification id' }, { status: 400 })
     }
 
-    const session = await getServerSession(c.req.raw.headers)
+    const session = (c as any).session || await getServerSession(c.req.raw.headers)
     if (!session?.user) return c.json({ error: 'Unauthorized' }, { status: 401 })
 
     const notification = await prisma.notification.findUnique({
@@ -133,7 +133,7 @@ export async function patchNotificationById(c: Context) {
       return c.json({ error: 'Invalid notification id' }, { status: 400 })
     }
 
-    const session = await getServerSession(c.req.raw.headers)
+    const session = (c as any).session || await getServerSession(c.req.raw.headers)
     if (!session?.user) return c.json({ error: 'Unauthorized' }, { status: 401 })
 
     const rate = checkRateLimit('notifications:patch-one', session.user.id, 60, 60_000)
