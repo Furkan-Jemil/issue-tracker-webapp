@@ -1,8 +1,8 @@
 {
   "dependencies": {
     "@better-auth/core": "^1.6.12",
-    "@better-auth/sso": "^1.6.12",
     "@better-auth/infra": "^0.1.14",
+    "@better-auth/sso": "^1.6.12",
     "@casl/ability": "^6.8.0",
     "@casl/react": "^5.0.1",
     "@hono/node-server": "^2.0.4",
@@ -46,6 +46,7 @@
     "server:start": "tsx server/index.ts",
     "test": "tsx --test tests/*.test.ts",
     "test:auth-smoke": "tsx --test tests/http-auth-smoke.test.ts",
+    "test:e2e": "playwright test",
     "db:check": "tsx scripts/check-db.ts",
     "db:push": "prisma db push",
     "start": "NODE_OPTIONS=--max-old-space-size=512 next start",
@@ -56,6 +57,7 @@
     "npm": "10.x"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/node": "25.5.0",
     "@types/pg": "^8.20.0",
     "@types/react": "^19.2.0",
