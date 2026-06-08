@@ -3,7 +3,7 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import { put } from '@vercel/blob'
 import prisma from '../../lib/prisma'
-import { auth } from '../../lib/auth'
+import { getServerSession } from '../lib/session'
 import {
   ALLOWED_ATTACHMENT_MIME_TYPES,
   ALLOWED_SCREENSHOT_MIME_TYPES,
@@ -149,17 +149,10 @@ async function persistUploadedFile(options: {
   return { url: toDataUrl(mimeType, buffer) }
 }
 
-export async function uploadHandler(req: any): Promise<Response> {
+export async function uploadHandler(c: any): Promise<Response> {
   try {
-    // Resolve session using better-auth API
-    let session: any = null
-    try {
-      if (auth && auth.api && typeof auth.api.getSession === 'function') {
-        session = await auth.api.getSession({ headers: req.headers } as any)
-      }
-    } catch (e) {
-      console.warn('Failed to resolve session', e)
-    }
+    // Resolve session using the server session helper
+    const session = await getServerSession(c.req.raw.headers)
 
     if (!session?.user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } })
@@ -170,7 +163,7 @@ export async function uploadHandler(req: any): Promise<Response> {
     // We'll implement a simple check using a global map on the server process
     // (reuse same logic as server/middleware/rateLimit is possible but keep simple here)
 
-    const formData = await (req as any).formData()
+    const formData = await c.req.formData()
     const files = formData.getAll('screenshots')
     const attachmentFiles = formData.getAll('attachments')
 
