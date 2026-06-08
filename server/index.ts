@@ -1,3 +1,4 @@
+import './env-setup'
 import 'dotenv/config'
 
 import { serve } from '@hono/node-server'
@@ -60,9 +61,10 @@ app.get('/api/notifications/unread', async (c) => notificationsRoutes.getUnreadN
 app.get('/api/notifications/:id', async (c) => notificationsRoutes.getNotificationById(c))
 app.patch('/api/notifications/:id', async (c) => notificationsRoutes.patchNotificationById(c))
 
-app.post('/api/upload', async (c) => uploadHandler(c.req as any))
+app.post('/api/upload', async (c) => uploadHandler(c))
 
 const port = Number(process.env.PORT || 4000)
-serve({ fetch: app.fetch, port })
+const server = serve({ fetch: app.fetch, port })
 
+export { server }
 export default app
