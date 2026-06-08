@@ -6,7 +6,7 @@ import { getServerSession } from '../lib/session'
 
 export async function getDashboardStats(c: Context) {
   try {
-    const session = await getServerSession(c.req.raw.headers)
+    const session = (c as any).session || await getServerSession(c.req.raw.headers)
     if (!session?.user) return c.json({ error: 'Unauthorized' }, 401)
     const isAdmin = session.user.role === 'ADMIN'
 
