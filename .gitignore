@@ -11,6 +11,9 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+public/uploads/
+ADVISOR_PRESENTATION_GUIDE.md
+scripts/check-sessions.ts
 
 # testing
 /coverage
@@ -40,6 +43,13 @@ playwright-report/
 /PHASE13_CLOSEOUT.md
 /PHASE14_CLOSEOUT.md
 /PHASE7_CLOSEOUT.md
+/NEXT_PHASES.md
+/PHASE10_CONTAINERIZATION_AND_DEPLOYMENT.md
+/PHASE11_ROLLOUT_MONITORING_ROLLBACK.md
+/PHASE12_DOCS_AND_DEVELOPER_RUN_INSTRUCTIONS.md
+/PHASE4_AUTH_MIGRATION_COMPLETION.md
+/PHASE7_MIDDLEWARE_HARDENING.md
+/PHASE9_TESTS_AND_E2E_VERIFICATION.md
 /Dockerfile
 /nano Dockerfile
 
