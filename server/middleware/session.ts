@@ -5,7 +5,10 @@ const PUBLIC_PATHS = new Set(['/health', '/api/health', '/api/db-check'])
 
 export async function sessionMiddleware(c: Context, next: () => Promise<void>) {
   try {
-    if (!PUBLIC_PATHS.has(new URL(c.req.url).pathname)) {
+    const pathname = new URL(c.req.url).pathname
+    const isPublic = PUBLIC_PATHS.has(pathname) || pathname === '/api/auth' || pathname.startsWith('/api/auth/')
+
+    if (!isPublic) {
       const session = await getServerSession(c.req.raw.headers)
       ;(c as any).session = session
     }
