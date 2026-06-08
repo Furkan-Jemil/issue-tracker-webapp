@@ -13,7 +13,7 @@ function formatRole(role: string): string {
 
 export async function postComment(c: Context) {
   try {
-    const session = await getServerSession(c.req.raw.headers)
+    const session = (c as any).session || await getServerSession(c.req.raw.headers)
     if (!session?.user) return c.json({ error: 'Unauthorized' }, { status: 401 })
 
     const rate = checkRateLimit('comments:post', session.user.id, 20, 60_000)
