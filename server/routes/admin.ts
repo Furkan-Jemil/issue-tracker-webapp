@@ -7,7 +7,7 @@ import { getServerSession } from '../lib/session'
 
 export async function getUsers(c: Context) {
   try {
-    const session = await getServerSession(c.req.raw.headers)
+    const session = (c as any).session || await getServerSession(c.req.raw.headers)
     if (!session?.user || session.user.role !== 'ADMIN') {
       return c.json({ users: [] }, { status: 403 })
     }
@@ -52,7 +52,7 @@ export async function getUsers(c: Context) {
 
 export async function postBulkRole(c: Context) {
   try {
-    const session = await getServerSession(c.req.raw.headers)
+    const session = (c as any).session || await getServerSession(c.req.raw.headers)
     if (!session?.user || session.user.role !== 'ADMIN') {
       return c.json({ error: 'Forbidden' }, { status: 403 })
     }
