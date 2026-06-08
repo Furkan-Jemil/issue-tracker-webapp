@@ -42,11 +42,13 @@ async function signInWithPassword(formData: FormData) {
       headers: await headers(),
       asResponse: true,
     });
-  } catch {
+  } catch (err) {
+    console.error("signInEmail error:", err);
     redirect("/login?error=invalid-credentials");
   }
 
   if (!response.ok) {
+    console.error("signInEmail response not OK:", response.status, await response.text());
     redirect("/login?error=invalid-credentials");
   }
 

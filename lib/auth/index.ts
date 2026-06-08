@@ -40,5 +40,8 @@ export const auth = betterAuth({
   secret:
     process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   trustedOrigins,
-  plugins: [...(dashPlugin ? [dashPlugin] : []), nextCookies()],
+  plugins: [
+    ...(dashPlugin ? [dashPlugin] : []),
+    ...(process.env.IS_HONO_SERVER !== 'true' ? [nextCookies()] : []),
+  ],
 });
