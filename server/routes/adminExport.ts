@@ -51,7 +51,7 @@ async function streamEntityArray<T extends { id: string }>(
 
 export async function getAdminExport(c: Context) {
   try {
-    const session = await getServerSession(c.req.raw.headers)
+    const session = (c as any).session || await getServerSession(c.req.raw.headers)
     if (!session?.user || session.user.role !== 'ADMIN') {
       return c.json({ error: 'Forbidden' }, { status: 403 })
     }
