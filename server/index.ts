@@ -2,18 +2,21 @@ import './env-setup'
 import 'dotenv/config'
 
 import { serve } from '@hono/node-server'
-import { randomUUID } from 'node:crypto'
-
 import { Hono } from 'hono'
-import { auth } from '../lib/auth'
-import prisma from '../lib/prisma'
-import bcrypt from 'bcryptjs'
-import { authHandler } from './routes/auth'
+import prisma from '../src/lib/prisma'
 import { rateLimitMiddleware } from './middleware/rateLimit'
 import { loggingMiddleware } from './middleware/logging'
 import { corsMiddleware } from './middleware/cors'
 import { sessionMiddleware } from './middleware/session'
-import { getHealth } from './routes/health'
+
+import healthApp from './routes/health'
+import authApp from './routes/auth'
+import adminApp from './routes/admin'
+import adminExportApp from './routes/admin-export'
+import commentsApp from './routes/comments'
+import dashboardApp from './routes/dashboard'
+import notificationsApp from './routes/notifications'
+import uploadApp from './routes/upload'
 
 const app = new Hono()
 
@@ -22,7 +25,6 @@ app.use('*', corsMiddleware())
 app.use('*', sessionMiddleware)
 
 app.get('/health', (c) => c.json({ ok: true }))
-app.get('/api/health', async (c) => getHealth(c))
 
 app.get('/api/db-check', rateLimitMiddleware('db-check', 60, 60_000), async (c) => {
   try {
@@ -34,37 +36,20 @@ app.get('/api/db-check', rateLimitMiddleware('db-check', 60, 60_000), async (c) 
   }
 })
 
-// Auth routes are handled centrally by `server/routes/auth.ts` via `authHandler`.
-
-app.all('/api/auth', async (c) => authHandler(c))
-app.all('/api/auth/*', async (c) => authHandler(c))
-
-// Mount placeholders for other API groups
-import * as adminRoutes from './routes/admin'
-import { getAdminExport } from './routes/adminExport'
-import * as commentsRoutes from './routes/comments'
-import * as dashboardRoutes from './routes/dashboard'
-import * as notificationsRoutes from './routes/notifications'
-import { uploadHandler } from './routes/upload'
-
-app.get('/api/admin/users', async (c) => adminRoutes.getUsers(c))
-app.post('/api/admin/users/bulk-role', async (c) => adminRoutes.postBulkRole(c))
-app.get('/api/admin/export', async (c) => getAdminExport(c))
-
-app.post('/api/comments', async (c) => commentsRoutes.postComment(c))
-
-app.get('/api/dashboard/stats', async (c) => dashboardRoutes.getDashboardStats(c))
-
-app.get('/api/notifications', async (c) => notificationsRoutes.getNotifications(c))
-app.patch('/api/notifications', async (c) => notificationsRoutes.patchNotifications(c))
-app.get('/api/notifications/unread', async (c) => notificationsRoutes.getUnreadNotifications(c))
-app.get('/api/notifications/:id', async (c) => notificationsRoutes.getNotificationById(c))
-app.patch('/api/notifications/:id', async (c) => notificationsRoutes.patchNotificationById(c))
-
-app.post('/api/upload', async (c) => uploadHandler(c))
+// Mount Hono Sub-Apps according to Best Practices and RPC method chaining
+const apiRoutes = app
+  .route('/api/health', healthApp)
+  .route('/api/auth', authApp)
+  .route('/api/admin', adminApp)
+  .route('/api/admin/export', adminExportApp)
+  .route('/api/comments', commentsApp)
+  .route('/api/dashboard', dashboardApp)
+  .route('/api/notifications', notificationsApp)
+  .route('/api/upload', uploadApp)
 
 const port = Number(process.env.PORT || 4000)
 const server = serve({ fetch: app.fetch, port })
 
+export type AppType = typeof apiRoutes
 export { server }
 export default app
