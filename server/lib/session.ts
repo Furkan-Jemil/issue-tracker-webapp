@@ -1,5 +1,5 @@
-import { auth } from '../../lib/auth'
-import prisma from '../../lib/prisma'
+import { auth } from '../../src/lib/auth'
+import prisma from '../../src/lib/prisma'
 import type { Role } from '@prisma/client'
 
 export type ServerUser = {
