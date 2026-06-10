@@ -1,9 +1,10 @@
+import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { randomUUID } from 'node:crypto'
 
 import bcrypt from 'bcryptjs'
-import prisma from '../../lib/prisma'
-import { auth } from '../../lib/auth'
-import type { Context } from 'hono'
+import prisma from '../../src/lib/prisma'
+import { auth } from '../../src/lib/auth'
 
 // authHandler accepts a Hono Context, converts it to a standard Fetch Request
 // for `better-auth`, then returns the handler's Response.
@@ -221,3 +222,10 @@ export async function authHandler(c: Context): Promise<Response> {
     return new Response(JSON.stringify(body), { status: 500, headers: { 'content-type': 'application/json' } })
   }
 }
+
+const app = new Hono()
+  .all('/', async (c) => authHandler(c))
+  .all('/*', async (c) => authHandler(c))
+
+export default app
+
