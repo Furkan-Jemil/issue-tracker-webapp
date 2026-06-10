@@ -6,6 +6,7 @@
     "@casl/ability": "^6.8.0",
     "@casl/react": "^5.0.1",
     "@hono/node-server": "^2.0.4",
+    "@hono/zod-validator": "^0.8.0",
     "@opentelemetry/api": "^1.9.0",
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
@@ -36,7 +37,9 @@
     "recharts": "^3.8.1",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^3.4.17",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.4.3",
+    "zod-prisma-types": "^3.3.11"
   },
   "scripts": {
     "postinstall": "prisma generate",
