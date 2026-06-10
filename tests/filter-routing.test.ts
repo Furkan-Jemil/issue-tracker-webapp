@@ -5,8 +5,8 @@ import {
   buildIssueFilterSearchParams,
   buildIssueListHref,
   clearIssueFiltersHref,
-} from "../lib/filterRouting";
-import { getPaginationMeta, getTotalPages } from "../lib/pagination";
+} from "../src/lib/filterRouting";
+import { getPaginationMeta, getTotalPages } from "../src/lib/pagination";
 
 test("buildIssueFilterSearchParams preserves active filters and resets page to 1", () => {
   const params = buildIssueFilterSearchParams({

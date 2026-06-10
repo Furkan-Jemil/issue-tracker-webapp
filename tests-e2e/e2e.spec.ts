@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { test, expect } from '@playwright/test'
-import prisma from '../lib/prisma'
-import { auth } from '../lib/auth'
+import prisma from '../src/lib/prisma'
+import { auth } from '../src/lib/auth'
 
 test.describe('E2E Authenticated Flow', () => {
   const email = 'playwright-admin@example.com'
@@ -58,9 +58,9 @@ test.describe('E2E Authenticated Flow', () => {
     await expect(page.locator('h1')).toContainText('Dashboard', { timeout: 15000 })
 
     // 2. Navigate to users table
-    await page.goto('/admin/users')
-    await expect(page).toHaveURL(/.*admin\/users/, { timeout: 30000 })
-    await expect(page.locator('h1')).toContainText('Users', { timeout: 15000 })
+    await page.goto('/members')
+    await expect(page).toHaveURL(/.*members/, { timeout: 30000 })
+    await expect(page.locator('h1')).toContainText('Members', { timeout: 15000 })
     
     // Assert our admin user is in the list
     await expect(page.locator('table')).toContainText('Playwright Admin', { timeout: 15000 })

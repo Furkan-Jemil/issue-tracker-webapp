@@ -7,7 +7,7 @@ process.env.IS_HONO_SERVER = 'true'
 import test, { after } from 'node:test'
 import assert from 'node:assert/strict'
 import bcrypt from 'bcryptjs'
-import prisma from '../lib/prisma'
+import prisma from '../src/lib/prisma'
 
 // Load app dynamically after process.env.PORT has been set to '0'
 async function getApp() {

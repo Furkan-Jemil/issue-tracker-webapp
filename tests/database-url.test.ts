@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { normalizeDatabaseUrl } from '../lib/database-url'
+import { normalizeDatabaseUrl } from '../src/lib/database-url'
 
 test('normalizeDatabaseUrl strips channel_binding=require from the URL', () => {
   assert.equal(

@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process'
 import net from 'node:net'
 import bcrypt from 'bcryptjs'
 
-import prisma from '../lib/prisma'
+import prisma from '../src/lib/prisma'
 
 const PORT = 4011
 
