@@ -50,7 +50,8 @@
     "db:check": "tsx scripts/check-db.ts",
     "db:push": "prisma db push",
     "start": "NODE_OPTIONS=--max-old-space-size=512 next start",
-    "create-admin": "tsx scripts/create-admin-user.ts"
+    "create-admin": "tsx scripts/create-admin-user.ts",
+    "seed:master": "tsx scripts/seed-everything.ts"
   },
   "engines": {
     "node": "22.x",
