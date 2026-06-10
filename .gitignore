@@ -50,8 +50,6 @@ playwright-report/
 /PHASE4_AUTH_MIGRATION_COMPLETION.md
 /PHASE7_MIDDLEWARE_HARDENING.md
 /PHASE9_TESTS_AND_E2E_VERIFICATION.md
-/Dockerfile
-/nano Dockerfile
 
 # env files (can opt-in for committing if needed)
 .env*
