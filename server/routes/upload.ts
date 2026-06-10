@@ -1,8 +1,9 @@
+import { Hono } from 'hono'
 import { randomUUID } from 'crypto'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { put } from '@vercel/blob'
-import prisma from '../../lib/prisma'
+import prisma from '../../src/lib/prisma'
 import { getServerSession } from '../lib/session'
 import {
   ALLOWED_ATTACHMENT_MIME_TYPES,
@@ -11,7 +12,7 @@ import {
   MAX_ATTACHMENT_SIZE_BYTES,
   MAX_SCREENSHOT_COUNT,
   MAX_SCREENSHOT_SIZE_BYTES,
-} from '../../lib/issueValidation'
+} from '../../src/lib/issueValidation'
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads')
 const MAX_FILE_SIZE = MAX_SCREENSHOT_SIZE_BYTES
@@ -149,128 +150,126 @@ async function persistUploadedFile(options: {
   return { url: toDataUrl(mimeType, buffer) }
 }
 
-export async function uploadHandler(c: any): Promise<Response> {
-  try {
-    // Resolve session using the server session helper
-    const session = await getServerSession(c.req.raw.headers)
+const app = new Hono()
+  .post('/', async (c) => {
+    try {
+      // Resolve session using the server session helper
+      const session = await getServerSession(c.req.raw.headers)
 
-    if (!session?.user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } })
+      if (!session?.user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } })
+      }
+
+      const formData = await c.req.formData()
+      const files = formData.getAll('screenshots')
+      const attachmentFiles = formData.getAll('attachments')
+
+      if (files.length > MAX_FILE_COUNT) {
+        return new Response(JSON.stringify({ error: `Maximum ${MAX_FILE_COUNT} files allowed` }), { status: 400, headers: { 'content-type': 'application/json' } })
+      }
+      if (attachmentFiles.length > MAX_ATTACHMENT_FILE_COUNT) {
+        return new Response(JSON.stringify({ error: `Maximum ${MAX_ATTACHMENT_FILE_COUNT} attachments allowed` }), { status: 400, headers: { 'content-type': 'application/json' } })
+      }
+
+      const savedFiles: { url: string; filename: string; mimeType: string; sizeBytes: number }[] = []
+      const rejectedFiles: { filename: string; reason: string }[] = []
+      const savedAttachments: { url: string; filename: string; mimeType: string; sizeBytes: number }[] = []
+      const rejectedAttachments: { filename: string; reason: string }[] = []
+
+      for (const rawFile of files) {
+        if (!(rawFile instanceof File)) {
+          rejectedFiles.push({ filename: 'unknown', reason: 'Invalid file payload' })
+          continue
+        }
+
+        const originalName = rawFile.name || 'unnamed'
+
+        if (!rawFile.name || rawFile.name.length > 255) {
+          rejectedFiles.push({ filename: originalName, reason: 'Invalid filename' })
+          continue
+        }
+
+        if (!rawFile.type) {
+          rejectedFiles.push({ filename: originalName, reason: 'Missing MIME type' })
+          continue
+        }
+
+        if (!isAllowedMimeType(rawFile.type)) {
+          rejectedFiles.push({ filename: originalName, reason: 'Unsupported file type' })
+          continue
+        }
+
+        if (rawFile.size > MAX_FILE_SIZE) {
+          rejectedFiles.push({ filename: originalName, reason: `File exceeds ${MAX_FILE_SIZE} bytes` })
+          continue
+        }
+
+        const buffer = Buffer.from(await rawFile.arrayBuffer())
+        const detectedType = detectMimeFromMagic(buffer)
+        if (!detectedType || detectedType !== rawFile.type) {
+          rejectedFiles.push({ filename: originalName, reason: 'File content does not match declared type' })
+          continue
+        }
+
+        const ext = MIME_EXTENSION[detectedType]
+        const storedFilename = `${randomUUID()}.${ext}`
+        const { url } = await persistUploadedFile({ buffer, mimeType: detectedType, storedFilename, kind: 'screenshot' })
+
+        savedFiles.push({ url, filename: originalName, mimeType: detectedType, sizeBytes: rawFile.size })
+      }
+
+      for (const rawFile of attachmentFiles) {
+        if (!(rawFile instanceof File)) {
+          rejectedAttachments.push({ filename: 'unknown', reason: 'Invalid file payload' })
+          continue
+        }
+
+        const originalName = rawFile.name || 'unnamed'
+        if (!rawFile.name || rawFile.name.length > 255) {
+          rejectedAttachments.push({ filename: originalName, reason: 'Invalid filename' })
+          continue
+        }
+        if (!rawFile.type || !isAllowedAttachmentMimeType(rawFile.type)) {
+          rejectedAttachments.push({ filename: originalName, reason: 'Unsupported file type' })
+          continue
+        }
+        if (rawFile.size > MAX_ATTACHMENT_FILE_SIZE) {
+          rejectedAttachments.push({ filename: originalName, reason: `File exceeds ${MAX_ATTACHMENT_FILE_SIZE} bytes` })
+          continue
+        }
+
+        const sourceExt = extFromName(originalName)
+        const ext = sourceExt || extFromMime(rawFile.type)
+        const storedFilename = `${randomUUID()}-${sanitizeFilename(originalName)}.${ext}`
+        const buffer = Buffer.from(await rawFile.arrayBuffer())
+        const { url } = await persistUploadedFile({ buffer, mimeType: rawFile.type, storedFilename, kind: 'attachment' })
+
+        savedAttachments.push({ url, filename: originalName, mimeType: rawFile.type, sizeBytes: rawFile.size })
+      }
+
+      if (
+        savedFiles.length === 0 &&
+        files.length > 0 &&
+        savedAttachments.length === 0 &&
+        attachmentFiles.length === 0
+      ) {
+        return new Response(JSON.stringify({ error: 'No valid files uploaded', rejected: rejectedFiles }), { status: 400, headers: { 'content-type': 'application/json' } })
+      }
+
+      if (
+        savedAttachments.length === 0 &&
+        attachmentFiles.length > 0 &&
+        savedFiles.length === 0 &&
+        files.length === 0
+      ) {
+        return new Response(JSON.stringify({ error: 'No valid attachments uploaded', attachmentsRejected: rejectedAttachments }), { status: 400, headers: { 'content-type': 'application/json' } })
+      }
+
+      return new Response(JSON.stringify({ files: savedFiles, rejected: rejectedFiles, attachments: savedAttachments, attachmentsRejected: rejectedAttachments }), { headers: { 'content-type': 'application/json' } })
+    } catch (error) {
+      console.error('Upload handler failed', error)
+      return new Response(JSON.stringify({ error: 'Upload failed' }), { status: 500, headers: { 'content-type': 'application/json' } })
     }
+  })
 
-    // Basic in-memory rate limiting by user id
-    // Note: production should use a shared store (Redis)
-    // We'll implement a simple check using a global map on the server process
-    // (reuse same logic as server/middleware/rateLimit is possible but keep simple here)
-
-    const formData = await c.req.formData()
-    const files = formData.getAll('screenshots')
-    const attachmentFiles = formData.getAll('attachments')
-
-    if (files.length > MAX_FILE_COUNT) {
-      return new Response(JSON.stringify({ error: `Maximum ${MAX_FILE_COUNT} files allowed` }), { status: 400, headers: { 'content-type': 'application/json' } })
-    }
-    if (attachmentFiles.length > MAX_ATTACHMENT_FILE_COUNT) {
-      return new Response(JSON.stringify({ error: `Maximum ${MAX_ATTACHMENT_FILE_COUNT} attachments allowed` }), { status: 400, headers: { 'content-type': 'application/json' } })
-    }
-
-    const savedFiles: { url: string; filename: string; mimeType: string; sizeBytes: number }[] = []
-    const rejectedFiles: { filename: string; reason: string }[] = []
-    const savedAttachments: { url: string; filename: string; mimeType: string; sizeBytes: number }[] = []
-    const rejectedAttachments: { filename: string; reason: string }[] = []
-
-    for (const rawFile of files) {
-      if (!(rawFile instanceof File)) {
-        rejectedFiles.push({ filename: 'unknown', reason: 'Invalid file payload' })
-        continue
-      }
-
-      const originalName = rawFile.name || 'unnamed'
-
-      if (!rawFile.name || rawFile.name.length > 255) {
-        rejectedFiles.push({ filename: originalName, reason: 'Invalid filename' })
-        continue
-      }
-
-      if (!rawFile.type) {
-        rejectedFiles.push({ filename: originalName, reason: 'Missing MIME type' })
-        continue
-      }
-
-      if (!isAllowedMimeType(rawFile.type)) {
-        rejectedFiles.push({ filename: originalName, reason: 'Unsupported file type' })
-        continue
-      }
-
-      if (rawFile.size > MAX_FILE_SIZE) {
-        rejectedFiles.push({ filename: originalName, reason: `File exceeds ${MAX_FILE_SIZE} bytes` })
-        continue
-      }
-
-      const buffer = Buffer.from(await rawFile.arrayBuffer())
-      const detectedType = detectMimeFromMagic(buffer)
-      if (!detectedType || detectedType !== rawFile.type) {
-        rejectedFiles.push({ filename: originalName, reason: 'File content does not match declared type' })
-        continue
-      }
-
-      const ext = MIME_EXTENSION[detectedType]
-      const storedFilename = `${randomUUID()}.${ext}`
-      const { url } = await persistUploadedFile({ buffer, mimeType: detectedType, storedFilename, kind: 'screenshot' })
-
-      savedFiles.push({ url, filename: originalName, mimeType: detectedType, sizeBytes: rawFile.size })
-    }
-
-    for (const rawFile of attachmentFiles) {
-      if (!(rawFile instanceof File)) {
-        rejectedAttachments.push({ filename: 'unknown', reason: 'Invalid file payload' })
-        continue
-      }
-
-      const originalName = rawFile.name || 'unnamed'
-      if (!rawFile.name || rawFile.name.length > 255) {
-        rejectedAttachments.push({ filename: originalName, reason: 'Invalid filename' })
-        continue
-      }
-      if (!rawFile.type || !isAllowedAttachmentMimeType(rawFile.type)) {
-        rejectedAttachments.push({ filename: originalName, reason: 'Unsupported file type' })
-        continue
-      }
-      if (rawFile.size > MAX_ATTACHMENT_FILE_SIZE) {
-        rejectedAttachments.push({ filename: originalName, reason: `File exceeds ${MAX_ATTACHMENT_FILE_SIZE} bytes` })
-        continue
-      }
-
-      const sourceExt = extFromName(originalName)
-      const ext = sourceExt || extFromMime(rawFile.type)
-      const storedFilename = `${randomUUID()}-${sanitizeFilename(originalName)}.${ext}`
-      const buffer = Buffer.from(await rawFile.arrayBuffer())
-      const { url } = await persistUploadedFile({ buffer, mimeType: rawFile.type, storedFilename, kind: 'attachment' })
-
-      savedAttachments.push({ url, filename: originalName, mimeType: rawFile.type, sizeBytes: rawFile.size })
-    }
-
-    if (
-      savedFiles.length === 0 &&
-      files.length > 0 &&
-      savedAttachments.length === 0 &&
-      attachmentFiles.length === 0
-    ) {
-      return new Response(JSON.stringify({ error: 'No valid files uploaded', rejected: rejectedFiles }), { status: 400, headers: { 'content-type': 'application/json' } })
-    }
-
-    if (
-      savedAttachments.length === 0 &&
-      attachmentFiles.length > 0 &&
-      savedFiles.length === 0 &&
-      files.length === 0
-    ) {
-      return new Response(JSON.stringify({ error: 'No valid attachments uploaded', attachmentsRejected: rejectedAttachments }), { status: 400, headers: { 'content-type': 'application/json' } })
-    }
-
-    return new Response(JSON.stringify({ files: savedFiles, rejected: rejectedFiles, attachments: savedAttachments, attachmentsRejected: rejectedAttachments }), { headers: { 'content-type': 'application/json' } })
-  } catch (error) {
-    console.error('Upload handler failed', error)
-    return new Response(JSON.stringify({ error: 'Upload failed' }), { status: 500, headers: { 'content-type': 'application/json' } })
-  }
-}
+export default app
