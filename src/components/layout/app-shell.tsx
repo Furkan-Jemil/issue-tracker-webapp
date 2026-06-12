@@ -94,10 +94,10 @@ export function AppShell({
     );
   }, [sidebarExpanded]);
 
-  const sidebarWidthClass = sidebarExpanded ? "w-48 md:w-52" : "w-14 md:w-16";
+  const sidebarWidthClass = sidebarExpanded ? "w-48 md:w-52" : "w-24";
   const contentOffsetClass = sidebarExpanded
     ? "pl-48 md:pl-52"
-    : "pl-14 md:pl-16";
+    : "pl-24";
   const primaryNavItems = navItems.filter((item) => item.section !== "admin");
   const adminNavItems = navItems.filter((item) => item.section === "admin");
 
@@ -129,10 +129,11 @@ export function AppShell({
           "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border bg-card transition-[width] duration-200 ease-out",
           sidebarWidthClass,
         )}>
-        <div className="flex h-14 items-center justify-between gap-2 border-b border-border/80 px-2.5">
+        {/* Minimalist Sidebar Header: Keeps logo on the left and the collapse/expand toggle on the right side-by-side in all states */}
+        <div className="flex h-14 items-center justify-between gap-1 border-b border-border/80 px-2.5">
           <Link
             href="/tasks"
-            className="flex min-w-0 items-center gap-2.5 outline-none">
+            className="flex min-w-0 items-center gap-2 outline-none">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Ticket className="h-4.5 w-4.5" strokeWidth={2.25} aria-hidden />
             </span>
@@ -146,39 +147,24 @@ export function AppShell({
               IssueTracker
             </span>
           </Link>
-          {sidebarExpanded ? (
-            <div className="flex items-center">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                aria-label="Collapse sidebar"
-                aria-pressed={sidebarExpanded}
-                onClick={() => setSidebarExpanded((current) => !current)}
-                title="Collapse sidebar"
-                className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
-                <PanelLeft className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
-              </Button>
-            </div>
-          ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            aria-pressed={sidebarExpanded}
+            onClick={() => setSidebarExpanded((current) => !current)}
+            title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
+            {sidebarExpanded ? (
+              <PanelLeft className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+            ) : (
+              <PanelRight className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+            )}
+          </Button>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1.5 p-2 pt-1.5">
-          {!sidebarExpanded ? (
-            <div className="mb-1 flex justify-center border-b border-border/50 pb-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                aria-label="Expand sidebar"
-                aria-pressed={sidebarExpanded}
-                onClick={() => setSidebarExpanded((current) => !current)}
-                title="Expand sidebar"
-                className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
-                <PanelRight className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
-              </Button>
-            </div>
-          ) : null}
           {primaryNavItems.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = getIcon(item.icon);
