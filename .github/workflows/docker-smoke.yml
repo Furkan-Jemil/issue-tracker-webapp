@@ -36,6 +36,11 @@ jobs:
 
       - name: Run auth HTTP smoke test
         run: npm run test:auth-smoke
+        env:
+          DATABASE_URL: postgresql://issue_tracker:issue_tracker@127.0.0.1:5432/issue_tracker?schema=public
+          BETTER_AUTH_SECRET: test-secret
+          AUTH_SECRET: test-secret
+          BETTER_AUTH_URL: http://localhost:3000
 
       - name: Teardown
         if: always()
