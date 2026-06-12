@@ -26,9 +26,9 @@ function formatDate(d: Date | string): string {
 export default async function IssueDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ "task-id": string }>;
 }) {
-  const { id } = await params;
+  const { "task-id": id } = await params;
   const session = await getAppSession();
 
   if (!session?.user) {
