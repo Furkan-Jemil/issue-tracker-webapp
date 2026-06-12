@@ -1,5 +1,7 @@
 import 'dotenv/config'
 import net from 'net'
+import prisma from '../src/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 const PORT = 4010
 
@@ -28,6 +30,57 @@ async function sleep(ms: number) {
 
 async function run() {
   const { spawn } = await import('child_process')
+  
+  const email = 'admin@example.com'
+  const password = 'password'
+
+  // Pre-seed admin@example.com
+  const passwordHash = await bcrypt.hash(password, 10)
+  const existing = await prisma.user.findUnique({ where: { email } })
+  if (!existing) {
+    const user = await prisma.user.create({
+      data: {
+        name: 'Smoke Test Admin',
+        email,
+        password: passwordHash,
+        role: 'ADMIN',
+      },
+    })
+    await prisma.account.create({
+      data: {
+        userId: user.id,
+        accountId: user.id,
+        providerId: 'credential',
+        password: passwordHash,
+      },
+    })
+    console.log('Created admin@example.com user')
+  } else {
+    await prisma.user.update({
+      where: { id: existing.id },
+      data: { password: passwordHash, role: 'ADMIN' },
+    })
+    const account = await prisma.account.findFirst({
+      where: { userId: existing.id, providerId: 'credential' },
+    })
+    if (account) {
+      await prisma.account.update({
+        where: { id: account.id },
+        data: { password: passwordHash },
+      })
+    } else {
+      await prisma.account.create({
+        data: {
+          userId: existing.id,
+          accountId: existing.id,
+          providerId: 'credential',
+          password: passwordHash,
+        },
+      })
+    }
+    console.log('Ensured admin@example.com user exists with correct credentials')
+  }
+
   console.log(`Starting server on ${PORT}...`)
   const proc = spawn('./node_modules/.bin/tsx', ['server/index.ts'], {
     stdio: 'inherit',
@@ -38,9 +91,6 @@ async function run() {
   try {
     await waitForPort(PORT, '127.0.0.1', 15000)
     console.log(`Server listening on ${PORT}`)
-
-    const email = 'admin@example.com'
-    const password = 'password'
 
     // sign in
     console.log('Signing in')
@@ -88,6 +138,14 @@ async function run() {
   } finally {
     console.log('Shutting down server')
     proc.kill()
+    const cleanupUser = await prisma.user.findUnique({ where: { email } })
+    if (cleanupUser) {
+      await prisma.session.deleteMany({ where: { userId: cleanupUser.id } })
+      await prisma.account.deleteMany({ where: { userId: cleanupUser.id } })
+      await prisma.user.delete({ where: { id: cleanupUser.id } })
+      console.log('Cleaned up admin@example.com user')
+    }
+    await prisma.$disconnect()
   }
 }
 
