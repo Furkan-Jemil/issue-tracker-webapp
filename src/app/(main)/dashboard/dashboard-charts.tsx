@@ -565,7 +565,7 @@ export default function DashboardCharts() {
             },
           ].map(({ href, label, value, icon: Icon, tone }) => (
             <Link key={label} href={href}>
-              <Card className="group h-full cursor-pointer border border-border/70 bg-white shadow-sm transition-colors duration-150 hover:bg-accent/20 focus-within:ring-2 focus-within:ring-ring/50 dark:bg-card">
+              <Card className="group h-full cursor-pointer bg-white shadow-sm transition-colors duration-150 hover:bg-accent/20 focus-within:ring-2 focus-within:ring-ring/50 dark:bg-card">
                 <CardContent className="flex items-center justify-between gap-2.5 p-2.5">
                   <div>
                     <p className="text-[12px] font-medium text-muted-foreground">
@@ -598,7 +598,7 @@ export default function DashboardCharts() {
         </div>
 
         <div className="space-y-2">
-          <div className="rounded-xl border border-border/70 bg-muted/20 p-2">
+          <div className="rounded-xl bg-muted/20 p-2">
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-full max-w-[290px]">
               <Search
@@ -655,7 +655,7 @@ export default function DashboardCharts() {
                 </Button>
 
                 {filtersOpen ? (
-                  <Card id="dashboard-filters-popover" className="popover-surface absolute right-0 top-9 z-30 w-[min(88vw,220px)] border-border bg-card shadow-lg">
+                  <Card id="dashboard-filters-popover" className="popover-surface absolute right-0 top-9 z-30 w-[min(88vw,220px)] bg-card shadow-lg">
                   <CardContent className="space-y-1.5 p-2">
                     <Select
                       value={drafts.status ?? ""}
@@ -726,8 +726,8 @@ export default function DashboardCharts() {
           {hasStatusMixData || hasComparisonData ? (
           <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
           {hasStatusMixData ? (
-          <Card className="min-w-0 border-border bg-card shadow-sm">
-            <CardHeader className="border-b border-border/60 pb-2.5">
+          <Card className="min-w-0 bg-card shadow-sm">
+            <CardHeader className="pb-2.5">
               <CardTitle className="text-base font-semibold">
                 Status Mix
               </CardTitle>
@@ -799,8 +799,8 @@ export default function DashboardCharts() {
           </Card>
           ) : null}
           {hasComparisonData ? (
-          <Card className="min-w-0 border-border bg-card shadow-sm">
-            <CardHeader className="border-b border-border/60 pb-2.5">
+          <Card className="min-w-0 bg-card shadow-sm">
+            <CardHeader className="pb-2.5">
               <CardTitle className="text-base font-semibold">
                 Monthly Comparison
               </CardTitle>
@@ -881,7 +881,7 @@ export default function DashboardCharts() {
                     }}
                   />
               </div>
-              <div className="border-t border-border/60 pt-2 text-center">
+              <div className="pt-2 text-center">
                 <p className="text-sm font-medium text-foreground">
                   Trending up by 5.2% this month
                 </p>
@@ -897,8 +897,8 @@ export default function DashboardCharts() {
         </div>
 
         {hasTrendData ? (
-        <Card className="min-w-0 border-border bg-card shadow-sm">
-          <CardHeader className="border-b border-border/60 pb-2.5">
+        <Card className="min-w-0 bg-card shadow-sm">
+          <CardHeader className="pb-2.5">
             <CardTitle className="text-base font-semibold">Issue Trend</CardTitle>
             <CardDescription className="text-xs">
               Open and in-progress issues across the selected range.
