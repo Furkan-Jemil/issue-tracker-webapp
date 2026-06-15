@@ -56,6 +56,8 @@ export type InputJsonValueType = z.infer<typeof InputJsonValueSchema>;
 
 export const TransactionIsolationLevelSchema = z.enum(['ReadUncommitted','ReadCommitted','RepeatableRead','Serializable']);
 
+export const PermissionScalarFieldEnumSchema = z.enum(['id','role','action','subject','inverted','createdAt','updatedAt']);
+
 export const UserScalarFieldEnumSchema = z.enum(['id','name','email','emailVerified','image','password','role','createdAt','updatedAt']);
 
 export const SessionScalarFieldEnumSchema = z.enum(['id','userId','token','expiresAt','createdAt','updatedAt','ipAddress','userAgent']);
@@ -113,6 +115,22 @@ export type HistoryEventType = `${z.infer<typeof HistoryEventSchema>}`
 /////////////////////////////////////////
 // MODELS
 /////////////////////////////////////////
+
+/////////////////////////////////////////
+// PERMISSION SCHEMA
+/////////////////////////////////////////
+
+export const PermissionSchema = z.object({
+  role: RoleSchema,
+  id: z.uuid(),
+  action: z.string(),
+  subject: z.string(),
+  inverted: z.boolean(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+})
+
+export type Permission = z.infer<typeof PermissionSchema>
 
 /////////////////////////////////////////
 // USER SCHEMA
@@ -292,6 +310,19 @@ export type Notification = z.infer<typeof NotificationSchema>
 /////////////////////////////////////////
 // SELECT & INCLUDE
 /////////////////////////////////////////
+
+// PERMISSION
+//------------------------------------------------------
+
+export const PermissionSelectSchema: z.ZodType<Prisma.PermissionSelect> = z.object({
+  id: z.boolean().optional(),
+  role: z.boolean().optional(),
+  action: z.boolean().optional(),
+  subject: z.boolean().optional(),
+  inverted: z.boolean().optional(),
+  createdAt: z.boolean().optional(),
+  updatedAt: z.boolean().optional(),
+}).strict()
 
 // USER
 //------------------------------------------------------
@@ -597,6 +628,81 @@ export const NotificationSelectSchema: z.ZodType<Prisma.NotificationSelect> = z.
 /////////////////////////////////////////
 // INPUT TYPES
 /////////////////////////////////////////
+
+export const PermissionWhereInputSchema: z.ZodType<Prisma.PermissionWhereInput> = z.strictObject({
+  AND: z.union([ z.lazy(() => PermissionWhereInputSchema), z.lazy(() => PermissionWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => PermissionWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => PermissionWhereInputSchema), z.lazy(() => PermissionWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema), z.string() ]).optional(),
+  role: z.union([ z.lazy(() => EnumRoleFilterSchema), z.lazy(() => RoleSchema) ]).optional(),
+  action: z.union([ z.lazy(() => StringFilterSchema), z.string() ]).optional(),
+  subject: z.union([ z.lazy(() => StringFilterSchema), z.string() ]).optional(),
+  inverted: z.union([ z.lazy(() => BoolFilterSchema), z.boolean() ]).optional(),
+  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema), z.coerce.date() ]).optional(),
+  updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema), z.coerce.date() ]).optional(),
+});
+
+export const PermissionOrderByWithRelationInputSchema: z.ZodType<Prisma.PermissionOrderByWithRelationInput> = z.strictObject({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  role: z.lazy(() => SortOrderSchema).optional(),
+  action: z.lazy(() => SortOrderSchema).optional(),
+  subject: z.lazy(() => SortOrderSchema).optional(),
+  inverted: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+});
+
+export const PermissionWhereUniqueInputSchema: z.ZodType<Prisma.PermissionWhereUniqueInput> = z.union([
+  z.object({
+    id: z.uuid(),
+    role_action_subject: z.lazy(() => PermissionRoleActionSubjectCompoundUniqueInputSchema),
+  }),
+  z.object({
+    id: z.uuid(),
+  }),
+  z.object({
+    role_action_subject: z.lazy(() => PermissionRoleActionSubjectCompoundUniqueInputSchema),
+  }),
+])
+.and(z.strictObject({
+  id: z.uuid().optional(),
+  role_action_subject: z.lazy(() => PermissionRoleActionSubjectCompoundUniqueInputSchema).optional(),
+  AND: z.union([ z.lazy(() => PermissionWhereInputSchema), z.lazy(() => PermissionWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => PermissionWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => PermissionWhereInputSchema), z.lazy(() => PermissionWhereInputSchema).array() ]).optional(),
+  role: z.union([ z.lazy(() => EnumRoleFilterSchema), z.lazy(() => RoleSchema) ]).optional(),
+  action: z.union([ z.lazy(() => StringFilterSchema), z.string() ]).optional(),
+  subject: z.union([ z.lazy(() => StringFilterSchema), z.string() ]).optional(),
+  inverted: z.union([ z.lazy(() => BoolFilterSchema), z.boolean() ]).optional(),
+  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema), z.coerce.date() ]).optional(),
+  updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema), z.coerce.date() ]).optional(),
+}));
+
+export const PermissionOrderByWithAggregationInputSchema: z.ZodType<Prisma.PermissionOrderByWithAggregationInput> = z.strictObject({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  role: z.lazy(() => SortOrderSchema).optional(),
+  action: z.lazy(() => SortOrderSchema).optional(),
+  subject: z.lazy(() => SortOrderSchema).optional(),
+  inverted: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+  _count: z.lazy(() => PermissionCountOrderByAggregateInputSchema).optional(),
+  _max: z.lazy(() => PermissionMaxOrderByAggregateInputSchema).optional(),
+  _min: z.lazy(() => PermissionMinOrderByAggregateInputSchema).optional(),
+});
+
+export const PermissionScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.PermissionScalarWhereWithAggregatesInput> = z.strictObject({
+  AND: z.union([ z.lazy(() => PermissionScalarWhereWithAggregatesInputSchema), z.lazy(() => PermissionScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  OR: z.lazy(() => PermissionScalarWhereWithAggregatesInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => PermissionScalarWhereWithAggregatesInputSchema), z.lazy(() => PermissionScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringWithAggregatesFilterSchema), z.string() ]).optional(),
+  role: z.union([ z.lazy(() => EnumRoleWithAggregatesFilterSchema), z.lazy(() => RoleSchema) ]).optional(),
+  action: z.union([ z.lazy(() => StringWithAggregatesFilterSchema), z.string() ]).optional(),
+  subject: z.union([ z.lazy(() => StringWithAggregatesFilterSchema), z.string() ]).optional(),
+  inverted: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema), z.boolean() ]).optional(),
+  createdAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema), z.coerce.date() ]).optional(),
+  updatedAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema), z.coerce.date() ]).optional(),
+});
 
 export const UserWhereInputSchema: z.ZodType<Prisma.UserWhereInput> = z.strictObject({
   AND: z.union([ z.lazy(() => UserWhereInputSchema), z.lazy(() => UserWhereInputSchema).array() ]).optional(),
@@ -1421,6 +1527,76 @@ export const NotificationScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.
   message: z.union([ z.lazy(() => StringWithAggregatesFilterSchema), z.string() ]).optional(),
   isRead: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema), z.boolean() ]).optional(),
   createdAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema), z.coerce.date() ]).optional(),
+});
+
+export const PermissionCreateInputSchema: z.ZodType<Prisma.PermissionCreateInput> = z.strictObject({
+  id: z.uuid().optional(),
+  role: z.lazy(() => RoleSchema),
+  action: z.string(),
+  subject: z.string(),
+  inverted: z.boolean().optional(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+});
+
+export const PermissionUncheckedCreateInputSchema: z.ZodType<Prisma.PermissionUncheckedCreateInput> = z.strictObject({
+  id: z.uuid().optional(),
+  role: z.lazy(() => RoleSchema),
+  action: z.string(),
+  subject: z.string(),
+  inverted: z.boolean().optional(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+});
+
+export const PermissionUpdateInputSchema: z.ZodType<Prisma.PermissionUpdateInput> = z.strictObject({
+  id: z.union([ z.uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  role: z.union([ z.lazy(() => RoleSchema), z.lazy(() => EnumRoleFieldUpdateOperationsInputSchema) ]).optional(),
+  action: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  subject: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  inverted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+});
+
+export const PermissionUncheckedUpdateInputSchema: z.ZodType<Prisma.PermissionUncheckedUpdateInput> = z.strictObject({
+  id: z.union([ z.uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  role: z.union([ z.lazy(() => RoleSchema), z.lazy(() => EnumRoleFieldUpdateOperationsInputSchema) ]).optional(),
+  action: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  subject: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  inverted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+});
+
+export const PermissionCreateManyInputSchema: z.ZodType<Prisma.PermissionCreateManyInput> = z.strictObject({
+  id: z.uuid().optional(),
+  role: z.lazy(() => RoleSchema),
+  action: z.string(),
+  subject: z.string(),
+  inverted: z.boolean().optional(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+});
+
+export const PermissionUpdateManyMutationInputSchema: z.ZodType<Prisma.PermissionUpdateManyMutationInput> = z.strictObject({
+  id: z.union([ z.uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  role: z.union([ z.lazy(() => RoleSchema), z.lazy(() => EnumRoleFieldUpdateOperationsInputSchema) ]).optional(),
+  action: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  subject: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  inverted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+});
+
+export const PermissionUncheckedUpdateManyInputSchema: z.ZodType<Prisma.PermissionUncheckedUpdateManyInput> = z.strictObject({
+  id: z.union([ z.uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  role: z.union([ z.lazy(() => RoleSchema), z.lazy(() => EnumRoleFieldUpdateOperationsInputSchema) ]).optional(),
+  action: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  subject: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  inverted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 });
 
 export const UserCreateInputSchema: z.ZodType<Prisma.UserCreateInput> = z.strictObject({
@@ -2282,9 +2458,113 @@ export const StringFilterSchema: z.ZodType<Prisma.StringFilter> = z.strictObject
   not: z.union([ z.string(),z.lazy(() => NestedStringFilterSchema) ]).optional(),
 });
 
+export const EnumRoleFilterSchema: z.ZodType<Prisma.EnumRoleFilter> = z.strictObject({
+  equals: z.lazy(() => RoleSchema).optional(),
+  in: z.lazy(() => RoleSchema).array().optional(),
+  notIn: z.lazy(() => RoleSchema).array().optional(),
+  not: z.union([ z.lazy(() => RoleSchema), z.lazy(() => NestedEnumRoleFilterSchema) ]).optional(),
+});
+
 export const BoolFilterSchema: z.ZodType<Prisma.BoolFilter> = z.strictObject({
   equals: z.boolean().optional(),
   not: z.union([ z.boolean(),z.lazy(() => NestedBoolFilterSchema) ]).optional(),
+});
+
+export const DateTimeFilterSchema: z.ZodType<Prisma.DateTimeFilter> = z.strictObject({
+  equals: z.coerce.date().optional(),
+  in: z.coerce.date().array().optional(),
+  notIn: z.coerce.date().array().optional(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeFilterSchema) ]).optional(),
+});
+
+export const PermissionRoleActionSubjectCompoundUniqueInputSchema: z.ZodType<Prisma.PermissionRoleActionSubjectCompoundUniqueInput> = z.strictObject({
+  role: z.lazy(() => RoleSchema),
+  action: z.string(),
+  subject: z.string(),
+});
+
+export const PermissionCountOrderByAggregateInputSchema: z.ZodType<Prisma.PermissionCountOrderByAggregateInput> = z.strictObject({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  role: z.lazy(() => SortOrderSchema).optional(),
+  action: z.lazy(() => SortOrderSchema).optional(),
+  subject: z.lazy(() => SortOrderSchema).optional(),
+  inverted: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+});
+
+export const PermissionMaxOrderByAggregateInputSchema: z.ZodType<Prisma.PermissionMaxOrderByAggregateInput> = z.strictObject({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  role: z.lazy(() => SortOrderSchema).optional(),
+  action: z.lazy(() => SortOrderSchema).optional(),
+  subject: z.lazy(() => SortOrderSchema).optional(),
+  inverted: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+});
+
+export const PermissionMinOrderByAggregateInputSchema: z.ZodType<Prisma.PermissionMinOrderByAggregateInput> = z.strictObject({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  role: z.lazy(() => SortOrderSchema).optional(),
+  action: z.lazy(() => SortOrderSchema).optional(),
+  subject: z.lazy(() => SortOrderSchema).optional(),
+  inverted: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+});
+
+export const StringWithAggregatesFilterSchema: z.ZodType<Prisma.StringWithAggregatesFilter> = z.strictObject({
+  equals: z.string().optional(),
+  in: z.string().array().optional(),
+  notIn: z.string().array().optional(),
+  lt: z.string().optional(),
+  lte: z.string().optional(),
+  gt: z.string().optional(),
+  gte: z.string().optional(),
+  contains: z.string().optional(),
+  startsWith: z.string().optional(),
+  endsWith: z.string().optional(),
+  mode: z.lazy(() => QueryModeSchema).optional(),
+  not: z.union([ z.string(),z.lazy(() => NestedStringWithAggregatesFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedStringFilterSchema).optional(),
+  _max: z.lazy(() => NestedStringFilterSchema).optional(),
+});
+
+export const EnumRoleWithAggregatesFilterSchema: z.ZodType<Prisma.EnumRoleWithAggregatesFilter> = z.strictObject({
+  equals: z.lazy(() => RoleSchema).optional(),
+  in: z.lazy(() => RoleSchema).array().optional(),
+  notIn: z.lazy(() => RoleSchema).array().optional(),
+  not: z.union([ z.lazy(() => RoleSchema), z.lazy(() => NestedEnumRoleWithAggregatesFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedEnumRoleFilterSchema).optional(),
+  _max: z.lazy(() => NestedEnumRoleFilterSchema).optional(),
+});
+
+export const BoolWithAggregatesFilterSchema: z.ZodType<Prisma.BoolWithAggregatesFilter> = z.strictObject({
+  equals: z.boolean().optional(),
+  not: z.union([ z.boolean(),z.lazy(() => NestedBoolWithAggregatesFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedBoolFilterSchema).optional(),
+  _max: z.lazy(() => NestedBoolFilterSchema).optional(),
+});
+
+export const DateTimeWithAggregatesFilterSchema: z.ZodType<Prisma.DateTimeWithAggregatesFilter> = z.strictObject({
+  equals: z.coerce.date().optional(),
+  in: z.coerce.date().array().optional(),
+  notIn: z.coerce.date().array().optional(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeWithAggregatesFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedDateTimeFilterSchema).optional(),
+  _max: z.lazy(() => NestedDateTimeFilterSchema).optional(),
 });
 
 export const StringNullableFilterSchema: z.ZodType<Prisma.StringNullableFilter> = z.strictObject({
@@ -2300,24 +2580,6 @@ export const StringNullableFilterSchema: z.ZodType<Prisma.StringNullableFilter> 
   endsWith: z.string().optional(),
   mode: z.lazy(() => QueryModeSchema).optional(),
   not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
-});
-
-export const EnumRoleFilterSchema: z.ZodType<Prisma.EnumRoleFilter> = z.strictObject({
-  equals: z.lazy(() => RoleSchema).optional(),
-  in: z.lazy(() => RoleSchema).array().optional(),
-  notIn: z.lazy(() => RoleSchema).array().optional(),
-  not: z.union([ z.lazy(() => RoleSchema), z.lazy(() => NestedEnumRoleFilterSchema) ]).optional(),
-});
-
-export const DateTimeFilterSchema: z.ZodType<Prisma.DateTimeFilter> = z.strictObject({
-  equals: z.coerce.date().optional(),
-  in: z.coerce.date().array().optional(),
-  notIn: z.coerce.date().array().optional(),
-  lt: z.coerce.date().optional(),
-  lte: z.coerce.date().optional(),
-  gt: z.coerce.date().optional(),
-  gte: z.coerce.date().optional(),
-  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeFilterSchema) ]).optional(),
 });
 
 export const SessionListRelationFilterSchema: z.ZodType<Prisma.SessionListRelationFilter> = z.strictObject({
@@ -2431,32 +2693,6 @@ export const UserMinOrderByAggregateInputSchema: z.ZodType<Prisma.UserMinOrderBy
   updatedAt: z.lazy(() => SortOrderSchema).optional(),
 });
 
-export const StringWithAggregatesFilterSchema: z.ZodType<Prisma.StringWithAggregatesFilter> = z.strictObject({
-  equals: z.string().optional(),
-  in: z.string().array().optional(),
-  notIn: z.string().array().optional(),
-  lt: z.string().optional(),
-  lte: z.string().optional(),
-  gt: z.string().optional(),
-  gte: z.string().optional(),
-  contains: z.string().optional(),
-  startsWith: z.string().optional(),
-  endsWith: z.string().optional(),
-  mode: z.lazy(() => QueryModeSchema).optional(),
-  not: z.union([ z.string(),z.lazy(() => NestedStringWithAggregatesFilterSchema) ]).optional(),
-  _count: z.lazy(() => NestedIntFilterSchema).optional(),
-  _min: z.lazy(() => NestedStringFilterSchema).optional(),
-  _max: z.lazy(() => NestedStringFilterSchema).optional(),
-});
-
-export const BoolWithAggregatesFilterSchema: z.ZodType<Prisma.BoolWithAggregatesFilter> = z.strictObject({
-  equals: z.boolean().optional(),
-  not: z.union([ z.boolean(),z.lazy(() => NestedBoolWithAggregatesFilterSchema) ]).optional(),
-  _count: z.lazy(() => NestedIntFilterSchema).optional(),
-  _min: z.lazy(() => NestedBoolFilterSchema).optional(),
-  _max: z.lazy(() => NestedBoolFilterSchema).optional(),
-});
-
 export const StringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.StringNullableWithAggregatesFilter> = z.strictObject({
   equals: z.string().optional().nullable(),
   in: z.string().array().optional().nullable(),
@@ -2473,30 +2709,6 @@ export const StringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.StringNu
   _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
   _min: z.lazy(() => NestedStringNullableFilterSchema).optional(),
   _max: z.lazy(() => NestedStringNullableFilterSchema).optional(),
-});
-
-export const EnumRoleWithAggregatesFilterSchema: z.ZodType<Prisma.EnumRoleWithAggregatesFilter> = z.strictObject({
-  equals: z.lazy(() => RoleSchema).optional(),
-  in: z.lazy(() => RoleSchema).array().optional(),
-  notIn: z.lazy(() => RoleSchema).array().optional(),
-  not: z.union([ z.lazy(() => RoleSchema), z.lazy(() => NestedEnumRoleWithAggregatesFilterSchema) ]).optional(),
-  _count: z.lazy(() => NestedIntFilterSchema).optional(),
-  _min: z.lazy(() => NestedEnumRoleFilterSchema).optional(),
-  _max: z.lazy(() => NestedEnumRoleFilterSchema).optional(),
-});
-
-export const DateTimeWithAggregatesFilterSchema: z.ZodType<Prisma.DateTimeWithAggregatesFilter> = z.strictObject({
-  equals: z.coerce.date().optional(),
-  in: z.coerce.date().array().optional(),
-  notIn: z.coerce.date().array().optional(),
-  lt: z.coerce.date().optional(),
-  lte: z.coerce.date().optional(),
-  gt: z.coerce.date().optional(),
-  gte: z.coerce.date().optional(),
-  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeWithAggregatesFilterSchema) ]).optional(),
-  _count: z.lazy(() => NestedIntFilterSchema).optional(),
-  _min: z.lazy(() => NestedDateTimeFilterSchema).optional(),
-  _max: z.lazy(() => NestedDateTimeFilterSchema).optional(),
 });
 
 export const UserScalarRelationFilterSchema: z.ZodType<Prisma.UserScalarRelationFilter> = z.strictObject({
@@ -3025,6 +3237,22 @@ export const NotificationMinOrderByAggregateInputSchema: z.ZodType<Prisma.Notifi
   createdAt: z.lazy(() => SortOrderSchema).optional(),
 });
 
+export const StringFieldUpdateOperationsInputSchema: z.ZodType<Prisma.StringFieldUpdateOperationsInput> = z.strictObject({
+  set: z.string().optional(),
+});
+
+export const EnumRoleFieldUpdateOperationsInputSchema: z.ZodType<Prisma.EnumRoleFieldUpdateOperationsInput> = z.strictObject({
+  set: z.lazy(() => RoleSchema).optional(),
+});
+
+export const BoolFieldUpdateOperationsInputSchema: z.ZodType<Prisma.BoolFieldUpdateOperationsInput> = z.strictObject({
+  set: z.boolean().optional(),
+});
+
+export const DateTimeFieldUpdateOperationsInputSchema: z.ZodType<Prisma.DateTimeFieldUpdateOperationsInput> = z.strictObject({
+  set: z.coerce.date().optional(),
+});
+
 export const SessionCreateNestedManyWithoutUserInputSchema: z.ZodType<Prisma.SessionCreateNestedManyWithoutUserInput> = z.strictObject({
   create: z.union([ z.lazy(() => SessionCreateWithoutUserInputSchema), z.lazy(() => SessionCreateWithoutUserInputSchema).array(), z.lazy(() => SessionUncheckedCreateWithoutUserInputSchema), z.lazy(() => SessionUncheckedCreateWithoutUserInputSchema).array() ]).optional(),
   connectOrCreate: z.union([ z.lazy(() => SessionCreateOrConnectWithoutUserInputSchema), z.lazy(() => SessionCreateOrConnectWithoutUserInputSchema).array() ]).optional(),
@@ -3137,24 +3365,8 @@ export const IssueHistoryUncheckedCreateNestedManyWithoutActorInputSchema: z.Zod
   connect: z.union([ z.lazy(() => IssueHistoryWhereUniqueInputSchema), z.lazy(() => IssueHistoryWhereUniqueInputSchema).array() ]).optional(),
 });
 
-export const StringFieldUpdateOperationsInputSchema: z.ZodType<Prisma.StringFieldUpdateOperationsInput> = z.strictObject({
-  set: z.string().optional(),
-});
-
-export const BoolFieldUpdateOperationsInputSchema: z.ZodType<Prisma.BoolFieldUpdateOperationsInput> = z.strictObject({
-  set: z.boolean().optional(),
-});
-
 export const NullableStringFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableStringFieldUpdateOperationsInput> = z.strictObject({
   set: z.string().optional().nullable(),
-});
-
-export const EnumRoleFieldUpdateOperationsInputSchema: z.ZodType<Prisma.EnumRoleFieldUpdateOperationsInput> = z.strictObject({
-  set: z.lazy(() => RoleSchema).optional(),
-});
-
-export const DateTimeFieldUpdateOperationsInputSchema: z.ZodType<Prisma.DateTimeFieldUpdateOperationsInput> = z.strictObject({
-  set: z.coerce.date().optional(),
 });
 
 export const SessionUpdateManyWithoutUserNestedInputSchema: z.ZodType<Prisma.SessionUpdateManyWithoutUserNestedInput> = z.strictObject({
@@ -3821,30 +4033,16 @@ export const NestedStringFilterSchema: z.ZodType<Prisma.NestedStringFilter> = z.
   not: z.union([ z.string(),z.lazy(() => NestedStringFilterSchema) ]).optional(),
 });
 
-export const NestedBoolFilterSchema: z.ZodType<Prisma.NestedBoolFilter> = z.strictObject({
-  equals: z.boolean().optional(),
-  not: z.union([ z.boolean(),z.lazy(() => NestedBoolFilterSchema) ]).optional(),
-});
-
-export const NestedStringNullableFilterSchema: z.ZodType<Prisma.NestedStringNullableFilter> = z.strictObject({
-  equals: z.string().optional().nullable(),
-  in: z.string().array().optional().nullable(),
-  notIn: z.string().array().optional().nullable(),
-  lt: z.string().optional(),
-  lte: z.string().optional(),
-  gt: z.string().optional(),
-  gte: z.string().optional(),
-  contains: z.string().optional(),
-  startsWith: z.string().optional(),
-  endsWith: z.string().optional(),
-  not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
-});
-
 export const NestedEnumRoleFilterSchema: z.ZodType<Prisma.NestedEnumRoleFilter> = z.strictObject({
   equals: z.lazy(() => RoleSchema).optional(),
   in: z.lazy(() => RoleSchema).array().optional(),
   notIn: z.lazy(() => RoleSchema).array().optional(),
   not: z.union([ z.lazy(() => RoleSchema), z.lazy(() => NestedEnumRoleFilterSchema) ]).optional(),
+});
+
+export const NestedBoolFilterSchema: z.ZodType<Prisma.NestedBoolFilter> = z.strictObject({
+  equals: z.boolean().optional(),
+  not: z.union([ z.boolean(),z.lazy(() => NestedBoolFilterSchema) ]).optional(),
 });
 
 export const NestedDateTimeFilterSchema: z.ZodType<Prisma.NestedDateTimeFilter> = z.strictObject({
@@ -3886,12 +4084,50 @@ export const NestedIntFilterSchema: z.ZodType<Prisma.NestedIntFilter> = z.strict
   not: z.union([ z.number(),z.lazy(() => NestedIntFilterSchema) ]).optional(),
 });
 
+export const NestedEnumRoleWithAggregatesFilterSchema: z.ZodType<Prisma.NestedEnumRoleWithAggregatesFilter> = z.strictObject({
+  equals: z.lazy(() => RoleSchema).optional(),
+  in: z.lazy(() => RoleSchema).array().optional(),
+  notIn: z.lazy(() => RoleSchema).array().optional(),
+  not: z.union([ z.lazy(() => RoleSchema), z.lazy(() => NestedEnumRoleWithAggregatesFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedEnumRoleFilterSchema).optional(),
+  _max: z.lazy(() => NestedEnumRoleFilterSchema).optional(),
+});
+
 export const NestedBoolWithAggregatesFilterSchema: z.ZodType<Prisma.NestedBoolWithAggregatesFilter> = z.strictObject({
   equals: z.boolean().optional(),
   not: z.union([ z.boolean(),z.lazy(() => NestedBoolWithAggregatesFilterSchema) ]).optional(),
   _count: z.lazy(() => NestedIntFilterSchema).optional(),
   _min: z.lazy(() => NestedBoolFilterSchema).optional(),
   _max: z.lazy(() => NestedBoolFilterSchema).optional(),
+});
+
+export const NestedDateTimeWithAggregatesFilterSchema: z.ZodType<Prisma.NestedDateTimeWithAggregatesFilter> = z.strictObject({
+  equals: z.coerce.date().optional(),
+  in: z.coerce.date().array().optional(),
+  notIn: z.coerce.date().array().optional(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeWithAggregatesFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedDateTimeFilterSchema).optional(),
+  _max: z.lazy(() => NestedDateTimeFilterSchema).optional(),
+});
+
+export const NestedStringNullableFilterSchema: z.ZodType<Prisma.NestedStringNullableFilter> = z.strictObject({
+  equals: z.string().optional().nullable(),
+  in: z.string().array().optional().nullable(),
+  notIn: z.string().array().optional().nullable(),
+  lt: z.string().optional(),
+  lte: z.string().optional(),
+  gt: z.string().optional(),
+  gte: z.string().optional(),
+  contains: z.string().optional(),
+  startsWith: z.string().optional(),
+  endsWith: z.string().optional(),
+  not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
 });
 
 export const NestedStringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.NestedStringNullableWithAggregatesFilter> = z.strictObject({
@@ -3920,30 +4156,6 @@ export const NestedIntNullableFilterSchema: z.ZodType<Prisma.NestedIntNullableFi
   gt: z.number().optional(),
   gte: z.number().optional(),
   not: z.union([ z.number(),z.lazy(() => NestedIntNullableFilterSchema) ]).optional().nullable(),
-});
-
-export const NestedEnumRoleWithAggregatesFilterSchema: z.ZodType<Prisma.NestedEnumRoleWithAggregatesFilter> = z.strictObject({
-  equals: z.lazy(() => RoleSchema).optional(),
-  in: z.lazy(() => RoleSchema).array().optional(),
-  notIn: z.lazy(() => RoleSchema).array().optional(),
-  not: z.union([ z.lazy(() => RoleSchema), z.lazy(() => NestedEnumRoleWithAggregatesFilterSchema) ]).optional(),
-  _count: z.lazy(() => NestedIntFilterSchema).optional(),
-  _min: z.lazy(() => NestedEnumRoleFilterSchema).optional(),
-  _max: z.lazy(() => NestedEnumRoleFilterSchema).optional(),
-});
-
-export const NestedDateTimeWithAggregatesFilterSchema: z.ZodType<Prisma.NestedDateTimeWithAggregatesFilter> = z.strictObject({
-  equals: z.coerce.date().optional(),
-  in: z.coerce.date().array().optional(),
-  notIn: z.coerce.date().array().optional(),
-  lt: z.coerce.date().optional(),
-  lte: z.coerce.date().optional(),
-  gt: z.coerce.date().optional(),
-  gte: z.coerce.date().optional(),
-  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeWithAggregatesFilterSchema) ]).optional(),
-  _count: z.lazy(() => NestedIntFilterSchema).optional(),
-  _min: z.lazy(() => NestedDateTimeFilterSchema).optional(),
-  _max: z.lazy(() => NestedDateTimeFilterSchema).optional(),
 });
 
 export const NestedDateTimeNullableFilterSchema: z.ZodType<Prisma.NestedDateTimeNullableFilter> = z.strictObject({
@@ -6658,6 +6870,63 @@ export const NotificationUncheckedUpdateManyWithoutIssueInputSchema: z.ZodType<P
 // ARGS
 /////////////////////////////////////////
 
+export const PermissionFindFirstArgsSchema: z.ZodType<Prisma.PermissionFindFirstArgs> = z.object({
+  select: PermissionSelectSchema.optional(),
+  where: PermissionWhereInputSchema.optional(), 
+  orderBy: z.union([ PermissionOrderByWithRelationInputSchema.array(), PermissionOrderByWithRelationInputSchema ]).optional(),
+  cursor: PermissionWhereUniqueInputSchema.optional(), 
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ PermissionScalarFieldEnumSchema, PermissionScalarFieldEnumSchema.array() ]).optional(),
+}).strict();
+
+export const PermissionFindFirstOrThrowArgsSchema: z.ZodType<Prisma.PermissionFindFirstOrThrowArgs> = z.object({
+  select: PermissionSelectSchema.optional(),
+  where: PermissionWhereInputSchema.optional(), 
+  orderBy: z.union([ PermissionOrderByWithRelationInputSchema.array(), PermissionOrderByWithRelationInputSchema ]).optional(),
+  cursor: PermissionWhereUniqueInputSchema.optional(), 
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ PermissionScalarFieldEnumSchema, PermissionScalarFieldEnumSchema.array() ]).optional(),
+}).strict();
+
+export const PermissionFindManyArgsSchema: z.ZodType<Prisma.PermissionFindManyArgs> = z.object({
+  select: PermissionSelectSchema.optional(),
+  where: PermissionWhereInputSchema.optional(), 
+  orderBy: z.union([ PermissionOrderByWithRelationInputSchema.array(), PermissionOrderByWithRelationInputSchema ]).optional(),
+  cursor: PermissionWhereUniqueInputSchema.optional(), 
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ PermissionScalarFieldEnumSchema, PermissionScalarFieldEnumSchema.array() ]).optional(),
+}).strict();
+
+export const PermissionAggregateArgsSchema: z.ZodType<Prisma.PermissionAggregateArgs> = z.object({
+  where: PermissionWhereInputSchema.optional(), 
+  orderBy: z.union([ PermissionOrderByWithRelationInputSchema.array(), PermissionOrderByWithRelationInputSchema ]).optional(),
+  cursor: PermissionWhereUniqueInputSchema.optional(), 
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict();
+
+export const PermissionGroupByArgsSchema: z.ZodType<Prisma.PermissionGroupByArgs> = z.object({
+  where: PermissionWhereInputSchema.optional(), 
+  orderBy: z.union([ PermissionOrderByWithAggregationInputSchema.array(), PermissionOrderByWithAggregationInputSchema ]).optional(),
+  by: PermissionScalarFieldEnumSchema.array(), 
+  having: PermissionScalarWhereWithAggregatesInputSchema.optional(), 
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict();
+
+export const PermissionFindUniqueArgsSchema: z.ZodType<Prisma.PermissionFindUniqueArgs> = z.object({
+  select: PermissionSelectSchema.optional(),
+  where: PermissionWhereUniqueInputSchema, 
+}).strict();
+
+export const PermissionFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.PermissionFindUniqueOrThrowArgs> = z.object({
+  select: PermissionSelectSchema.optional(),
+  where: PermissionWhereUniqueInputSchema, 
+}).strict();
+
 export const UserFindFirstArgsSchema: z.ZodType<Prisma.UserFindFirstArgs> = z.object({
   select: UserSelectSchema.optional(),
   include: UserIncludeSchema.optional(),
@@ -7271,6 +7540,56 @@ export const NotificationFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.Notificat
   select: NotificationSelectSchema.optional(),
   include: NotificationIncludeSchema.optional(),
   where: NotificationWhereUniqueInputSchema, 
+}).strict();
+
+export const PermissionCreateArgsSchema: z.ZodType<Prisma.PermissionCreateArgs> = z.object({
+  select: PermissionSelectSchema.optional(),
+  data: z.union([ PermissionCreateInputSchema, PermissionUncheckedCreateInputSchema ]),
+}).strict();
+
+export const PermissionUpsertArgsSchema: z.ZodType<Prisma.PermissionUpsertArgs> = z.object({
+  select: PermissionSelectSchema.optional(),
+  where: PermissionWhereUniqueInputSchema, 
+  create: z.union([ PermissionCreateInputSchema, PermissionUncheckedCreateInputSchema ]),
+  update: z.union([ PermissionUpdateInputSchema, PermissionUncheckedUpdateInputSchema ]),
+}).strict();
+
+export const PermissionCreateManyArgsSchema: z.ZodType<Prisma.PermissionCreateManyArgs> = z.object({
+  data: z.union([ PermissionCreateManyInputSchema, PermissionCreateManyInputSchema.array() ]),
+  skipDuplicates: z.boolean().optional(),
+}).strict();
+
+export const PermissionCreateManyAndReturnArgsSchema: z.ZodType<Prisma.PermissionCreateManyAndReturnArgs> = z.object({
+  data: z.union([ PermissionCreateManyInputSchema, PermissionCreateManyInputSchema.array() ]),
+  skipDuplicates: z.boolean().optional(),
+}).strict();
+
+export const PermissionDeleteArgsSchema: z.ZodType<Prisma.PermissionDeleteArgs> = z.object({
+  select: PermissionSelectSchema.optional(),
+  where: PermissionWhereUniqueInputSchema, 
+}).strict();
+
+export const PermissionUpdateArgsSchema: z.ZodType<Prisma.PermissionUpdateArgs> = z.object({
+  select: PermissionSelectSchema.optional(),
+  data: z.union([ PermissionUpdateInputSchema, PermissionUncheckedUpdateInputSchema ]),
+  where: PermissionWhereUniqueInputSchema, 
+}).strict();
+
+export const PermissionUpdateManyArgsSchema: z.ZodType<Prisma.PermissionUpdateManyArgs> = z.object({
+  data: z.union([ PermissionUpdateManyMutationInputSchema, PermissionUncheckedUpdateManyInputSchema ]),
+  where: PermissionWhereInputSchema.optional(), 
+  limit: z.number().optional(),
+}).strict();
+
+export const PermissionUpdateManyAndReturnArgsSchema: z.ZodType<Prisma.PermissionUpdateManyAndReturnArgs> = z.object({
+  data: z.union([ PermissionUpdateManyMutationInputSchema, PermissionUncheckedUpdateManyInputSchema ]),
+  where: PermissionWhereInputSchema.optional(), 
+  limit: z.number().optional(),
+}).strict();
+
+export const PermissionDeleteManyArgsSchema: z.ZodType<Prisma.PermissionDeleteManyArgs> = z.object({
+  where: PermissionWhereInputSchema.optional(), 
+  limit: z.number().optional(),
 }).strict();
 
 export const UserCreateArgsSchema: z.ZodType<Prisma.UserCreateArgs> = z.object({
