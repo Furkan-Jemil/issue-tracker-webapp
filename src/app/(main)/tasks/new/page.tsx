@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getAppSession } from "@/lib/auth/session";
-import { defineAbilitiesFor } from "@/lib/casl";
+import { defineAbilitiesForAsync } from "@/lib/casl";
 import { NewIssueForm } from "@/app/(main)/tasks/tasks-form";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card } from "@/components/ui/card";
@@ -26,7 +26,7 @@ async function createIssue(formData: FormData) {
   if (!session?.user) {
     redirect("/login");
   }
-  const ability = defineAbilitiesFor(session.user);
+  const ability = await defineAbilitiesForAsync(session.user);
   if (!ability.can("create", "Issue")) {
     throw new Error("Not authorized");
   }
@@ -170,7 +170,7 @@ export default async function NewIssuePage({
     redirect("/login");
   }
 
-  const ability = defineAbilitiesFor(session.user);
+  const ability = await defineAbilitiesForAsync(session.user);
   if (!ability.can("create", "Issue")) {
     redirect("/tasks");
   }
