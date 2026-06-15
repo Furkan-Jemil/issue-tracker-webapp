@@ -313,6 +313,50 @@ async function main() {
     console.log(`✓ Seeded issue: "${issue.title}" (Status: ${issue.status}) with attachment & screenshot.`);
   }
 
+  // 5. Seed database-driven CASL authorization rules (Permission table).
+  // These mirror the hardcoded fallback in src/lib/casl.ts.
+  console.log("\nSeeding CASL permission rules...\n");
+
+  const permissionRules: Array<{
+    role: Role;
+    action: string;
+    subject: string;
+    inverted: boolean;
+  }> = [
+    // Admin can do anything.
+    { role: "ADMIN", action: "manage", subject: "all", inverted: false },
+  ];
+
+  // USER and TESTER share the same non-admin rule set.
+  const nonAdminRoles: Role[] = ["USER", "TESTER"];
+  for (const role of nonAdminRoles) {
+    permissionRules.push(
+      { role, action: "create", subject: "Issue", inverted: false },
+      { role, action: "read", subject: "Issue", inverted: false },
+      { role, action: "update", subject: "Issue", inverted: false },
+      { role, action: "delete", subject: "Issue", inverted: true },
+      { role, action: "create", subject: "Comment", inverted: false },
+      { role, action: "read", subject: "Comment", inverted: false },
+      { role, action: "read", subject: "Notification", inverted: false },
+      { role, action: "read", subject: "IssueHistory", inverted: false },
+    );
+  }
+
+  for (const rule of permissionRules) {
+    await prisma.permission.upsert({
+      where: {
+        role_action_subject: {
+          role: rule.role,
+          action: rule.action,
+          subject: rule.subject,
+        },
+      },
+      update: { inverted: rule.inverted },
+      create: rule,
+    });
+  }
+  console.log(`\u2713 Seeded ${permissionRules.length} CASL permission rules.`);
+
   await prisma.$disconnect();
   console.log("\n=== DATABASE SEEDING COMPLETED ===");
 }
