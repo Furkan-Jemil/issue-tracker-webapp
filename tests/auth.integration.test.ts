@@ -82,6 +82,7 @@ test('sign in -> get session (integration)', async () => {
       throw new Error(`sign-in failed ${signinRes.status}: ${signinText}`)
     }
 
+    assert.ok(signinRes)
     const setCookie = signinRes.headers.get('set-cookie')
     assert.ok(setCookie)
 
