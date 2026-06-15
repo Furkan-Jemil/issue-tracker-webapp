@@ -52,6 +52,25 @@ enum HistoryEvent {
 }
 
 // =============================================================================
+// AUTHORIZATION (CASL) RULES
+// =============================================================================
+// Database-driven CASL rules. Each row is one ability rule for a given role.
+// `inverted = true` represents a CASL `cannot` rule; otherwise it is a `can` rule.
+model Permission {
+  id        String   @id @default(uuid())
+  role      Role
+  action    String
+  subject   String
+  inverted  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([role, action, subject])
+  @@index([role])
+  @@map("permissions")
+}
+
+// =============================================================================
 // AUTH MODELS (Better Auth compatible)
 // =============================================================================
 model User {

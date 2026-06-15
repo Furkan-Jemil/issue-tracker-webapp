@@ -2,8 +2,10 @@ import {
   AbilityBuilder,
   createMongoAbility,
   MongoAbility,
+  type RawRuleOf,
 } from "@casl/ability";
 import type { Role, User } from "@prisma/client";
+import prisma from "@/lib/prisma";
 
 export type AppSubjects =
   | "User"
@@ -19,7 +21,10 @@ export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
 
 type AuthUser = Pick<User, "id"> & { role: Role };
 
-export function defineAbilitiesFor(user: AuthUser | null) {
+// Hardcoded fallback rules. These mirror the rows seeded into the `Permission`
+// table and are used when the database is unreachable, keeping authorization
+// deterministic in every environment.
+export function defineAbilitiesFor(user: AuthUser | null): AppAbility {
   const { can, cannot, build } = new AbilityBuilder<AppAbility>(
     createMongoAbility,
   );
@@ -46,4 +51,53 @@ export function defineAbilitiesFor(user: AuthUser | null) {
   }
 
   return build();
+}
+
+/**
+ * Loads CASL ability rules for a given role from the database `Permission` table.
+ * Returns plain CASL rule objects that can be passed to `createMongoAbility`.
+ */
+export async function loadAbilityRulesFor(
+  role: Role,
+): Promise<RawRuleOf<AppAbility>[]> {
+  const permissions = await prisma.permission.findMany({
+    where: { role },
+    select: { action: true, subject: true, inverted: true },
+  });
+
+  return permissions.map((permission) => ({
+    action: permission.action as AppActions,
+    subject: permission.subject as AppSubjects,
+    inverted: permission.inverted,
+  }));
+}
+
+/**
+ * Database-driven version of `defineAbilitiesFor`.
+ *
+ * Reads the rule set for the user's role from the `Permission` table and builds
+ * a CASL ability from it. If no rows exist for the role (or the query fails),
+ * it falls back to the hardcoded `defineAbilitiesFor` rules so authorization
+ * never silently denies everything.
+ */
+export async function defineAbilitiesForAsync(
+  user: AuthUser | null,
+): Promise<AppAbility> {
+  if (!user) {
+    return defineAbilitiesFor(null);
+  }
+
+  try {
+    const rules = await loadAbilityRulesFor(user.role);
+    if (rules.length === 0) {
+      return defineAbilitiesFor(user);
+    }
+    return createMongoAbility<AppAbility>(rules);
+  } catch (error) {
+    console.error(
+      "defineAbilitiesForAsync: failed to load rules from DB, using fallback",
+      error,
+    );
+    return defineAbilitiesFor(user);
+  }
 }
