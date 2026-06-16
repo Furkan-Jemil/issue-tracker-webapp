@@ -1,10 +1,10 @@
 import 'dotenv/config'
-import { applyDatabaseUrlNormalization } from '@/lib/database-url'
+import { applyDatabaseUrlNormalization } from '../database-url'
 
 async function main() {
   applyDatabaseUrlNormalization()
 
-  const { default: prisma } = await import('@/lib/prisma')
+  const { default: prisma } = await import('../index')
 
   const startedAt = Date.now()
   try {

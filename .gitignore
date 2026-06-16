@@ -3,7 +3,7 @@
 # dependencies
 /SRS_Issue_Tracking_System.md
 /database-schema.md
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -18,12 +18,12 @@ scripts/check-sessions.ts
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
+# next.js & expo & turbo
+.next/
+.expo/
+.turbo/
+out/
+build/
 
 # misc
 .DS_Store

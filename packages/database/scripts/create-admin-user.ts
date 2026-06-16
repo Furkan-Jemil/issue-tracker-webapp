@@ -8,7 +8,7 @@
  */
 import "dotenv/config";
 import bcrypt from "bcryptjs";
-import { applyDatabaseUrlNormalization } from "@/lib/database-url";
+import { applyDatabaseUrlNormalization } from "../database-url";
 
 async function main() {
   const EMAIL = process.env.ADMIN_EMAIL?.trim().toLowerCase();
@@ -23,7 +23,7 @@ async function main() {
 
   applyDatabaseUrlNormalization();
 
-  const { default: prisma } = await import("@/lib/prisma");
+  const { default: prisma } = await import("../index");
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
 
   const existing = await prisma.user.findUnique({

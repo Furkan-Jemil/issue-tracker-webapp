@@ -7,13 +7,13 @@
  */
 import "dotenv/config";
 import type { Role, IssueType, Priority, Severity, IssueStatus } from "@prisma/client";
-import { applyDatabaseUrlNormalization } from "../src/lib/database-url";
+import { applyDatabaseUrlNormalization } from "../database-url";
 
 async function main() {
   applyDatabaseUrlNormalization();
 
-  const { default: prisma } = await import("../src/lib/prisma");
-  const { auth } = await import("../src/lib/auth");
+  const { default: prisma } = await import("../index");
+  const { auth } = await import("../../../apps/web/src/lib/auth");
 
   console.log("=== SEEDING DATABASE ===\n");
 

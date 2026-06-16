@@ -1,57 +1,20 @@
 import {
-  AbilityBuilder,
   createMongoAbility,
-  MongoAbility,
   type RawRuleOf,
 } from "@casl/ability";
-import type { Role, User } from "@prisma/client";
+import type { Role } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import {
+  AppSubjects,
+  AppActions,
+  AppAbility,
+  AuthUser,
+  defineAbilitiesFor,
+} from "@workspace/shared";
 
-export type AppSubjects =
-  | "User"
-  | "Issue"
-  | "Comment"
-  | "Notification"
-  | "IssueHistory"
-  | "all";
-
-export type AppActions = "manage" | "create" | "read" | "update" | "delete";
-
-export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
-
-type AuthUser = Pick<User, "id"> & { role: Role };
-
-// Hardcoded fallback rules. These mirror the rows seeded into the `Permission`
-// table and are used when the database is unreachable, keeping authorization
-// deterministic in every environment.
-export function defineAbilitiesFor(user: AuthUser | null): AppAbility {
-  const { can, cannot, build } = new AbilityBuilder<AppAbility>(
-    createMongoAbility,
-  );
-
-  if (!user) {
-    // Not logged in: can only register/login
-    can("create", "User");
-    return build();
-  }
-
-  if (user.role === "ADMIN") {
-    can("manage", "all"); // Admin can do anything
-  } else {
-    // Ownership/state is enforced in route handlers and queries.
-    can("create", "Issue");
-    can("read", "Issue");
-    can("update", "Issue");
-    cannot("delete", "Issue");
-    // Comments, notifications, and history visibility are also server-validated.
-    can("create", "Comment");
-    can("read", "Comment");
-    can("read", "Notification");
-    can("read", "IssueHistory");
-  }
-
-  return build();
-}
+// Re-export shared types and fallback function so Next.js callers don't break
+export { defineAbilitiesFor };
+export type { AppSubjects, AppActions, AppAbility, AuthUser };
 
 /**
  * Loads CASL ability rules for a given role from the database `Permission` table.
@@ -88,7 +51,7 @@ export async function defineAbilitiesForAsync(
   }
 
   try {
-    const rules = await loadAbilityRulesFor(user.role);
+    const rules = await loadAbilityRulesFor(user.role as any);
     if (rules.length === 0) {
       return defineAbilitiesFor(user);
     }
