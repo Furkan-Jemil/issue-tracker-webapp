@@ -10,18 +10,29 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@casl/ability": "^6.8.0",
+    "@expo-google-fonts/jetbrains-mono": "^0.4.1",
+    "@expo-google-fonts/outfit": "^0.4.3",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/bottom-tabs": "^7.18.3",
+    "@react-navigation/native": "^7.3.4",
+    "@react-navigation/native-stack": "^7.17.6",
+    "@types/react": "~19.1.10",
     "@workspace/shared": "*",
-    "expo": "~51.0.2",
-    "expo-status-bar": "~1.12.1",
-    "react": "18.2.0",
-    "react-native": "0.74.5",
-    "zod": "^3.24.1",
-    "@casl/ability": "^6.8.0"
+    "expo": "~54.0.0",
+    "expo-font": "~14.0.12",
+    "expo-status-bar": "~3.0.9",
+    "lucide-react-native": "^1.21.0",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-svg": "15.12.1",
+    "typescript": "~5.9.2",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@types/react": "~18.2.45",
-    "typescript": "~5.3.3",
     "@expo/ngrok": "^4.1.0"
   }
 }
