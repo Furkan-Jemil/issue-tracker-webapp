@@ -1,37 +1,28 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { z } from 'zod';
 import { ThemeProvider } from '../theme/useTheme';
 import { apiUrl } from '../utils/api';
-import { mockApiFetch, mockUser, mockIssues, mockMembers, mockNotifications, mockAuditLogs } from '../utils/mockData';
 
 const TOKEN_KEY = '@auth_token';
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-}
+// Zod schemas for runtime validation of API responses
+const UserSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  name: z.string().nullable().optional().transform(val => val || ""),
+  role: z.string(),
+}).passthrough();
 
-interface Issue {
-  id: string;
-  [key: string]: unknown;
-}
+const BaseEntitySchema = z.object({
+  id: z.string(),
+}).passthrough();
 
-interface Member {
-  id: string;
-  [key: string]: unknown;
-}
-
-interface Notification {
-  id: string;
-  [key: string]: unknown;
-}
-
-interface AuditLog {
-  id: string;
-  [key: string]: unknown;
-}
+type User = z.infer<typeof UserSchema>;
+type Issue = z.infer<typeof BaseEntitySchema>;
+type Member = z.infer<typeof BaseEntitySchema>;
+type Notification = z.infer<typeof BaseEntitySchema>;
+type AuditLog = z.infer<typeof BaseEntitySchema>;
 
 interface AppContextValue {
   issues: Issue[];
@@ -54,12 +45,6 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 async function apiFetch(url: string, options: RequestInit = {}): Promise<unknown> {
-  // Try mock first
-  try {
-    return await mockApiFetch(url, options);
-  } catch {
-    // fall through to real API
-  }
   const token = await AsyncStorage.getItem(TOKEN_KEY);
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -76,24 +61,34 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<unknown
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [issues, setIssues] = useState<Issue[]>(mockIssues as unknown as Issue[]);
-  const [members, setMembers] = useState<Member[]>(mockMembers as unknown as Member[]);
-  const [assignableUsers, setAssignableUsers] = useState<Member[]>(mockMembers as unknown as Member[]);
-  const [user, setUser] = useState<User | null>(mockUser as unknown as User);
-  const [token, setToken] = useState<string | null>('mock-token');
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications as unknown as Notification[]);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs as unknown as AuditLog[]);
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [assignableUsers, setAssignableUsers] = useState<Member[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const isMounted = useRef(true);
+
+  // Load token on startup
+  useEffect(() => {
+    AsyncStorage.getItem(TOKEN_KEY).then(savedToken => {
+      if (savedToken) {
+        setToken(savedToken);
+      }
+    });
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const data = (await apiFetch('/api/auth/login-mobile', {
+      const rawData = await apiFetch('/api/auth/login-mobile', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
-        headers: {} as Record<string, string>,
-      })) as { token: string; user: User };
+        headers: {},
+      });
+      const data = z.object({ token: z.string(), user: UserSchema }).parse(rawData);
       await AsyncStorage.setItem(TOKEN_KEY, data.token);
       setToken(data.token);
       setUser(data.user);
@@ -105,11 +100,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const register = useCallback(async (email: string, password: string, name: string, role?: string) => {
     setIsLoading(true);
     try {
-      const data = (await apiFetch('/api/auth/register-mobile', {
+      const rawData = await apiFetch('/api/auth/register-mobile', {
         method: 'POST',
         body: JSON.stringify({ email, password, name, role }),
-        headers: {} as Record<string, string>,
-      })) as { token: string; user: User };
+        headers: {},
+      });
+      const data = z.object({ token: z.string(), user: UserSchema }).parse(rawData);
       await AsyncStorage.setItem(TOKEN_KEY, data.token);
       setToken(data.token);
       setUser(data.user);
@@ -131,32 +127,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const fetchIssues = useCallback(async () => {
     try {
-      const data = (await apiFetch('/api/issues-mobile')) as { issues?: Issue[]; data?: Issue[] };
+      const data = (await apiFetch('/api/issues-mobile')) as { issues?: unknown[]; data?: unknown[] };
       const list = data.issues ?? data.data ?? [];
-      setIssues(list);
-    } catch {
-      // silently fail
+      const validIssues = z.array(BaseEntitySchema).parse(list);
+      setIssues(validIssues);
+    } catch (error) {
+      console.warn("Failed to fetch issues", error);
     }
   }, []);
 
   const fetchMembers = useCallback(async () => {
     try {
-      const data = (await apiFetch('/api/admin/users')) as { users?: Member[]; data?: Member[] };
+      const data = (await apiFetch('/api/admin/users')) as { users?: unknown[]; data?: unknown[] };
       const list = data.users ?? data.data ?? [];
-      setMembers(list);
-      setAssignableUsers(list);
-    } catch {
-      // silently fail
+      const validMembers = z.array(BaseEntitySchema).parse(list);
+      setMembers(validMembers);
+      setAssignableUsers(validMembers);
+    } catch (error) {
+      console.warn("Failed to fetch members", error);
     }
   }, []);
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const data = (await apiFetch('/api/notifications?limit=100')) as { notifications?: Notification[]; data?: Notification[] };
+      const data = (await apiFetch('/api/notifications?limit=100')) as { notifications?: unknown[]; data?: unknown[] };
       const list = data.notifications ?? data.data ?? [];
-      setNotifications(list);
-    } catch {
-      // silently fail
+      const validNotifications = z.array(BaseEntitySchema).parse(list);
+      setNotifications(validNotifications);
+    } catch (error) {
+      console.warn("Failed to fetch notifications", error);
     }
   }, []);
 
@@ -173,7 +172,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await apiFetch(`/api/admin/users/${userId}/role`, {
       method: 'PATCH',
       body: JSON.stringify({ role }),
-      headers: {} as Record<string, string>,
+      headers: {},
     });
     await fetchMembers();
   }, [fetchMembers]);
@@ -190,9 +189,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (token && token.startsWith('mock')) return; // mock data already loaded
     if (token) refreshData();
-  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [token, refreshData]);
 
   const value: AppContextValue = {
     issues,
