@@ -1,5 +1,7 @@
 "use client";
 
+import { DashboardSkeleton } from "./dashboard-skeleton";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -484,13 +486,7 @@ export default function DashboardCharts() {
   const hasRecentIssues = (data?.recentIssues?.length ?? 0) > 0;
 
   if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-4 text-sm text-muted-foreground">
-          Loading charts...
-        </CardContent>
-      </Card>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {
@@ -513,6 +509,7 @@ export default function DashboardCharts() {
     );
   }
 
+
   return (
     <div className="space-y-3">
       <section className="space-y-2">
@@ -534,52 +531,58 @@ export default function DashboardCharts() {
               value: data.totalIssues,
               icon: Ticket,
               tone: "text-primary",
+              strip: "bg-primary",
             },
             {
               href: "/tasks/filter?status=OPEN",
               label: "Open",
               value: data.open,
               icon: CircleDot,
-              tone: "text-[hsl(var(--chart-1))]",
+              tone: "text-amber-500 dark:text-amber-400",
+              strip: "bg-amber-400",
             },
             {
               href: "/tasks/filter?status=IN_PROGRESS",
               label: "In progress",
               value: data.inProgress,
               icon: LoaderCircle,
-              tone: "text-[hsl(var(--chart-2))]",
+              tone: "text-blue-500 dark:text-blue-400",
+              strip: "bg-blue-500",
             },
             {
               href: "/tasks/filter?status=RESOLVED",
               label: "Resolved",
               value: data.resolved,
               icon: BadgeCheck,
-              tone: "text-[hsl(var(--chart-3))]",
+              tone: "text-emerald-600 dark:text-emerald-400",
+              strip: "bg-emerald-500",
             },
             {
               href: "/tasks/filter?status=CLOSED",
               label: "Closed",
               value: data.closed,
               icon: CheckCircle2,
-              tone: "text-[hsl(var(--chart-5))]",
+              tone: "text-slate-500 dark:text-slate-400",
+              strip: "bg-slate-400",
             },
-          ].map(({ href, label, value, icon: Icon, tone }) => (
+          ].map(({ href, label, value, icon: Icon, tone, strip }) => (
             <Link key={label} href={href}>
-              <Card className="group h-full cursor-pointer bg-white shadow-sm transition-colors duration-150 hover:bg-accent/20 focus-within:ring-2 focus-within:ring-ring/50 dark:bg-card">
-                <CardContent className="flex items-center justify-between gap-2.5 p-2.5">
+              <Card className="group relative h-full cursor-pointer overflow-hidden bg-white shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-ring/50 dark:bg-card">
+                {/* Left-border color strip */}
+                <div className={`absolute left-0 top-0 h-full w-[3px] ${strip}`} aria-hidden="true" />
+                <CardContent className="flex items-center justify-between gap-2.5 pl-4 pr-2.5 py-2.5">
                   <div>
                     <p className="text-[12px] font-medium text-muted-foreground">
                       {label}
                     </p>
-                    <p
-                      className={`text-xl font-semibold leading-tight ${tone}`}>
+                    <p className={`text-xl font-semibold leading-tight ${tone}`}>
                       {value}
                     </p>
                     <p className="mt-0.5 text-[11px] text-muted-foreground transition-colors group-hover:text-foreground">
-                      Open list
+                      View issues →
                     </p>
                   </div>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground/80">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground/80 transition-colors group-hover:bg-muted">
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </div>
                 </CardContent>
@@ -587,6 +590,7 @@ export default function DashboardCharts() {
             </Link>
           ))}
         </div>
+
       </section>
 
       <section className="space-y-2">
@@ -788,9 +792,7 @@ export default function DashboardCharts() {
                   />
               </div>
               <div className="border-t border-border/60 pt-2 text-center">
-                <p className="text-sm font-medium text-foreground">
-                  Trending up by 5.2% this month
-                </p>
+
                 <p className="text-xs text-muted-foreground">
                   Showing total status distribution for the selected range.
                 </p>
@@ -882,9 +884,7 @@ export default function DashboardCharts() {
                   />
               </div>
               <div className="pt-2 text-center">
-                <p className="text-sm font-medium text-foreground">
-                  Trending up by 5.2% this month
-                </p>
+
                 <p className="text-xs text-muted-foreground">
                   Showing grouped issue throughput for the last 6 intervals.
                 </p>
