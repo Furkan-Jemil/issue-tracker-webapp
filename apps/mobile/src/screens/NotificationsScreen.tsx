@@ -1,452 +1,133 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  RefreshControl,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import {
-  TriangleAlert,
-  MessageSquare,
-  UserCheck,
-  Info,
-  BellRing,
-  CheckCheck,
-  Trash2,
-  Check,
-} from 'lucide-react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Bell, CheckCheck, Trash2, X } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
-import { safeFetch } from '../utils/api';
-import TopAppBar from '../components/TopAppBar';
-import AnimatedEntry from '../components/AnimatedEntry';
-import EmptyState from '../components/EmptyState';
+import { Screen, Card, Button } from '../components/ui';
 import { relativeTime } from '../utils/formatters';
 
-const NOTIFICATION_ICON: Record<string, React.ComponentType<{ size: number; color: string }>> = {
-  critical: TriangleAlert,
-  mention: MessageSquare,
-  member: UserCheck,
-};
-
-function getNotificationIcon(type?: string) {
-  return NOTIFICATION_ICON[type ?? ''] ?? Info;
-}
-
-function getNotificationColor(colors: any, type?: string) {
-  switch (type) {
-    case 'critical':
-      return colors.error;
-    case 'mention':
-      return colors.primary;
-    case 'member':
-      return colors.chartResolved;
-    default:
-      return colors.onSurfaceVariant;
-  }
+interface Notif {
+  id: string;
+  type: 'critical' | 'mention' | 'member' | 'info';
+  title: string;
+  message: string;
+  code: string;
+  read: boolean;
+  created_at: string;
 }
 
 export default function NotificationsScreen() {
-  const { colors, typography, spacing, radius, pagePadding } = useTheme();
-  const { notifications, isLoading, refreshData, markNotificationsRead } = useAppContext();
-  const navigation = useNavigation();
+  const { colors, pagePadding } = useTheme();
+  const { notifications, markNotificationsRead } = useAppContext();
+  const [items, setItems] = useState<Notif[]>(notifications as unknown as Notif[]);
 
-  const [refreshing, setRefreshing] = useState(false);
+  const unread = items.filter((n) => !n.read).length;
 
-  const unreadCount = useMemo(
-    () => notifications.filter((n: any) => !n.read).length,
-    [notifications],
-  );
-
-  const sortedNotifications = useMemo(() => {
-    const list = [...notifications] as any[];
-    list.sort((a, b) => new Date(b.createdAt ?? b.timestamp ?? 0).getTime() - new Date(a.createdAt ?? a.timestamp ?? 0).getTime());
-    return list;
-  }, [notifications]);
-
-  const groupedNotifications = useMemo(() => {
-    const now = Date.now();
-    const oneDayMs = 86400000;
-    const recent: any[] = [];
-    const earlier: any[] = [];
-
-    for (const n of sortedNotifications) {
-      const t = new Date(n.createdAt ?? n.timestamp ?? 0).getTime();
-      if (now - t < oneDayMs) {
-        recent.push(n);
-      } else {
-        earlier.push(n);
-      }
-    }
-
-    return { recent, earlier };
-  }, [sortedNotifications]);
-
-  const sectionData = useMemo(() => {
-    const sections: { title?: string; data: any[] }[] = [];
-    if (groupedNotifications.recent.length > 0) {
-      sections.push({ data: groupedNotifications.recent });
-    }
-    if (groupedNotifications.earlier.length > 0) {
-      sections.push({ title: 'Earlier notifications', data: groupedNotifications.earlier });
-    }
-    return sections;
-  }, [groupedNotifications]);
-
-  const handleMarkRead = useCallback(
-    async (id: string) => {
-      try {
-        await safeFetch(`/api/notifications/${id}/read`, { method: 'POST' });
-        refreshData();
-      } catch {
-        // silently fail
-      }
-    },
-    [refreshData],
-  );
-
-  const handleDismiss = useCallback(
-    async (id: string) => {
-      try {
-        await safeFetch(`/api/notifications/${id}`, { method: 'DELETE' });
-        refreshData();
-      } catch {
-        // silently fail
-      }
-    },
-    [refreshData],
-  );
-
-  const handleMarkAllRead = useCallback(async () => {
-    try {
-      await markNotificationsRead();
-    } catch {
-      // silently fail
-    }
-  }, [markNotificationsRead]);
-
-  const handleClearAll = useCallback(async () => {
-    try {
-      await safeFetch('/api/notifications', { method: 'DELETE' });
-      refreshData();
-    } catch {
-      // silently fail
-    }
-  }, [refreshData]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refreshData();
-    setRefreshing(false);
-  }, [refreshData]);
-
-  const renderNotification = ({ item }: { item: any }) => {
-    const isUnread = !item.read;
-    const Icon = getNotificationIcon(item.type);
-    const iconColor = getNotificationColor(colors, item.type);
-
-    return (
-      <View
-        style={[
-          styles.notificationItem,
-          {
-            backgroundColor: colors.surfaceContainerLowest,
-            borderRadius: radius.xl,
-            padding: spacing.cardPadding,
-            borderLeftWidth: 3,
-            borderLeftColor: isUnread ? colors.primary : 'transparent',
-            shadowColor: '#0b1c30',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.05,
-            shadowRadius: 20,
-            elevation: 2,
-            borderColor: colors.outlineVariant + '30',
-            borderWidth: StyleSheet.hairlineWidth,
-          },
-        ]}
-      >
-        <View style={styles.notificationRow}>
-          <View
-            style={[
-              styles.notifIconWrapper,
-              {
-                backgroundColor: iconColor + '15',
-                borderRadius: radius.md,
-                width: 36,
-                height: 36,
-              },
-            ]}
-          >
-            <Icon size={18} color={iconColor} />
-          </View>
-          <View style={styles.notifContent}>
-            <View style={styles.notifHeader}>
-              {item.code ? (
-                <Text style={[typography.monoId, { color: colors.onSurfaceVariant }]}>
-                  {item.code}
-                </Text>
-              ) : null}
-              {isUnread && (
-                <View
-                  style={[
-                    styles.unreadDot,
-                    { backgroundColor: colors.primary, width: 8, height: 8, borderRadius: 4 },
-                  ]}
-                />
-              )}
-            </View>
-            <Text
-              style={[
-                typography.bodySm,
-                { color: colors.onSurface, marginTop: 2 },
-              ]}
-              numberOfLines={2}
-            >
-              {item.message ?? item.description ?? ''}
-            </Text>
-            <Text style={[typography.micro, { color: colors.onSurfaceVariant, marginTop: 4 }]}>
-              {relativeTime(item.createdAt ?? item.timestamp ?? new Date())}
-            </Text>
-          </View>
-        </View>
-        <View style={[styles.notifActions, { marginTop: spacing.xs, gap: spacing.xs }]}>
-          {isUnread && (
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                {
-                  backgroundColor: colors.primary + '10',
-                  borderRadius: radius.full,
-                  paddingHorizontal: 10,
-                  paddingVertical: 4,
-                },
-              ]}
-              onPress={() => handleMarkRead(item.id)}
-              activeOpacity={0.7}
-            >
-              <Check size={12} color={colors.primary} />
-              <Text style={[typography.micro, { color: colors.primary, marginLeft: 4 }]}>
-                Mark read
-              </Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              {
-                backgroundColor: colors.secondaryContainer,
-                borderRadius: radius.full,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-              },
-            ]}
-            onPress={() => handleDismiss(item.id)}
-            activeOpacity={0.7}
-          >
-            <Trash2 size={12} color={colors.onSurfaceVariant} />
-            <Text style={[typography.micro, { color: colors.onSurfaceVariant, marginLeft: 4 }]}>
-              Dismiss
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
+  const markAllRead = () => {
+    setItems((ns) => ns.map((n) => ({ ...n, read: true })));
+    markNotificationsRead();
   };
 
+  const markOneRead = (id: string) =>
+    setItems((ns) => ns.map((n) => (n.id === id ? { ...n, read: true } : n)));
+
+  const removeOne = (id: string) =>
+    setItems((ns) => ns.filter((n) => n.id !== id));
+
   return (
-    <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: colors.surface }]}>
-      <TopAppBar
-        title="Notifications"
-        onNotificationPress={() => {}}
-        onProfilePress={() => (navigation as any).navigate('Profile')}
-      />
-
-      <View
-        style={[
-          styles.toolbar,
-          {
-            paddingHorizontal: pagePadding,
-            marginTop: spacing.elementGap,
-            gap: spacing.xs,
-          },
-        ]}
-      >
-        <View style={styles.toolbarLeft}>
-          <BellRing size={16} color={colors.onSurface} />
-          {unreadCount > 0 && (
-            <View
-              style={[
-                styles.unreadBadge,
-                {
-                  backgroundColor: colors.error,
-                  borderRadius: radius.full,
-                  minWidth: 20,
-                  height: 20,
-                },
-              ]}
-            >
-              <Text style={[typography.labelBadge, { color: '#FFFFFF', textAlign: 'center' }]}>
-                {unreadCount}
-              </Text>
-            </View>
-          )}
-        </View>
-        <View style={styles.toolbarRight}>
-          <TouchableOpacity
-            style={[
-              styles.toolbarButton,
-              {
-                backgroundColor: colors.surfaceContainerLow,
-                borderRadius: radius.full,
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderWidth: 1,
-                borderColor: colors.outlineVariant,
-              },
-            ]}
-            onPress={handleMarkAllRead}
-            activeOpacity={0.7}
-          >
-            <CheckCheck size={14} color={colors.onSurfaceVariant} />
-            <Text style={[typography.bodySmBold, { color: colors.onSurfaceVariant, marginLeft: 6 }]}>
-              Mark all read
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.toolbarButton,
-              {
-                backgroundColor: colors.surfaceContainerLow,
-                borderRadius: radius.full,
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderWidth: 1,
-                borderColor: colors.outlineVariant,
-              },
-            ]}
-            onPress={handleClearAll}
-            activeOpacity={0.7}
-          >
-            <Trash2 size={14} color={colors.error} />
-            <Text style={[typography.bodySmBold, { color: colors.error, marginLeft: 6 }]}>
-              Clear all
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <FlatList
-        data={sectionData}
-        keyExtractor={(_, index) => `section-${index}`}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
-        contentContainerStyle={[styles.listContent, { paddingHorizontal: pagePadding, paddingBottom: 120 }]}
-        style={{ flex: 1 }}
-        renderItem={({ item: section }) => (
-          <View>
-            {section.title ? (
-              <Text
-                style={[
-                  typography.nanoCaps,
-                  {
-                    color: colors.onSurfaceVariant,
-                    marginTop: spacing.elementGap,
-                    marginBottom: spacing.xs,
-                  },
-                ]}
-              >
-                {section.title}
-              </Text>
-            ) : null}
-            {section.data.map((notif: any, idx: number) => (
-              <AnimatedEntry key={notif.id} index={idx} delay={40}>
-                <View style={{ marginBottom: spacing.xs }}>
-                  {renderNotification({ item: notif })}
-                </View>
-              </AnimatedEntry>
-            ))}
-          </View>
-        )}
-        ListEmptyComponent={
-          !isLoading ? (
-            <EmptyState
-              icon={<BellRing size={40} color={colors.onSurfaceVariant} />}
-              title="No Notifications"
-              subtitle="You're all caught up! New notifications will appear here."
+    <Screen title="Notifications" subtitle={`${unread} unread alerts`}>
+      <View style={{ paddingHorizontal: pagePadding, paddingVertical: 16, gap: 8, width: '100%' }}>
+        {/* Toolbar */}
+        <View style={styles.toolbar}>
+          <Text style={[styles.unread, { color: colors.mutedForeground }]}>{unread} unread</Text>
+          <View style={styles.toolbarActions}>
+            <Button
+              title="Mark all read"
+              variant="outline"
+              size="sm"
+              icon={<CheckCheck size={12} color={colors.foreground} />}
+              onPress={markAllRead}
             />
-          ) : null
-        }
-      />
-    </SafeAreaView>
+            <Button
+              title="Clear all"
+              variant="outline"
+              size="sm"
+              icon={<Trash2 size={12} color={colors.foreground} />}
+              onPress={() => setItems([])}
+            />
+          </View>
+        </View>
+
+        {/* List / empty state */}
+        {items.length === 0 ? (
+          <View style={styles.empty}>
+            <Bell size={36} color={colors.mutedForeground + '33'} />
+            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No notifications</Text>
+          </View>
+        ) : (
+          items.map((n) => (
+            <Card
+              key={n.id}
+              padding={16}
+              style={
+                !n.read
+                  ? { borderLeftWidth: 2, borderLeftColor: colors.green, backgroundColor: colors.green + '10' }
+                  : undefined
+              }
+            >
+              <View style={styles.cardRow}>
+                <View
+                  style={[
+                    styles.dot,
+                    { backgroundColor: n.read ? colors.mutedForeground : colors.green },
+                  ]}
+                />
+                <View style={styles.body}>
+                  <Text style={[styles.title, { color: colors.foreground }]}>{n.title}</Text>
+                  <Text style={[styles.message, { color: colors.foreground }]}>{n.message}</Text>
+                  <Text style={[styles.meta, { color: colors.mutedForeground }]} numberOfLines={1}>
+                    {n.code} · {relativeTime(n.created_at)}
+                  </Text>
+                </View>
+                <View style={styles.actions}>
+                  {!n.read && (
+                    <TouchableOpacity
+                      onPress={() => markOneRead(n.id)}
+                      activeOpacity={0.7}
+                      style={[styles.iconBtn, { backgroundColor: colors.green + '20' }]}
+                    >
+                      <CheckCheck size={11} color={colors.green} />
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity
+                    onPress={() => removeOne(n.id)}
+                    activeOpacity={0.7}
+                    style={[styles.iconBtn, { backgroundColor: colors.muted }]}
+                  >
+                    <X size={11} color={colors.mutedForeground} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Card>
+          ))
+        )}
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  toolbarLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  toolbarRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  toolbarButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  unreadBadge: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-  },
-  listContent: {
-    flexGrow: 1,
-    paddingTop: 12,
-  },
-  notificationItem: {},
-  notificationRow: {
-    flexDirection: 'row',
-  },
-  notifIconWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notifContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  notifHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  unreadDot: {},
-  notifActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  toolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 4 },
+  unread: { fontFamily: 'Outfit_400Regular', fontSize: 12 },
+  toolbarActions: { flexDirection: 'row', gap: 8 },
+  empty: { alignItems: 'center', justifyContent: 'center', paddingVertical: 96, gap: 12 },
+  emptyText: { fontFamily: 'Outfit_400Regular', fontSize: 14 },
+  cardRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  dot: { width: 8, height: 8, borderRadius: 4, marginTop: 6 },
+  body: { flex: 1, minWidth: 0 },
+  title: { fontFamily: 'Outfit_600SemiBold', fontSize: 14 },
+  message: { fontFamily: 'Outfit_400Regular', fontSize: 13, marginTop: 1 },
+  meta: { fontFamily: 'Outfit_400Regular', fontSize: 10, marginTop: 4 },
+  actions: { flexDirection: 'row', gap: 4 },
+  iconBtn: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
 });

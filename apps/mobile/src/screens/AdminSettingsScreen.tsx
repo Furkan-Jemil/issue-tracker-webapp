@@ -1,27 +1,14 @@
 import React, { useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Shield, Download, LogOut, Sun, Moon } from 'lucide-react-native';
+import { Shield, Download, LogOut, Sun, Moon, Trash2 } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
-import { Card, CardHeader, CardRow } from '../components/Card';
-import TopAppBar from '../components/TopAppBar';
-import Button from '../components/Button';
-import AnimatedEntry from '../components/AnimatedEntry';
+import { Screen, Card, Button } from '../components/ui';
 
 export default function AdminSettingsScreen() {
-  const { colors, typography, spacing, radius, isDark, toggleTheme } = useTheme();
+  const { colors, typography, spacing, radius, isDark, toggleTheme, pagePadding } = useTheme();
   const { user, logout } = useAppContext();
-  const navigation = useNavigation();
 
   const handleClearCache = useCallback(() => {
     Alert.alert(
@@ -55,87 +42,103 @@ export default function AdminSettingsScreen() {
         onPress: async () => {
           try {
             await logout();
-            (navigation as any).reset({ index: 0, routes: [{ name: 'Login' }] });
           } catch {
             Alert.alert('Error', 'Failed to sign out. Please try again.');
           }
         },
       },
     ]);
-  }, [logout, navigation]);
+  }, [logout]);
+
+  const rows: { label: string; value: string }[] = [
+    { label: 'Version', value: '2.4.1' },
+    { label: 'Build', value: __DEV__ ? 'Development' : 'Production' },
+    { label: 'Logged in as', value: user?.email ?? '—' },
+    { label: 'Role', value: user?.role ?? '—' },
+  ];
 
   return (
-    <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: colors.surface }]}>
-      <TopAppBar title="Admin Settings" onBackPress={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingHorizontal: spacing.pageMargin }]}>
-        <AnimatedEntry index={0}>
-          <Card style={{ marginTop: spacing.sectionGap }}>
-            <CardHeader title="App Info" />
-            <CardRow label="Version" value="1.0.0" />
-            <CardRow label="Build Number" value="1" />
-            <CardRow label="Environment" value={__DEV__ ? 'Development' : 'Production'} />
-          </Card>
-        </AnimatedEntry>
-
-        <AnimatedEntry index={1}>
-          <Card style={{ marginTop: spacing.elementGap }}>
-            <CardHeader title="Preferences" />
-            <TouchableOpacity
-              style={[styles.themeRow, { backgroundColor: colors.surfaceContainerLow, borderRadius: radius.md, paddingVertical: 10, paddingHorizontal: 12 }]}
-              onPress={toggleTheme}
-              activeOpacity={0.7}
+    <Screen title="Admin Settings" subtitle="System info and app preferences" onBack={undefined}>
+      <View style={{ paddingHorizontal: pagePadding, paddingVertical: 20, gap: 16, maxWidth: 560, width: '100%', alignSelf: 'center' }}>
+        {/* App Info */}
+        <Card padding={0}>
+          {rows.map((r, i) => (
+            <View
+              key={r.label}
+              style={[
+                styles.row,
+                { borderBottomColor: colors.cardBorder },
+                i < rows.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth },
+              ]}
             >
-              <View style={styles.themeRowLeft}>
-                {isDark ? (
-                  <Sun size={20} color={colors.onSurface} />
-                ) : (
-                  <Moon size={20} color={colors.onSurface} />
-                )}
-                <Text style={[typography.bodySmBold, { color: colors.onSurface, marginLeft: 12 }]}>Theme</Text>
+              <Text style={[styles.rowLabel, { color: colors.mutedForeground }]}>{r.label}</Text>
+              <Text style={[styles.rowValue, { color: colors.foreground }]}>{r.value}</Text>
+            </View>
+          ))}
+        </Card>
+
+        {/* Theme toggle */}
+        <Card padding={0}>
+          <TouchableOpacity
+            onPress={toggleTheme}
+            activeOpacity={0.7}
+            style={[styles.row, { borderBottomWidth: 0 }]}
+          >
+            <View style={styles.rowLeft}>
+              {isDark ? (
+                <Moon size={16} color={colors.mutedForeground} />
+              ) : (
+                <Sun size={16} color={colors.mutedForeground} />
+              )}
+              <View style={{ marginLeft: 12 }}>
+                <Text style={[styles.rowLabel, { color: colors.foreground }]}>Appearance</Text>
+                <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>
+                  {isDark ? 'Dark mode' : 'Light mode'}
+                </Text>
               </View>
-              <Text style={[typography.bodySm, { color: colors.onSurfaceVariant }]}>
-                {isDark ? 'Light Mode' : 'Dark Mode'}
-              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={toggleTheme}
+              activeOpacity={0.8}
+              style={[styles.toggle, { backgroundColor: isDark ? colors.green : colors.outline }]}
+            >
+              <View style={[styles.knob, { alignSelf: isDark ? 'flex-end' : 'flex-start' }]} />
             </TouchableOpacity>
-          </Card>
-        </AnimatedEntry>
+          </TouchableOpacity>
+        </Card>
 
-        <AnimatedEntry index={2}>
-          <Button
-            title="Clear Cache"
-            onPress={handleClearCache}
-            variant="ghost"
-            size="lg"
-            icon={<Download size={20} color={colors.onSurfaceVariant} />}
-            style={{ marginTop: spacing.elementGap }}
-          />
-        </AnimatedEntry>
-
-        <AnimatedEntry index={3}>
-          <Button
-            title="Sign Out"
-            onPress={handleLogout}
-            variant="danger"
-            size="lg"
-            icon={<LogOut size={20} color="#FFFFFF" />}
-            style={{ marginTop: spacing.elementGap }}
-          />
-        </AnimatedEntry>
-      </ScrollView>
-    </SafeAreaView>
+        {/* Actions */}
+        <Button
+          title="Clear Cache"
+          variant="outline"
+          fullWidth
+          icon={<Trash2 size={14} color={colors.foreground} />}
+          onPress={handleClearCache}
+        />
+        <Button
+          title="Sign Out"
+          variant="destructive"
+          fullWidth
+          icon={<LogOut size={14} color="#fff" />}
+          onPress={handleLogout}
+        />
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingBottom: 120 },
-  themeRow: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
   },
-  themeRowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  rowLeft: { flexDirection: 'row', alignItems: 'center' },
+  rowLabel: { fontFamily: 'Outfit_500Medium', fontSize: 14 },
+  rowSub: { fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
+  rowValue: { fontFamily: 'Outfit_600SemiBold', fontSize: 13 },
+  toggle: { width: 44, height: 24, borderRadius: 12, padding: 2, justifyContent: 'center' },
+  knob: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff' },
 });
