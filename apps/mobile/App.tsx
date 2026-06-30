@@ -2,6 +2,8 @@ import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useFonts, Outfit_700Bold, Outfit_600SemiBold, Outfit_500Medium, Outfit_400Regular } from '@expo-google-fonts/outfit';
 import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono';
 import { AppProvider } from './src/context/AppContext';
@@ -9,7 +11,6 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import TaskDetailScreen from './src/screens/TaskDetailScreen';
 import CreateTaskScreen from './src/screens/CreateTaskScreen';
-import AuditLogScreen from './src/screens/AuditLogScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import AdminSettingsScreen from './src/screens/AdminSettingsScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
@@ -34,7 +35,6 @@ function MainNavigator() {
       <MainStack.Screen name="Tabs" component={MainTabNavigator} />
       <MainStack.Screen name="TaskDetail" component={TaskDetailScreen} />
       <MainStack.Screen name="CreateTask" component={CreateTaskScreen} />
-      <MainStack.Screen name="AuditLog" component={AuditLogScreen} />
       <MainStack.Screen name="Profile" component={ProfileScreen} />
       <MainStack.Screen name="AdminSettings" component={AdminSettingsScreen} />
     </MainStack.Navigator>
@@ -42,11 +42,11 @@ function MainNavigator() {
 }
 
 function NavShell() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   return (
     <NavigationContainer
       theme={{
-        dark: false,
+        dark: isDark,
         colors: {
           primary: colors.primary,
           background: colors.background,
@@ -63,6 +63,7 @@ function NavShell() {
         },
       }}
     >
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen name="Auth" component={AuthStack} />
         <RootStack.Screen name="Main" component={MainNavigator} />
@@ -89,9 +90,11 @@ export default function App() {
   }
 
   return (
-    <AppProvider>
-      <NavShell />
-    </AppProvider>
+    <SafeAreaProvider>
+      <AppProvider>
+        <NavShell />
+      </AppProvider>
+    </SafeAreaProvider>
   );
 }
 
@@ -100,6 +103,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9ff',
+    backgroundColor: '#f1f5f9',
   },
 });

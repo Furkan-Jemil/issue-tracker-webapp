@@ -1,76 +1,84 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import { TextStyle } from 'react-native';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import { TextStyle, useWindowDimensions } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /// ──────────────────────────────────────────────
-/// Stitch DES Design System — ET Green Theme
-/// Canonical spec from stitch_des_design_system
+/// Figma "Mobile & Tablet Design Guide" — ET Green Theme
+/// Source of truth: ~/Downloads/Mobile & Tablet Design Guide(1)/src/styles/theme.css
+/// Primary lime #80ca28 on slate surfaces. Multi-color charts.
 /// ──────────────────────────────────────────────
+
+const THEME_KEY = '@theme_mode';
+export const TABLET_BREAKPOINT = 768;
 
 const lightColors = {
-  // Brand
-  primary: '#3d6a00',
+  // Brand (Figma GREEN = #80ca28, GREEN_FG = #3a6b00 for text-on-light)
+  primary: '#80ca28',
   onPrimary: '#ffffff',
   primaryContainer: '#80ca28',
-  onPrimaryContainer: '#2d5100',
+  onPrimaryContainer: '#3a6b00',
+  green: '#80ca28',
+  greenFg: '#3a6b00',
   primaryFixed: '#aaf854',
   primaryFixedDim: '#8fdb39',
   inversePrimary: '#8fdb39',
 
-  // Surface system (tonal layers)
-  background: '#f8f9ff',
-  surface: '#f8f9ff',
-  surfaceDim: '#cbdbf5',
-  surfaceBright: '#f8f9ff',
+  // Surfaces (Figma: slate-100 bg, white cards)
+  background: '#f1f5f9',
+  surface: '#ffffff',
+  surfaceDim: '#e2e8f0',
+  surfaceBright: '#ffffff',
   surfaceContainerLowest: '#ffffff',
-  surfaceContainerLow: '#eff4ff',
-  surfaceContainer: '#e5eeff',
-  surfaceContainerHigh: '#dce9ff',
-  surfaceContainerHighest: '#d3e4fe',
+  surfaceContainerLow: '#f8fafc',
+  surfaceContainer: '#f1f5f9',
+  surfaceContainerHigh: '#e2e8f0',
+  surfaceContainerHighest: '#e2e8f0',
 
-  onBackground: '#0b1c30',
-  onSurface: '#0b1c30',
-  onSurfaceVariant: '#414937',
+  onBackground: '#0f172a',
+  onSurface: '#0f172a',
+  onSurfaceVariant: '#64748b',
+  foreground: '#0f172a',
+  mutedForeground: '#64748b',
+  muted: '#f1f5f9',
 
   // Secondary (slate)
-  secondary: '#565e74',
+  secondary: '#64748b',
   onSecondary: '#ffffff',
-  secondaryContainer: '#dae2fd',
-  onSecondaryContainer: '#5c647a',
+  secondaryContainer: '#e2e8f0',
+  onSecondaryContainer: '#475569',
+  secondaryText: '#64748b',
 
-  // Tertiary (magenta)
-  tertiary: '#98378b',
+  // Tertiary (kept for compat)
+  tertiary: '#8b5cf6',
   onTertiary: '#ffffff',
-  tertiaryContainer: '#ff90ea',
-  onTertiaryContainer: '#7d1d72',
+  tertiaryContainer: '#ede9fe',
+  onTertiaryContainer: '#6d28d9',
 
   // Error
-  error: '#ba1a1a',
+  error: '#ef4444',
   onError: '#ffffff',
-  errorContainer: '#ffdad6',
-  onErrorContainer: '#93000a',
+  errorContainer: '#fee2e2',
+  onErrorContainer: '#b91c1c',
+  destructive: '#ef4444',
+  destructiveForeground: '#ffffff',
 
-  // Outline
-  outline: '#717a65',
-  outlineVariant: '#c1cab1',
-  surfaceTint: '#3d6a00',
+  // Outline / borders
+  outline: '#cbd5e1',
+  outlineVariant: '#e2e8f0',
+  border: '#e2e8f0',
+  surfaceTint: '#80ca28',
 
   // Inverse
-  inverseSurface: '#213145',
-  inverseOnSurface: '#eaf1ff',
-
-  // Foreground / text
-  foreground: '#0b1c30',
+  inverseSurface: '#1e293b',
+  inverseOnSurface: '#f8fafc',
 
   // Legacy compat aliases
   card: '#ffffff',
-  input: '#eff4ff',
-  border: '#c1cab1',
+  cardBorder: '#e2e8f0',
+  input: '#ffffff',
   primaryForeground: '#ffffff',
-  secondaryText: '#414937',
-  destructive: '#ba1a1a',
-  destructiveForeground: '#ffffff',
 
-  // Status semantics (tint & tone)
+  // Status semantics (badge bg + text) — Figma tailwind tints
   statusOpenBg: '#fee2e2',
   statusOpenText: '#b91c1c',
   statusInProgressBg: '#dbeafe',
@@ -88,25 +96,28 @@ const lightColors = {
   priorityLowBg: '#f1f5f9',
   priorityLowText: '#64748b',
 
-  // Charts (monochromatic blue scale)
-  chart1: '#93c5fd',
+  // Charts — Figma multi-color (green / blue / amber / red / violet)
+  chart1: '#80ca28',
   chart2: '#3b82f6',
-  chart3: '#1d4ed8',
-  chart4: '#1e3a8a',
+  chart3: '#f59e0b',
+  chart4: '#ef4444',
+  chart5: '#8b5cf6',
   chartOpen: '#3b82f6',
   chartInProgress: '#f59e0b',
-  chartResolved: '#10b981',
-  chartClosed: '#6b7280',
+  chartResolved: '#80ca28',
+  chartClosed: '#8b5cf6',
   chartInProgressSoft: '#fef3c7',
 };
 
 export type ThemeColors = typeof lightColors;
 
 const darkColors: ThemeColors = {
-  primary: '#8fdb39',
-  onPrimary: '#162300',
-  primaryContainer: '#2d5100',
-  onPrimaryContainer: '#aaf854',
+  primary: '#80ca28',
+  onPrimary: '#0f172a',
+  primaryContainer: '#80ca28',
+  onPrimaryContainer: '#a8df50',
+  green: '#80ca28',
+  greenFg: '#a8df50',
   primaryFixed: '#aaf854',
   primaryFixedDim: '#8fdb39',
   inversePrimary: '#3d6a00',
@@ -115,72 +126,75 @@ const darkColors: ThemeColors = {
   surface: '#0f172a',
   surfaceDim: '#030712',
   surfaceBright: '#1e293b',
-  surfaceContainerLowest: '#0a0f1a',
-  surfaceContainerLow: '#0f172a',
-  surfaceContainer: '#1a2332',
+  surfaceContainerLowest: '#0f172a',
+  surfaceContainerLow: '#1e293b',
+  surfaceContainer: '#1e293b',
   surfaceContainerHigh: '#253040',
   surfaceContainerHighest: '#303b4d',
 
-  onBackground: '#eaf1ff',
-  onSurface: '#eaf1ff',
-  onSurfaceVariant: '#b9c4d0',
+  onBackground: '#f8fafc',
+  onSurface: '#f8fafc',
+  onSurfaceVariant: '#94a3b8',
+  foreground: '#f8fafc',
+  mutedForeground: '#94a3b8',
+  muted: '#1e293b',
 
-  secondary: '#bec6e0',
-  onSecondary: '#283041',
-  secondaryContainer: '#3e475c',
-  onSecondaryContainer: '#dae2fd',
+  secondary: '#94a3b8',
+  onSecondary: '#0f172a',
+  secondaryContainer: '#334155',
+  onSecondaryContainer: '#cbd5e1',
+  secondaryText: '#94a3b8',
 
-  tertiary: '#ffacec',
-  onTertiary: '#530049',
-  tertiaryContainer: '#7b1c71',
-  onTertiaryContainer: '#ffd7f2',
+  tertiary: '#a78bfa',
+  onTertiary: '#2e1065',
+  tertiaryContainer: '#5b21b6',
+  onTertiaryContainer: '#ede9fe',
 
-  error: '#ffb4ab',
-  onError: '#690005',
-  errorContainer: '#93000a',
-  onErrorContainer: '#ffdad6',
+  error: '#ef4444',
+  onError: '#ffffff',
+  errorContainer: '#7f1d1d',
+  onErrorContainer: '#fecaca',
+  destructive: '#ef4444',
+  destructiveForeground: '#ffffff',
 
-  outline: '#8994a0',
-  outlineVariant: '#3f485a',
-  surfaceTint: '#8fdb39',
+  outline: '#475569',
+  outlineVariant: '#1e293b',
+  border: '#1e293b',
+  surfaceTint: '#80ca28',
 
-  inverseSurface: '#eaf1ff',
-  inverseOnSurface: '#213145',
+  inverseSurface: '#f8fafc',
+  inverseOnSurface: '#1e293b',
 
-  foreground: '#eaf1ff',
+  card: '#0f172a',
+  cardBorder: '#1e293b',
+  input: '#1e293b',
+  primaryForeground: '#0f172a',
 
-  card: '#1a2332',
-  input: '#253040',
-  border: '#3f485a',
-  primaryForeground: '#162300',
-  secondaryText: '#b9c4d0',
-  destructive: '#ffb4ab',
-  destructiveForeground: '#690005',
+  statusOpenBg: '#450a0a',
+  statusOpenText: '#f87171',
+  statusInProgressBg: '#172554',
+  statusInProgressText: '#60a5fa',
+  statusResolvedBg: '#052e16',
+  statusResolvedText: '#4ade80',
+  statusClosedBg: '#1e293b',
+  statusClosedText: '#94a3b8',
 
-  statusOpenBg: '#4a1515',
-  statusOpenText: '#fca5a5',
-  statusInProgressBg: '#1e3a5f',
-  statusInProgressText: '#93c5fd',
-  statusResolvedBg: '#14532d',
-  statusResolvedText: '#86efac',
-  statusClosedBg: '#1f2937',
-  statusClosedText: '#9ca3af',
+  priorityHighBg: '#431407',
+  priorityHighText: '#fb923c',
+  priorityMediumBg: '#422006',
+  priorityMediumText: '#fbbf24',
+  priorityLowBg: '#1e293b',
+  priorityLowText: '#94a3b8',
 
-  priorityHighBg: '#4a1c0e',
-  priorityHighText: '#fdba74',
-  priorityMediumBg: '#3b3511',
-  priorityMediumText: '#fde68a',
-  priorityLowBg: '#1f2937',
-  priorityLowText: '#9ca3af',
-
-  chart1: '#60a5fa',
+  chart1: '#80ca28',
   chart2: '#3b82f6',
-  chart3: '#2563eb',
-  chart4: '#1d4ed8',
+  chart3: '#f59e0b',
+  chart4: '#ef4444',
+  chart5: '#8b5cf6',
   chartOpen: '#3b82f6',
   chartInProgress: '#f59e0b',
-  chartResolved: '#10b981',
-  chartClosed: '#6b7280',
+  chartResolved: '#80ca28',
+  chartClosed: '#8b5cf6',
   chartInProgressSoft: '#78350f',
 };
 
@@ -194,6 +208,8 @@ const typography: Record<string, TextStyle> = {
   display: { fontFamily: FONT_BOLD, fontSize: 24, lineHeight: 32, letterSpacing: -0.3 },
   pageTitle: { fontFamily: FONT_BOLD, fontSize: 20, lineHeight: 28, letterSpacing: -0.3 },
   sectionHeading: { fontFamily: FONT_BOLD, fontSize: 16, lineHeight: 24 },
+  cardTitle: { fontFamily: FONT_BOLD, fontSize: 14, lineHeight: 20 },
+  bodyMd: { fontFamily: FONT, fontSize: 15, lineHeight: 22 },
   bodySmBold: { fontFamily: FONT_SEMI, fontSize: 14, lineHeight: 20 },
   bodySm: { fontFamily: FONT, fontSize: 14, lineHeight: 20 },
   labelBadge: { fontFamily: FONT_SEMI, fontSize: 12, lineHeight: 16 },
@@ -209,27 +225,31 @@ const spacing = {
   md: 12,
   lg: 16,
   xl: 24,
-  cardPadding: 20,
-  pageMargin: 24,
-  sectionGap: 12,
+  cardPadding: 16,
+  pageMargin: 16,
+  pageMarginTablet: 24,
+  sectionGap: 16,
   elementGap: 8,
   iconGap: 6,
 };
 
+/// Figma radii: controls rounded-xl (12), cards rounded-2xl (16), badges rounded-md (6)
 const radius = {
-  sm: 4,
-  md: 8,
+  sm: 6,
+  md: 10,
   lg: 12,
   xl: 16,
   full: 999,
 };
 
 interface ThemeContextValue {
-  colors: typeof lightColors;
+  colors: ThemeColors;
   typography: typeof typography;
   spacing: typeof spacing;
   radius: typeof radius;
   isTablet: boolean;
+  isLargeTablet: boolean;
+  width: number;
   pagePadding: number;
   isDark: boolean;
   toggleTheme: () => void;
@@ -239,10 +259,24 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(false);
+  const { width } = useWindowDimensions();
+
+  useEffect(() => {
+    AsyncStorage.getItem(THEME_KEY).then((v) => {
+      if (v === 'dark') setIsDark(true);
+    });
+  }, []);
 
   const toggleTheme = useCallback(() => {
-    setIsDark((prev) => !prev);
+    setIsDark((prev) => {
+      const next = !prev;
+      AsyncStorage.setItem(THEME_KEY, next ? 'dark' : 'light');
+      return next;
+    });
   }, []);
+
+  const isTablet = width >= TABLET_BREAKPOINT;
+  const isLargeTablet = width >= 1024;
 
   const value = useMemo<ThemeContextValue>(
     () => ({
@@ -250,12 +284,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       typography,
       spacing,
       radius,
-      isTablet: false,
-      pagePadding: 24,
+      isTablet,
+      isLargeTablet,
+      width,
+      pagePadding: isTablet ? spacing.pageMarginTablet : spacing.pageMargin,
       isDark,
       toggleTheme,
     }),
-    [isDark, toggleTheme],
+    [isDark, isTablet, isLargeTablet, width, toggleTheme],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

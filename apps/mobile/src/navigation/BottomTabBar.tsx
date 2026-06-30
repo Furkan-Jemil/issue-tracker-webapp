@@ -1,186 +1,204 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Animated } from 'react-native';
-import { LayoutDashboard, ListTodo, Users, Bell, Plus } from 'lucide-react-native';
-import { useTheme } from '../theme/useTheme';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  LayoutDashboard, ListChecks, Bell, Users, Plus, Activity, Settings, Shield, Moon, Sun, LogOut,
+} from 'lucide-react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useTheme } from '../theme/useTheme';
+import { useAppContext } from '../context/AppContext';
+import Avatar from '../components/ui/Avatar';
 
-const TAB_ICONS: Record<string, React.ElementType> = {
-  Dashboard: LayoutDashboard,
-  TasksList: ListTodo,
-  Members: Users,
-  Notifications: Bell,
+// Tab route name → icon + phone label
+const TABS: Record<string, { Icon: React.ElementType; label: string }> = {
+  Dashboard: { Icon: LayoutDashboard, label: 'Home' },
+  TasksList: { Icon: ListChecks, label: 'Issues' },
+  Notifications: { Icon: Bell, label: 'Alerts' },
+  Members: { Icon: Users, label: 'Members' },
 };
 
-function TabIcon({ Icon, isFocused, color }: { Icon: React.ElementType; isFocused: boolean; color: string }) {
-  const scale = useRef(new Animated.Value(isFocused ? 1 : 0.85)).current;
-
-  useEffect(() => {
-    Animated.spring(scale, {
-      toValue: isFocused ? 1 : 0.85,
-      useNativeDriver: true,
-      tension: 150,
-      friction: 8,
-    }).start();
-  }, [isFocused, scale]);
-
-  return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <Icon size={22} color={color} />
-    </Animated.View>
-  );
+export default function BottomTabBar(props: BottomTabBarProps) {
+  const { isTablet } = useTheme();
+  return isTablet ? <Sidebar {...props} /> : <FloatingBar {...props} />;
 }
 
-export default function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const { colors, typography, radius, isDark } = useTheme();
+// ─── Tablet sidebar (Figma w-56 rail) ───────────────────────────────────────
+function Sidebar({ state, navigation }: BottomTabBarProps) {
+  const { colors, isDark, toggleTheme, radius } = useTheme();
+  const { user, notifications, logout } = useAppContext();
+  const unread = notifications.filter((n) => !(n as { read?: boolean }).read).length;
+  const activeRoute = state.routes[state.index]?.name;
+
+  const items = [
+    { key: 'Dashboard', label: 'Dashboard', Icon: LayoutDashboard, badge: 0 },
+    { key: 'TasksList', label: 'Issues', Icon: ListChecks, badge: 0 },
+    { key: 'Notifications', label: 'Notifications', Icon: Bell, badge: unread },
+    { key: 'Members', label: 'Members', Icon: Users, badge: 0 },
+    { key: 'AuditLog', label: 'Audit Log', Icon: Activity, badge: 0 },
+    { key: 'Settings', label: 'Settings', Icon: Settings, badge: 0 },
+  ];
 
   return (
-    <View style={styles.wrapper}>
-      <View
-        style={[
-          styles.floatingBar,
-          {
-            backgroundColor: isDark ? 'rgba(15,23,42,0.92)' : 'rgba(248,249,255,0.92)',
-            borderColor: colors.outlineVariant,
-            shadowColor: isDark ? '#000' : '#0b1c30',
-          },
-        ]}
-      >
-        {state.routes.map((route, index) => {
-          const isFocused = state.index === index;
-          const descriptor = descriptors[route.key];
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+    <View style={[styles.sidebar, { backgroundColor: colors.card, borderRightColor: colors.cardBorder }]}>
+      {/* Logo */}
+      <View style={[styles.brand, { borderBottomColor: colors.cardBorder }]}>
+        <View style={[styles.brandIcon, { backgroundColor: colors.green, borderRadius: radius.md }]}>
+          <Shield size={15} color="#fff" />
+        </View>
+        <View>
+          <Text style={[styles.brandName, { color: colors.foreground }]}>IssueTracker</Text>
+          <Text style={[styles.brandSub, { color: colors.mutedForeground }]}>Ethio Telecom</Text>
+        </View>
+      </View>
 
-          const Icon = TAB_ICONS[route.name];
-
+      {/* Nav */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 12, gap: 2 }}>
+        {items.map((it) => {
+          const active = activeRoute === it.key;
           return (
             <TouchableOpacity
-              key={route.key}
-              onPress={onPress}
+              key={it.key}
               activeOpacity={0.7}
-              style={styles.tabItem}
+              onPress={() => navigation.navigate(it.key as never)}
+              style={[
+                styles.navItem,
+                { borderRadius: radius.md },
+                active && { backgroundColor: colors.green + '18', borderColor: colors.green + '30', borderWidth: 1 },
+              ]}
             >
-              {Icon && (
-                <View
-                  style={[
-                    styles.iconWrap,
-                    isFocused && {
-                      backgroundColor: colors.primaryContainer + '20',
-                      borderRadius: radius.full,
-                    },
-                  ]}
-                >
-                  <TabIcon Icon={Icon} isFocused={isFocused} color={isFocused ? colors.primary : colors.onSurfaceVariant} />
-                </View>
-              )}
-              <Text
-                style={[
-                  styles.label,
-                  {
-                    color: isFocused ? colors.primary : colors.onSurfaceVariant,
-                    marginTop: 2,
-                  },
-                ]}
-              >
-                {route.name === 'Dashboard'
-                  ? 'Home'
-                  : route.name === 'TasksList'
-                    ? 'Issues'
-                    : route.name === 'Notifications'
-                      ? 'Alerts'
-                      : route.name === 'Members'
-                        ? 'Members'
-                        : ''}
+              <it.Icon size={15} color={active ? colors.greenFg : colors.mutedForeground} />
+              <Text style={[styles.navLabel, { color: active ? colors.greenFg : colors.mutedForeground }]}>
+                {it.label}
               </Text>
+              {it.badge ? (
+                <View style={styles.navBadge}>
+                  <Text style={styles.navBadgeText}>{it.badge}</Text>
+                </View>
+              ) : null}
             </TouchableOpacity>
           );
         })}
+      </ScrollView>
 
-        {/* FAB */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate('CreateTask' as any)}
-          activeOpacity={0.85}
-          style={[
-            styles.fab,
-            {
-              backgroundColor: colors.primaryContainer,
-              shadowColor: colors.primary,
-            },
-          ]}
-        >
-          <Plus size={28} color={colors.onPrimaryContainer} />
+      {/* Footer: theme toggle + user */}
+      <View style={[styles.footer, { borderTopColor: colors.cardBorder }]}>
+        <TouchableOpacity activeOpacity={0.7} onPress={toggleTheme} style={[styles.navItem, { borderRadius: radius.md }]}>
+          {isDark ? <Moon size={15} color={colors.mutedForeground} /> : <Sun size={15} color={colors.mutedForeground} />}
+          <Text style={[styles.navLabel, { color: colors.mutedForeground }]}>{isDark ? 'Light mode' : 'Dark mode'}</Text>
         </TouchableOpacity>
+        <View style={styles.userRow}>
+          <Avatar name={user?.name} email={user?.email} size="sm" />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text numberOfLines={1} style={[styles.userName, { color: colors.foreground }]}>{user?.name ?? 'User'}</Text>
+            <Text style={[styles.userRole, { color: colors.mutedForeground }]}>{user?.role ?? ''}</Text>
+          </View>
+          <TouchableOpacity onPress={logout} hitSlop={8}>
+            <LogOut size={14} color={colors.mutedForeground} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ─── Phone floating bar (Figma MobileTab: 4 tabs + center FAB) ───────────────
+function FloatingBar({ state, navigation }: BottomTabBarProps) {
+  const { colors } = useTheme();
+  const { notifications } = useAppContext();
+  const insets = useSafeAreaInsets();
+  const unread = notifications.filter((n) => !(n as { read?: boolean }).read).length;
+
+  const order = ['Dashboard', 'TasksList', '__FAB__', 'Notifications', 'Members'];
+
+  return (
+    <View style={[styles.barWrap, { paddingBottom: insets.bottom + 16 }]} pointerEvents="box-none">
+      <View style={[styles.bar, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        {order.map((name) => {
+          if (name === '__FAB__') {
+            return (
+              <TouchableOpacity
+                key="fab"
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate('CreateTask' as never)}
+                style={styles.fabSlot}
+              >
+                <View style={[styles.fab, { backgroundColor: colors.green }]}>
+                  <Plus size={22} color="#fff" />
+                </View>
+              </TouchableOpacity>
+            );
+          }
+          const idx = state.routes.findIndex((r) => r.name === name);
+          const focused = state.index === idx;
+          const meta = TABS[name];
+          const color = focused ? colors.greenFg : colors.mutedForeground;
+          return (
+            <TouchableOpacity
+              key={name}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate(name as never)}
+              style={styles.tab}
+            >
+              <View>
+                <meta.Icon size={20} color={color} />
+                {name === 'Notifications' && unread > 0 && (
+                  <View style={styles.tabBadge}>
+                    <Text style={styles.tabBadgeText}>{unread}</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={[styles.tabLabel, { color }]}>{meta.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    paddingBottom: Platform.OS === 'ios' ? 28 : 16,
-    pointerEvents: 'box-none',
-  },
-  floatingBar: {
+  // sidebar
+  sidebar: { width: 224, borderRightWidth: StyleSheet.hairlineWidth },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 20, borderBottomWidth: StyleSheet.hairlineWidth },
+  brandIcon: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  brandName: { fontFamily: 'Outfit_700Bold', fontSize: 14 },
+  brandSub: { fontFamily: 'Outfit_400Regular', fontSize: 10 },
+  navItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 9, borderColor: 'transparent', borderWidth: 1 },
+  navLabel: { fontFamily: 'Outfit_500Medium', fontSize: 14, flex: 1 },
+  navBadge: { minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  navBadgeText: { color: '#fff', fontFamily: 'Outfit_700Bold', fontSize: 8 },
+  footer: { borderTopWidth: StyleSheet.hairlineWidth, padding: 12, gap: 4 },
+  userRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 8 },
+  userName: { fontFamily: 'Outfit_600SemiBold', fontSize: 12 },
+  userRole: { fontFamily: 'Outfit_400Regular', fontSize: 10 },
+  // floating bar
+  barWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center' },
+  bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    width: '92%',
-    maxWidth: 500,
-    height: 64,
-    borderRadius: 32,
+    width: '94%',
+    maxWidth: 520,
+    height: 60,
+    borderRadius: 22,
     borderWidth: StyleSheet.hairlineWidth,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 8,
-    paddingHorizontal: 8,
-    gap: 4,
-    ...(Platform.OS === 'web' ? { backdropFilter: 'blur(20px)' } : {}),
+    paddingHorizontal: 6,
+    ...Platform.select({
+      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16 },
+      android: { elevation: 8 },
+      default: {},
+    }),
   },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 6,
-    zIndex: 1,
-  },
-  label: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  iconWrap: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2, paddingVertical: 6 },
+  tabLabel: { fontFamily: 'Outfit_600SemiBold', fontSize: 9 },
+  tabBadge: { position: 'absolute', top: -5, right: -7, minWidth: 14, height: 14, borderRadius: 7, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
+  tabBadgeText: { color: '#fff', fontFamily: 'Outfit_700Bold', fontSize: 7 },
+  fabSlot: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   fab: {
-    position: 'absolute',
-    top: -20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
-    zIndex: 10,
+    width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: -16,
+    ...Platform.select({
+      ios: { shadowColor: '#80ca28', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10 },
+      android: { elevation: 6 },
+      default: {},
+    }),
   },
 });
