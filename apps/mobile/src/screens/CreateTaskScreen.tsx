@@ -1,147 +1,138 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Send } from 'lucide-react-native';
+import { Link, Paperclip } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
-import { safeFetch } from '../utils/api';
-import { Card } from '../components/Card';
-import TopAppBar from '../components/TopAppBar';
-import Input from '../components/Input';
-import Button from '../components/Button';
-import AnimatedEntry from '../components/AnimatedEntry';
+import { useResponsive } from '../responsive/useResponsive';
+import Grid from '../responsive/Grid';
+import { Screen, Card, Input, Textarea, Select, Button } from '../components/ui';
+import type { SelectOption } from '../components/ui';
 
-const TYPE_OPTIONS = ['BUG', 'IMPROVEMENT'] as const;
-const PRIORITY_OPTIONS = ['LOW', 'MEDIUM', 'HIGH'] as const;
-const SEVERITY_OPTIONS = ['MINOR', 'MAJOR', 'CRITICAL'] as const;
+const TYPE_OPTIONS: SelectOption[] = [
+  { value: 'BUG', label: 'Bug' },
+  { value: 'IMPROVEMENT', label: 'Improvement' },
+];
+const PRIORITY_OPTIONS: SelectOption[] = [
+  { value: 'HIGH', label: 'High' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'LOW', label: 'Low' },
+];
+const SEVERITY_OPTIONS: SelectOption[] = [
+  { value: 'CRITICAL', label: 'Critical' },
+  { value: 'MAJOR', label: 'Major' },
+  { value: 'MINOR', label: 'Minor' },
+];
 
 export default function CreateTaskScreen() {
-  const { colors, typography, spacing } = useTheme();
-  const { refreshData } = useAppContext();
-  const navigation = useNavigation();
+  const { colors, pagePadding } = useTheme();
+  const { isTablet } = useResponsive();
+  const navigation = useNavigation<any>();
+  const { members } = useAppContext();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<string>('BUG');
-  const [priority, setPriority] = useState<string>('MEDIUM');
-  const [severity, setSeverity] = useState<string>('MINOR');
-  const [loading, setLoading] = useState(false);
+  const [type, setType] = useState('BUG');
+  const [priority, setPriority] = useState('MEDIUM');
+  const [severity, setSeverity] = useState('MINOR');
+  const [assignee, setAssignee] = useState('');
+  const [url, setUrl] = useState('');
 
-  const handleSubmit = async () => {
-    if (!title.trim()) {
-      Alert.alert('Validation Error', 'Please enter a title for the issue.');
-      return;
-    }
-    setLoading(true);
-    try {
-      await safeFetch('/api/issues', {
-        method: 'POST',
-        body: JSON.stringify({ title: title.trim(), description: description.trim(), type, priority, severity }),
-      });
-      Alert.alert('Success', 'Issue created successfully.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
-      refreshData();
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
-      Alert.alert('Error', message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const assigneeOptions: SelectOption[] = [
+    { value: '', label: 'Unassigned' },
+    ...members.map((m) => ({ value: String(m.name ?? ''), label: String(m.name ?? 'Unknown') })),
+  ];
 
-  const renderChip = (label: string, selected: boolean, onPress: () => void) => (
-    <TouchableOpacity
-      key={label}
-      style={[styles.chip, { backgroundColor: selected ? colors.primaryContainer : colors.surfaceContainerLow, borderRadius: 999, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderWidth: 1, borderColor: selected ? colors.primaryContainer : colors.input }]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <Text style={[typography.labelBadge, { color: selected ? colors.onPrimaryContainer : colors.onSurfaceVariant }]}>{label}</Text>
-    </TouchableOpacity>
-  );
+  const goBack = () => navigation.goBack();
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <TopAppBar title="Create Issue" onBackPress={() => navigation.goBack()} />
+    <Screen
+      title="Create Issue"
+      subtitle="Report a new bug or improvement"
+      onBack={goBack}
+    >
+      <View
+        style={{
+          width: '100%',
+          maxWidth: 640,
+          alignSelf: 'center',
+          paddingHorizontal: pagePadding,
+          paddingVertical: 20,
+          gap: 20,
+        }}
+      >
+        <Input
+          label="Issue Title"
+          required
+          placeholder="Brief, descriptive title"
+          value={title}
+          onChangeText={setTitle}
+        />
 
-        <ScrollView contentContainerStyle={[styles.scroll, { paddingHorizontal: spacing.pageMargin }]} keyboardShouldPersistTaps="handled">
-          <AnimatedEntry index={0}>
-            <Card style={{ marginTop: spacing.lg }}>
-              <View style={{ gap: spacing.md }}>
-                <Input label="Title *" placeholder="Brief description of the issue" value={title} onChangeText={setTitle} editable={!loading} autoCapitalize="sentences" />
+        <Textarea
+          label="Description"
+          rows={5}
+          placeholder="Detailed description — steps to reproduce, expected vs actual behavior."
+          value={description}
+          onChangeText={setDescription}
+        />
 
-                <View>
-                  <Text style={[typography.bodySmBold, { color: colors.onSurface, marginBottom: spacing.xs }]}>Description</Text>
-                  <View style={[styles.well, { backgroundColor: colors.surfaceContainerLow, borderRadius: 8, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }]}>
-                    <TextInput
-                      placeholder="Detailed description..."
-                      placeholderTextColor={colors.onSurfaceVariant}
-                      value={description}
-                      onChangeText={setDescription}
-                      multiline
-                      textAlignVertical="top"
-                      editable={!loading}
-                      style={[typography.bodySm, { color: colors.onSurface, minHeight: 100, padding: 0, margin: 0 }]}
-                    />
-                  </View>
-                </View>
+        <Grid columns={isTablet ? 4 : 2} gap={12}>
+          <Select label="Type" value={type} options={TYPE_OPTIONS} onChange={setType} />
+          <Select label="Priority" value={priority} options={PRIORITY_OPTIONS} onChange={setPriority} />
+          <Select label="Severity" value={severity} options={SEVERITY_OPTIONS} onChange={setSeverity} />
+          <Select label="Assignee" value={assignee} options={assigneeOptions} onChange={setAssignee} />
+        </Grid>
 
-                <View>
-                  <Text style={[typography.bodySmBold, { color: colors.onSurface, marginBottom: spacing.sm }]}>Type</Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
-                    {TYPE_OPTIONS.map((opt) => renderChip(opt, type === opt, () => setType(opt)))}
-                  </View>
-                </View>
+        <Input
+          label="Reference URL"
+          placeholder="https://…"
+          leftIcon={<Link size={14} color={colors.mutedForeground} />}
+          value={url}
+          onChangeText={setUrl}
+          autoCapitalize="none"
+          keyboardType="url"
+        />
 
-                <View>
-                  <Text style={[typography.bodySmBold, { color: colors.onSurface, marginBottom: spacing.sm }]}>Priority</Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
-                    {PRIORITY_OPTIONS.map((opt) => renderChip(opt, priority === opt, () => setPriority(opt)))}
-                  </View>
-                </View>
+        <View style={{ gap: 6 }}>
+          <Text style={[styles.label, { color: colors.foreground }]}>Screenshots & Files</Text>
+          <Card padding={0}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={[styles.upload, { borderColor: colors.outline }]}
+            >
+              <Paperclip size={22} color={colors.mutedForeground} />
+              <Text style={[styles.uploadTitle, { color: colors.foreground }]}>
+                Tap to add files
+              </Text>
+              <Text style={[styles.uploadSub, { color: colors.mutedForeground }]}>
+                PNG, JPG, PDF, TXT up to 10 MB
+              </Text>
+            </TouchableOpacity>
+          </Card>
+        </View>
 
-                <View>
-                  <Text style={[typography.bodySmBold, { color: colors.onSurface, marginBottom: spacing.sm }]}>Severity</Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
-                    {SEVERITY_OPTIONS.map((opt) => renderChip(opt, severity === opt, () => setSeverity(opt)))}
-                  </View>
-                </View>
-
-                <Button
-                  title={loading ? 'Creating...' : 'Create Issue'}
-                  onPress={handleSubmit}
-                  variant="tonal"
-                  size="lg"
-                  loading={loading}
-                  icon={<Send size={18} color={colors.onPrimaryContainer} />}
-                />
-              </View>
-            </Card>
-          </AnimatedEntry>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        <View style={styles.footer}>
+          <Button title="Cancel" variant="outline" onPress={goBack} style={{ flex: 1 }} />
+          <Button title="Create Task" variant="default" onPress={goBack} style={{ flex: 1 }} />
+        </View>
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  flex: { flex: 1 },
-  scroll: { flexGrow: 1, paddingBottom: 120 },
-  chip: { marginBottom: 4 },
-  well: {
-    borderWidth: 1.5,
-    borderColor: 'transparent',
+  label: { fontFamily: 'Outfit_600SemiBold', fontSize: 12 },
+  upload: {
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderRadius: 10,
+    paddingVertical: 28,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    gap: 6,
   },
+  uploadTitle: { fontFamily: 'Outfit_600SemiBold', fontSize: 14, marginTop: 2 },
+  uploadSub: { fontFamily: 'Outfit_400Regular', fontSize: 12 },
+  footer: { flexDirection: 'row', gap: 12, paddingTop: 4 },
 });

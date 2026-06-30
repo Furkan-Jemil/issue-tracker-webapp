@@ -1,135 +1,278 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Calendar, MessageCircle } from 'lucide-react-native';
+import { Edit3, Trash2, Send } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
-import { Card, CardHeader, CardRow } from '../components/Card';
-import TopAppBar from '../components/TopAppBar';
-import StatusPill from '../components/StatusPill';
-import AnimatedEntry from '../components/AnimatedEntry';
-import EmptyState from '../components/EmptyState';
+import {
+  Screen,
+  Card,
+  Badge,
+  Avatar,
+  Button,
+  Select,
+  Textarea,
+  SecLabel,
+} from '../components/ui';
+import TwoPane from '../responsive/TwoPane';
+import { relativeTime, getInitials } from '../utils/formatters';
+
+interface Comment {
+  id: string;
+  author: string;
+  body: string;
+  created_at: string;
+}
+
+interface Issue {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  severity: string;
+  type: string;
+  reporter: string;
+  assignee?: string;
+  created_at: string;
+  category?: string;
+  comments: Comment[];
+}
+
+interface Member {
+  id: string;
+  name: string;
+}
+
+const STATUS_OPTIONS = [
+  { value: 'OPEN', label: 'Open' },
+  { value: 'IN_PROGRESS', label: 'In Progress' },
+  { value: 'RESOLVED', label: 'Resolved' },
+  { value: 'CLOSED', label: 'Closed' },
+];
+const PRIORITY_OPTIONS = [
+  { value: 'HIGH', label: 'High' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'LOW', label: 'Low' },
+];
+const SEVERITY_OPTIONS = [
+  { value: 'CRITICAL', label: 'Critical' },
+  { value: 'MAJOR', label: 'Major' },
+  { value: 'MINOR', label: 'Minor' },
+];
 
 export default function TaskDetailScreen() {
-  const { colors, typography, spacing, radius } = useTheme();
-  const { issues } = useAppContext();
-  const navigation = useNavigation();
+  const { colors, isTablet, pagePadding } = useTheme();
+  const navigation = useNavigation<any>();
   const route = useRoute();
-  const { issueId } = (route.params || {}) as any;
+  const { issueId } = route.params as { issueId: string };
 
-  const issue = useMemo(() => issues.find((i) => i.id === issueId), [issues, issueId]);
+  const { issues, members } = useAppContext();
+  const issueList = issues as unknown as Issue[];
+  const memberList = members as unknown as Member[];
+  const issue = issueList.find((i) => i.id === issueId) ?? issueList[0];
 
-  if (!issue) {
-    return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
-        <TopAppBar title="Issue Detail" onBackPress={() => navigation.goBack()} />
-        <EmptyState
-          icon={<Calendar size={40} color={colors.onSurfaceVariant} />}
-          title="Issue Not Found"
-          subtitle="The issue you're looking for doesn't exist or has been removed."
-        />
-      </SafeAreaView>
-    );
-  }
+  const assigneeOptions = memberList.map((m) => ({ value: m.name, label: m.name }));
 
-  const issueData = issue as any;
-  const details = [
-    { label: 'Type', value: issueData.type, type: 'type' as const },
-    { label: 'Priority', value: issueData.priority, type: 'priority' as const },
-    { label: 'Severity', value: issueData.severity, type: 'severity' as const },
-    { label: 'Status', value: issueData.status, type: 'status' as const },
-  ];
-  const createdDate = issueData.created_at
-    ? new Date(issueData.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-    : null;
+  const [status, setStatus] = useState(issue.status);
+  const [priority, setPriority] = useState(issue.priority);
+  const [severity, setSeverity] = useState(issue.severity);
+  const [assignee, setAssignee] = useState(issue.assignee ?? '');
+  const [comment, setComment] = useState('');
+  const [comments, setComments] = useState<Comment[]>(issue.comments ?? []);
+
+  const postComment = () => {
+    const body = comment.trim();
+    if (!body) return;
+    setComments((prev) => [
+      ...prev,
+      { id: `local-${Date.now()}`, author: 'You', body, created_at: new Date().toISOString() },
+    ]);
+    setComment('');
+  };
+
+  const headerBlock = (
+    <View style={styles.headerBlock}>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <View style={styles.idRow}>
+          <Text style={[styles.monoId, { color: colors.mutedForeground }]}>{issue.id}</Text>
+          <Badge kind="type" value={issue.type} />
+        </View>
+        <Text style={[styles.title, { color: colors.foreground }]}>{issue.title}</Text>
+        <View style={styles.badgeRow}>
+          <Badge kind="status" value={status} />
+          <Badge kind="priority" value={priority} />
+          <Badge kind="severity" value={severity} />
+        </View>
+      </View>
+      {isTablet && (
+        <View style={styles.headerActions}>
+          <Button
+            title="Edit"
+            variant="outline"
+            size="sm"
+            icon={<Edit3 size={12} color={colors.foreground} />}
+          />
+          <Button
+            title="Delete"
+            variant="destructive"
+            size="sm"
+            icon={<Trash2 size={12} color="#fff" />}
+          />
+        </View>
+      )}
+    </View>
+  );
+
+  const main = (
+    <View style={{ gap: 20 }}>
+      {/* Description */}
+      <View style={{ gap: 8 }}>
+        <SecLabel>Description</SecLabel>
+        <Card padding={16}>
+          <Text style={[styles.bodyText, { color: colors.foreground }]}>{issue.description}</Text>
+        </Card>
+      </View>
+
+      {/* Comments */}
+      <View style={{ gap: 8 }}>
+        <SecLabel>Comments ({comments.length})</SecLabel>
+        <View style={{ gap: 12 }}>
+          {comments.map((c) => (
+            <Card key={c.id} padding={16}>
+              <View style={styles.commentRow}>
+                <Avatar initials={getInitials(c.author)} size="sm" />
+                <View style={{ flex: 1, gap: 6 }}>
+                  <View style={styles.commentMeta}>
+                    <Text style={[styles.author, { color: colors.foreground }]}>{c.author}</Text>
+                    <Text style={[styles.time, { color: colors.mutedForeground }]}>
+                      {relativeTime(c.created_at)}
+                    </Text>
+                  </View>
+                  <Text style={[styles.bodyText, { color: colors.foreground }]}>{c.body}</Text>
+                </View>
+              </View>
+            </Card>
+          ))}
+
+          {/* Composer */}
+          <Card padding={12}>
+            <View style={styles.commentRow}>
+              <Avatar initials="YOU" size="sm" />
+              <View style={{ flex: 1, gap: 8 }}>
+                <Textarea
+                  value={comment}
+                  onChangeText={setComment}
+                  placeholder="Add a comment…"
+                  rows={2}
+                />
+                <View style={{ alignSelf: 'flex-end' }}>
+                  <Button
+                    title="Post comment"
+                    variant="default"
+                    size="sm"
+                    icon={<Send size={12} color="#fff" />}
+                    onPress={postComment}
+                  />
+                </View>
+              </View>
+            </View>
+          </Card>
+        </View>
+      </View>
+    </View>
+  );
+
+  const side = (
+    <View style={[{ gap: 16 }, isTablet ? null : { marginTop: 20 }]}>
+      <Card padding={16}>
+        <View style={{ gap: 16 }}>
+          <SecLabel>Issue Details</SecLabel>
+          <Select label="Status" value={status} options={STATUS_OPTIONS} onChange={setStatus} />
+          <Select
+            label="Priority"
+            value={priority}
+            options={PRIORITY_OPTIONS}
+            onChange={setPriority}
+          />
+          <Select
+            label="Severity"
+            value={severity}
+            options={SEVERITY_OPTIONS}
+            onChange={setSeverity}
+          />
+          <Select
+            label="Assignee"
+            value={assignee}
+            options={assigneeOptions}
+            onChange={setAssignee}
+            placeholder="Unassigned"
+          />
+
+          <View style={[styles.divider, { borderTopColor: colors.cardBorder }]}>
+            <MetaRow label="Reporter" value={issue.reporter} colors={colors} />
+            <MetaRow label="Created" value={relativeTime(issue.created_at)} colors={colors} />
+            {issue.category ? (
+              <MetaRow label="Category" value={issue.category} colors={colors} />
+            ) : null}
+          </View>
+
+          <Button
+            title="Delete Issue"
+            variant="destructive"
+            fullWidth
+            icon={<Trash2 size={13} color="#fff" />}
+          />
+        </View>
+      </Card>
+    </View>
+  );
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
-      <TopAppBar title="Issue Detail" onBackPress={() => navigation.goBack()} />
+    <Screen
+      title={issue.id}
+      subtitle="Full task context and activity"
+      onBack={() => navigation.goBack()}
+    >
+      <View style={{ paddingHorizontal: pagePadding, paddingVertical: 20, gap: 20 }}>
+        {headerBlock}
+        <TwoPane main={main} side={side} sideWidth={300} />
+      </View>
+    </Screen>
+  );
+}
 
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingHorizontal: spacing.pageMargin }]}>
-        <AnimatedEntry index={0}>
-          <View style={{ marginTop: spacing.lg }}>
-            <Text style={[typography.pageTitle, { color: colors.onSurface }]}>
-              {issueData.title ?? 'Untitled Issue'}
-            </Text>
-            <Text style={[typography.monoId, { color: colors.onSurfaceVariant, marginTop: spacing.xs }]}>
-              {issueData.id}
-            </Text>
-            {createdDate && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.xs }}>
-                <Calendar size={14} color={colors.onSurfaceVariant} />
-                <Text style={[typography.bodySm, { color: colors.onSurfaceVariant, marginLeft: spacing.xs }]}>
-                  Created {createdDate}
-                </Text>
-              </View>
-            )}
-          </View>
-        </AnimatedEntry>
-
-        <AnimatedEntry index={1}>
-          <Card style={{ marginTop: spacing.lg }}>
-            <CardHeader title="Description" />
-            <Text style={[typography.bodySm, { color: colors.onSurface, lineHeight: 20 }]}>
-              {issueData.description || 'No description provided.'}
-            </Text>
-          </Card>
-        </AnimatedEntry>
-
-        <AnimatedEntry index={2}>
-          <Card style={{ marginTop: spacing.sm }}>
-            <CardHeader title="Details" />
-            <View style={{ gap: 0 }}>
-              {details.map((detail) => (
-                <View key={detail.label} style={[styles.detailRow, { borderBottomColor: colors.outlineVariant }]}>
-                  <Text style={[typography.nanoCaps, { color: colors.onSurfaceVariant }]}>{detail.label}</Text>
-                  <StatusPill value={detail.value} type={detail.type} />
-                </View>
-              ))}
-            </View>
-          </Card>
-        </AnimatedEntry>
-
-        <AnimatedEntry index={3}>
-          <Card style={{ marginTop: spacing.sm, marginBottom: 100 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
-              <MessageCircle size={18} color={colors.primary} />
-              <Text style={[typography.sectionHeading, { color: colors.onSurface, marginLeft: spacing.xs }]}>Comments</Text>
-            </View>
-            {issueData.comments && issueData.comments.length > 0 ? (
-              issueData.comments.map((comment: any, idx: number) => (
-                <View key={comment.id ?? idx} style={[styles.commentItem, idx < issueData.comments.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.outlineVariant, paddingBottom: spacing.md, marginBottom: spacing.md }]}>
-                  <Text style={[typography.bodySmBold, { color: colors.onSurface }]}>{comment.author ?? 'Unknown'}</Text>
-                  <Text style={[typography.bodySm, { color: colors.onSurfaceVariant, marginTop: spacing.xs, lineHeight: 18 }]}>
-                    {comment.body ?? ''}
-                  </Text>
-                  {comment.created_at && (
-                    <Text style={[typography.micro, { color: colors.onSurfaceVariant, marginTop: spacing.xs }]}>
-                      {new Date(comment.created_at).toLocaleDateString()}
-                    </Text>
-                  )}
-                </View>
-              ))
-            ) : (
-              <Text style={[typography.bodySm, { color: colors.onSurfaceVariant }]}>No comments yet.</Text>
-            )}
-          </Card>
-        </AnimatedEntry>
-      </ScrollView>
-    </SafeAreaView>
+function MetaRow({
+  label,
+  value,
+  colors,
+}: {
+  label: string;
+  value: string;
+  colors: any;
+}) {
+  return (
+    <View style={styles.metaRow}>
+      <Text style={[styles.metaLabel, { color: colors.mutedForeground }]}>{label}</Text>
+      <Text style={[styles.metaValue, { color: colors.foreground }]}>{value}</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  scroll: { flexGrow: 1 },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  commentItem: {},
+  headerBlock: { flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
+  idRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  monoId: { fontFamily: 'JetBrainsMono_400Regular', fontSize: 10 },
+  title: { fontFamily: 'Outfit_700Bold', fontSize: 18, lineHeight: 24 },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 8 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  bodyText: { fontFamily: 'Outfit_400Regular', fontSize: 14, lineHeight: 22 },
+  commentRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  commentMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  author: { fontFamily: 'Outfit_600SemiBold', fontSize: 12 },
+  time: { fontFamily: 'Outfit_400Regular', fontSize: 10 },
+  divider: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 12, gap: 8 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  metaLabel: { fontFamily: 'Outfit_400Regular', fontSize: 12 },
+  metaValue: { fontFamily: 'Outfit_500Medium', fontSize: 12 },
 });
