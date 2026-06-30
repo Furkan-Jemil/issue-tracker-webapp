@@ -1,13 +1,19 @@
 import "../styles/tailwind.css";
-import { Manrope } from "next/font/google";
+import { Outfit, JetBrains_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import { getAppSession } from "@/lib/auth/session";
 import { AppShell, type AppNavItem } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 
-const fontSans = Manrope({
+const fontSans = Outfit({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const fontMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -44,7 +50,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fontSans.variable}${initialTheme === "dark" ? " dark" : ""}`}
+      className={`${fontSans.variable} ${fontMono.variable}${initialTheme === "dark" ? " dark" : ""}`}
       suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />

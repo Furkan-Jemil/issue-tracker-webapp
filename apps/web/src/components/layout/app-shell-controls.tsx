@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ICON_STROKE } from "@/lib/uiTokens";
 import { useAppShellProfile } from "@/components/layout/app-shell-profile-context";
 
-export function AppShellControls({ className }: { className?: string }) {
+export function AppShellControls({ className, compact = false }: { className?: string; compact?: boolean }) {
   const profile = useAppShellProfile();
   const profileName = profile?.profileName ?? "Signed-in User";
   const profileEmail = profile?.profileEmail ?? "No email";
@@ -74,7 +74,7 @@ export function AppShellControls({ className }: { className?: string }) {
 
   return (
     <div className={className ?? "pointer-events-auto relative"}>
-      <div className="flex items-center gap-1.5 px-1 py-0.5">
+      <div className={compact ? "flex items-center justify-center gap-1 py-0.5" : "flex items-center gap-1.5 px-1 py-0.5"}>
         <Button
           type="button"
           variant="ghost"
@@ -100,10 +100,14 @@ export function AppShellControls({ className }: { className?: string }) {
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-[10px] font-semibold text-foreground">
                 {profileInitials}
               </span>
-              <span className="ml-2 max-w-[120px] overflow-hidden whitespace-nowrap opacity-100 transition-all duration-200">
-                {profileName}
-              </span>
-              <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-60" aria-hidden="true" />
+              {!compact && (
+                <>
+                  <span className="ml-2 max-w-[120px] overflow-hidden whitespace-nowrap opacity-100 transition-all duration-200">
+                    {profileName}
+                  </span>
+                  <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-60" aria-hidden="true" />
+                </>
+              )}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-64 rounded-xl border-border p-2.5 shadow-md">
