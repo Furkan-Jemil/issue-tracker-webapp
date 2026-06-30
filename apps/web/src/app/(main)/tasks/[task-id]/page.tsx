@@ -260,19 +260,60 @@ export default async function IssueDetailPage({
           </CardHeader>
           <CardContent>
             {issue.history.length > 0 ? (
-              <ul className="space-y-2 text-sm text-muted-foreground" aria-live="polite">
-                {issue.history.map((h) => (
-                  <li key={h.id} className="rounded-lg border border-border/70 bg-background px-3 py-2.5">
-                    <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                      {formatDate(h.createdAt)}
-                    </p>
-                    <p className="mt-1 text-sm text-foreground">
-                      <span className="font-semibold">{h.eventType}</span>: {h.description}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">By {h.actor?.name || "Unknown"}</p>
-                  </li>
-                ))}
-              </ul>
+              <ol className="relative" aria-live="polite">
+                {issue.history.map((h, index) => {
+                  const initials = (h.actor?.name ?? "?")
+                    .split(" ")
+                    .map((w) => w[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase();
+
+                  const eventColors: Record<string, string> = {
+                    STATUS_CHANGED: "border-blue-500/40 bg-blue-500/10 text-blue-400",
+                    COMMENT_ADDED: "border-violet-500/40 bg-violet-500/10 text-violet-400",
+                    FIELD_UPDATED: "border-amber-500/40 bg-amber-500/10 text-amber-400",
+                    ASSIGNED: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
+                  };
+                  const badgeColor =
+                    eventColors[h.eventType] ??
+                    "border-border/60 bg-muted/30 text-muted-foreground";
+
+                  return (
+                    <li key={h.id} className="relative flex gap-4 pb-6 last:pb-0">
+                      {/* Vertical connector line */}
+                      {index < issue.history.length - 1 && (
+                        <div
+                          className="absolute left-[17px] top-9 bottom-0 w-px bg-border/60"
+                          aria-hidden="true"
+                        />
+                      )}
+                      {/* Actor avatar */}
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-muted text-[11px] font-semibold text-foreground">
+                        {initials}
+                      </div>
+                      {/* Content */}
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] ${badgeColor}`}>
+                            {h.eventType.replace(/_/g, " ")}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            {formatDate(h.createdAt)}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm text-foreground leading-snug">
+                          {h.description}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          by <span className="font-medium">{h.actor?.name ?? "Unknown"}</span>
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
             ) : (
               <div className="rounded-lg border border-dashed border-border/70 bg-background/60 px-3 py-3 text-sm text-muted-foreground">
                 No activity recorded yet.
