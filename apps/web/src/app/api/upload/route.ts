@@ -32,58 +32,54 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 const USE_BLOB_STORAGE = IS_VERCEL && Boolean(BLOB_TOKEN);
 
-function detectMimeFromMagic(buffer: Buffer): string | null {
+function detectMimeFromMagic(buffer: Buffer, claimedMime: string): string | null {
   // JPEG: FF D8 FF
-  if (
-    buffer.length >= 3 &&
-    buffer[0] === 0xff &&
-    buffer[1] === 0xd8 &&
-    buffer[2] === 0xff
-  ) {
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
     return "image/jpeg";
   }
 
   // PNG: 89 50 4E 47 0D 0A 1A 0A
-  if (
-    buffer.length >= 8 &&
-    buffer[0] === 0x89 &&
-    buffer[1] === 0x50 &&
-    buffer[2] === 0x4e &&
-    buffer[3] === 0x47 &&
-    buffer[4] === 0x0d &&
-    buffer[5] === 0x0a &&
-    buffer[6] === 0x1a &&
-    buffer[7] === 0x0a
-  ) {
+  if (buffer.length >= 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
     return "image/png";
   }
 
   // GIF: GIF87a or GIF89a
-  if (
-    buffer.length >= 6 &&
-    buffer[0] === 0x47 &&
-    buffer[1] === 0x49 &&
-    buffer[2] === 0x46 &&
-    buffer[3] === 0x38 &&
-    (buffer[4] === 0x37 || buffer[4] === 0x39) &&
-    buffer[5] === 0x61
-  ) {
+  if (buffer.length >= 6 && buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
     return "image/gif";
   }
 
   // WebP: RIFF....WEBP
-  if (
-    buffer.length >= 12 &&
-    buffer[0] === 0x52 &&
-    buffer[1] === 0x49 &&
-    buffer[2] === 0x46 &&
-    buffer[3] === 0x46 &&
-    buffer[8] === 0x57 &&
-    buffer[9] === 0x45 &&
-    buffer[10] === 0x42 &&
-    buffer[11] === 0x50
-  ) {
+  if (buffer.length >= 12 && buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) {
     return "image/webp";
+  }
+
+  // PDF: %PDF
+  if (buffer.length >= 4 && buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46) {
+    return "application/pdf";
+  }
+
+  // ZIP / DOCX / XLSX (PK ZIP format)
+  if (buffer.length >= 4 && buffer[0] === 0x50 && buffer[1] === 0x4b && buffer[2] === 0x03 && buffer[3] === 0x04) {
+    // DOCX/XLSX/ZIP all share the same magic bytes. We trust the claimed MIME if it's one of them.
+    if (claimedMime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        claimedMime === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        claimedMime === "application/zip") {
+      return claimedMime;
+    }
+    return "application/zip";
+  }
+
+  // OLE2 / DOC / XLS
+  if (buffer.length >= 8 && buffer[0] === 0xd0 && buffer[1] === 0xcf && buffer[2] === 0x11 && buffer[3] === 0xe0 && buffer[4] === 0xa1 && buffer[5] === 0xb1 && buffer[6] === 0x1a && buffer[7] === 0xe1) {
+    if (claimedMime === "application/msword" || claimedMime === "application/vnd.ms-excel") {
+      return claimedMime;
+    }
+    return "application/msword";
+  }
+
+  // Text-based files (no reliable magic bytes, we rely on claimed MIME and validate it's in allowed list later)
+  if (claimedMime === "text/plain" || claimedMime === "text/csv" || claimedMime === "application/json") {
+    return claimedMime;
   }
 
   return null;
@@ -277,7 +273,7 @@ export async function POST(req: NextRequest) {
       }
 
       const buffer = Buffer.from(await rawFile.arrayBuffer());
-      const detectedType = detectMimeFromMagic(buffer);
+      const detectedType = detectMimeFromMagic(buffer, rawFile.type);
       if (!detectedType || detectedType !== rawFile.type) {
         rejectedFiles.push({
           filename: originalName,
@@ -339,6 +335,15 @@ export async function POST(req: NextRequest) {
       const ext = sourceExt || extFromMime(rawFile.type);
       const storedFilename = `${randomUUID()}-${sanitizeFilename(originalName)}.${ext}`;
       const buffer = Buffer.from(await rawFile.arrayBuffer());
+      const detectedType = detectMimeFromMagic(buffer, rawFile.type);
+      if (!detectedType || detectedType !== rawFile.type) {
+        rejectedAttachments.push({
+          filename: originalName,
+          reason: "File content does not match declared type",
+        });
+        continue;
+      }
+      
       const { url } = await persistUploadedFile({
         buffer,
         mimeType: rawFile.type,

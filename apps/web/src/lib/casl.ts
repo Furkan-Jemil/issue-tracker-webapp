@@ -53,6 +53,11 @@ export async function defineAbilitiesForAsync(
   try {
     const rules = await loadAbilityRulesFor(user.role as any);
     if (rules.length === 0) {
+      console.warn(`[CASL] No DB rules found for role: ${user.role}. Using fallback.`);
+      if (process.env.NODE_ENV === "production") {
+        console.warn(`[CASL] Production mode: Denying all permissions for role ${user.role}.`);
+        return createMongoAbility<AppAbility>([]); // deny all
+      }
       return defineAbilitiesFor(user);
     }
     return createMongoAbility<AppAbility>(rules);
@@ -61,6 +66,9 @@ export async function defineAbilitiesForAsync(
       "defineAbilitiesForAsync: failed to load rules from DB, using fallback",
       error,
     );
+    if (process.env.NODE_ENV === "production") {
+      return createMongoAbility<AppAbility>([]);
+    }
     return defineAbilitiesFor(user);
   }
 }
