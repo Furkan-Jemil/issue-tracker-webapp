@@ -78,35 +78,35 @@ const lightColors = {
   input: '#ffffff',
   primaryForeground: '#ffffff',
 
-  // Status semantics (badge bg + text) — Blue monochromatic palette
-  statusOpenBg: '#DBEAFE',
-  statusOpenText: '#2563EB',
-  statusInProgressBg: '#BFDBFE',
-  statusInProgressText: '#1D4ED8',
-  statusResolvedBg: '#DBEAFE',
-  statusResolvedText: '#1D4ED8',
-  statusClosedBg: '#F1F5F9',
-  statusClosedText: '#475569',
+  // Status semantics (badge bg + text) — Matching web app task-semantic-badge
+  statusOpenBg: '#82b1f133',
+  statusOpenText: '#2143d4',
+  statusInProgressBg: '#2b7af933',
+  statusInProgressText: '#2143d4',
+  statusResolvedBg: '#2143d426',
+  statusResolvedText: '#2143d4',
+  statusClosedBg: '#1d2c9a1a',
+  statusClosedText: '#1d2c9a',
 
-  // Priority semantics
-  priorityHighBg: '#ffedd5',
-  priorityHighText: '#c2410c',
-  priorityMediumBg: '#fef9c3',
-  priorityMediumText: '#a16207',
+  // Priority semantics — Matching web app semantic colors
+  priorityHighBg: '#fee2e2',
+  priorityHighText: '#b91c1c',
+  priorityMediumBg: '#fef3c7',
+  priorityMediumText: '#b45309',
   priorityLowBg: '#f1f5f9',
-  priorityLowText: '#64748b',
+  priorityLowText: '#1e293b',
 
-  // Charts — Blue monochromatic palette
-  chart1: '#93C5FD',
-  chart2: '#3b82f6',
-  chart3: '#1D4ED8',
+  // Charts
+  chart1: '#82b1f1',
+  chart2: '#2b7af9',
+  chart3: '#2143d4',
   chart4: '#ef4444',
-  chart5: '#1E3A8A',
-  chartOpen: '#93C5FD',
-  chartInProgress: '#3b82f6',
-  chartResolved: '#1D4ED8',
-  chartClosed: '#1E3A8A',
-  chartInProgressSoft: '#DBEAFE',
+  chart5: '#1d2c9a',
+  chartOpen: '#82b1f1',
+  chartInProgress: '#2b7af9',
+  chartResolved: '#2143d4',
+  chartClosed: '#1d2c9a',
+  chartInProgressSoft: '#82b1f133',
 };
 
 export type ThemeColors = typeof lightColors;
@@ -170,32 +170,35 @@ const darkColors: ThemeColors = {
   input: '#1e293b',
   primaryForeground: '#0f172a',
 
-  statusOpenBg: '#1E3A5F',
-  statusOpenText: '#93C5FD',
-  statusInProgressBg: '#1E3A8A',
-  statusInProgressText: '#60A5FA',
-  statusResolvedBg: '#172554',
-  statusResolvedText: '#93C5FD',
-  statusClosedBg: '#1E293B',
-  statusClosedText: '#94A3B8',
+  // Status semantics (badge bg + text) — Dark mode
+  statusOpenBg: '#82b1f159', // color-open/0.35
+  statusOpenText: '#82b1f1', // color-open
+  statusInProgressBg: '#2b7af966', // color-in-progress/0.40
+  statusInProgressText: '#2b7af9', // color-in-progress
+  statusResolvedBg: '#2143d466', // color-resolved/0.40
+  statusResolvedText: '#82b1f1', // color-open
+  statusClosedBg: '#1d2c9a59', // color-closed/0.35
+  statusClosedText: '#60a5fa', // slate-400 equivalent approx
 
-  priorityHighBg: '#431407',
-  priorityHighText: '#fb923c',
-  priorityMediumBg: '#422006',
-  priorityMediumText: '#fbbf24',
+  // Priority semantics
+  priorityHighBg: '#450a0a',
+  priorityHighText: '#fca5a5',
+  priorityMediumBg: '#451a03',
+  priorityMediumText: '#fcd34d',
   priorityLowBg: '#1e293b',
-  priorityLowText: '#94a3b8',
+  priorityLowText: '#e2e8f0',
 
-  chart1: '#93C5FD',
+  // Charts
+  chart1: '#60a5fa',
   chart2: '#3b82f6',
-  chart3: '#1D4ED8',
+  chart3: '#2563eb',
   chart4: '#ef4444',
-  chart5: '#1E3A8A',
-  chartOpen: '#93C5FD',
+  chart5: '#1d4ed8',
+  chartOpen: '#60a5fa',
   chartInProgress: '#3b82f6',
-  chartResolved: '#1D4ED8',
-  chartClosed: '#1E3A8A',
-  chartInProgressSoft: '#172554',
+  chartResolved: '#2563eb',
+  chartClosed: '#1d4ed8',
+  chartInProgressSoft: '#1e3a8a',
 };
 
 const FONT = 'Outfit_400Regular';
