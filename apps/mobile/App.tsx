@@ -7,6 +7,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts, Outfit_700Bold, Outfit_600SemiBold, Outfit_500Medium, Outfit_400Regular } from '@expo-google-fonts/outfit';
 import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono';
 import { AppProvider } from './src/context/AppContext';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { ToastProvider } from './src/components/Toast';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import TaskDetailScreen from './src/screens/TaskDetailScreen';
@@ -90,11 +92,15 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <AppProvider>
-        <NavShell />
-      </AppProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <AppProvider>
+          <ToastProvider>
+            <NavShell />
+          </ToastProvider>
+        </AppProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 
