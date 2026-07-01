@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { useTheme } from '../theme/useTheme';
 
@@ -13,11 +13,23 @@ interface StatusDonutProps {
   data: DonutDatum[];
   size?: number;
   strokeWidth?: number;
+  onSlicePress?: (label: string) => void;
 }
 
 /** Donut chart drawn as stacked stroked-circle arcs (no chart lib needed). */
-export default function StatusDonut({ data, size = 150, strokeWidth = 22 }: StatusDonutProps) {
+export default function StatusDonut({ data, size = 150, strokeWidth = 22, onSlicePress }: StatusDonutProps) {
   const { colors } = useTheme();
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      tension: 60,
+      friction: 8,
+      useNativeDriver: true,
+    }).start();
+  }, [scaleAnim]);
+
   const total = data.reduce((s, d) => s + d.value, 0) || 1;
   const r = (size - strokeWidth) / 2;
   const cx = size / 2;
@@ -28,7 +40,7 @@ export default function StatusDonut({ data, size = 150, strokeWidth = 22 }: Stat
 
   return (
     <View style={styles.wrap}>
-      <View style={{ width: size, height: size }}>
+      <Animated.View style={{ width: size, height: size, opacity: scaleAnim, transform: [{ scale: scaleAnim }] }}>
         <Svg width={size} height={size}>
           {/* track */}
           <Circle cx={cx} cy={cy} r={r} stroke={colors.muted} strokeWidth={strokeWidth} fill="none" />
@@ -59,16 +71,16 @@ export default function StatusDonut({ data, size = 150, strokeWidth = 22 }: Stat
           <Text style={[styles.total, { color: colors.foreground }]}>{total}</Text>
           <Text style={[styles.totalLabel, { color: colors.mutedForeground }]}>total</Text>
         </View>
-      </View>
+      </Animated.View>
 
       <View style={styles.legend}>
         {data.map((d) => (
-          <View key={d.label} style={styles.legendItem}>
+          <TouchableOpacity key={d.label} style={styles.legendItem} onPress={() => onSlicePress?.(d.label)} disabled={!onSlicePress}>
             <View style={[styles.swatch, { backgroundColor: d.color }]} />
             <Text style={[styles.legendText, { color: colors.foreground }]}>
               {d.label} <Text style={{ color: colors.mutedForeground }}>{d.value}</Text>
             </Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
     </View>

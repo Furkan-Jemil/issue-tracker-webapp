@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, LayoutChangeEvent, Animated, TouchableOpacity } from 'react-native';
 import Svg, { Polyline, Line as SvgLine } from 'react-native-svg';
 import { useTheme } from '../theme/useTheme';
 
@@ -12,13 +12,28 @@ export interface TrendPoint {
 interface TrendLineProps {
   data: TrendPoint[];
   height?: number;
+  onPointPress?: (label: string) => void;
 }
 
 /** Two-series line chart on react-native-svg, auto-fitting to width. */
-export default function TrendLine({ data, height = 140 }: TrendLineProps) {
+export default function TrendLine({ data, height = 140, onPointPress }: TrendLineProps) {
   const { colors } = useTheme();
   const [w, setW] = React.useState(0);
   const onLayout = (e: LayoutChangeEvent) => setW(e.nativeEvent.layout.width);
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(10)).current;
+
+  useEffect(() => {
+    Animated.spring(fadeAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+    Animated.spring(slideAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim, slideAnim]);
 
   const plotH = height - 22;
   const max = Math.max(1, ...data.flatMap((d) => [d.open, d.prog]));
@@ -34,7 +49,7 @@ export default function TrendLine({ data, height = 140 }: TrendLineProps) {
       .join(' ');
 
   return (
-    <View onLayout={onLayout}>
+    <Animated.View onLayout={onLayout} style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
       <View style={{ height }}>
         {w > 0 && (
           <Svg width={w} height={height}>
@@ -48,13 +63,13 @@ export default function TrendLine({ data, height = 140 }: TrendLineProps) {
       </View>
       <View style={styles.legend}>
         {[['Open', colors.chart2], ['In Progress', colors.chart3]].map(([l, c]) => (
-          <View key={l} style={styles.legendItem}>
+          <TouchableOpacity key={l} style={styles.legendItem} onPress={() => onPointPress?.(l)} disabled={!onPointPress}>
             <View style={[styles.swatch, { backgroundColor: c as string }]} />
             <Text style={[styles.legendText, { color: colors.foreground }]}>{l}</Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
