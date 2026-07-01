@@ -1,16 +1,20 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { SlidersHorizontal, LayoutGrid, List, Plus, ChevronLeft, ChevronRight, Grip } from 'lucide-react-native';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, Alert, RefreshControl } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { SlidersHorizontal, LayoutGrid, List, Plus, ChevronLeft, ChevronRight, ClipboardList, MoreVertical, Edit3, Trash2, ArrowRight, Table } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
 import { useResponsive } from '../responsive/useResponsive';
 import Grid from '../responsive/Grid';
 import { relativeTime } from '../utils/formatters';
-import { Screen, Card, Badge, Avatar, Button, SearchBar, IconButton, Select, AnimatedEntry } from '../components/ui';
+import usePersistedState from '../utils/usePersistedState';
+import useDebounce from '../utils/useDebounce';
+import { Screen, Card, Badge, Avatar, Button, SearchBar, IconButton, Select, AnimatedEntry, Skeleton } from '../components/ui';
+import TaskTableView from '../components/TaskTableView';
+import SwipeableRow from '../components/SwipeableRow';
 
 type Status = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
-type ViewMode = 'list' | 'board';
+type ViewMode = 'compact' | 'table';
 
 interface Issue {
   id: string;
@@ -25,7 +29,6 @@ interface Issue {
 }
 
 const PER = 8;
-const BOARD_COLUMNS: Status[] = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'All Status' },
@@ -47,27 +50,82 @@ const SEVERITY_OPTIONS = [
   { value: 'MINOR', label: 'Minor' },
 ];
 
+const STATUS_TRANSITIONS: Record<Status, Status[]> = {
+  OPEN: ['IN_PROGRESS', 'CLOSED'],
+  IN_PROGRESS: ['RESOLVED', 'OPEN'],
+  RESOLVED: ['CLOSED', 'IN_PROGRESS'],
+  CLOSED: ['OPEN'],
+};
+
 export default function TasksListScreen() {
-  const { colors } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const { isTablet } = useResponsive();
   const navigation = useNavigation<any>();
-  const { issues } = useAppContext();
+  const route = useRoute();
+  const { issues, isLoading, deleteIssue, refreshData } = useAppContext();
 
-  const [search, setSearch] = useState('');
-  const [statusF, setStatusF] = useState('all');
-  const [priorityF, setPriorityF] = useState('all');
-  const [severityF, setSeverityF] = useState('all');
-  const [view, setView] = useState<ViewMode>('list');
+  const [search, setSearch] = usePersistedState('tasks_search', '');
+  const debouncedSearch = useDebounce(search, 300);
+  const [statusF, setStatusF] = usePersistedState('tasks_status', 'all');
+  const [priorityF, setPriorityF] = usePersistedState('tasks_priority', 'all');
+  const [severityF, setSeverityF] = usePersistedState('tasks_severity', 'all');
+  const [view, setView] = usePersistedState<ViewMode>('tasks_view', 'compact');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(0);
 
   const activeCount = [statusF, priorityF, severityF].filter((f) => f !== 'all').length;
 
+  const [menuIssue, setMenuIssue] = useState<Issue | null>(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const openMenu = (issue: Issue) => {
+    setMenuIssue(issue);
+    setMenuVisible(true);
+  };
+
+  const handleEdit = () => {
+    if (!menuIssue) return;
+    setMenuVisible(false);
+    navigation.navigate('CreateTask', { issue: menuIssue });
+  };
+
+  const handleStatusChange = (status: Status) => {
+    if (!menuIssue) return;
+    setMenuVisible(false);
+    openDetail(menuIssue);
+  };
+
+  const handleDelete = () => {
+    if (!menuIssue) return;
+    setMenuVisible(false);
+    Alert.alert('Delete Issue', `Delete ${menuIssue.id}? This cannot be undone.`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteIssue(menuIssue.id);
+          } catch {
+            Alert.alert('Error', 'Failed to delete issue');
+          }
+        },
+      },
+    ]);
+  };
+
+  useEffect(() => {
+    const initialStatus = (route.params as any)?.initialStatus;
+    if (initialStatus && typeof initialStatus === 'string') {
+      setStatusF(initialStatus);
+    }
+  }, [(route.params as any)?.initialStatus]);
+
   const filtered = useMemo<Issue[]>(() => {
-    const q = search.trim().toLowerCase();
+    const q = debouncedSearch.trim().toLowerCase();
+    const minMet = q.length === 0 || q.length >= 2;
     return (issues as unknown as Issue[]).filter((i) => {
-      const matchesSearch =
-        !q || i.title.toLowerCase().includes(q) || i.id.toLowerCase().includes(q);
+      const matchesSearch = !minMet || i.title.toLowerCase().includes(q) || i.id.toLowerCase().includes(q);
       return (
         matchesSearch &&
         (statusF === 'all' || i.status === statusF) &&
@@ -75,22 +133,21 @@ export default function TasksListScreen() {
         (severityF === 'all' || i.severity === severityF)
       );
     });
-  }, [issues, search, statusF, priorityF, severityF]);
+  }, [issues, debouncedSearch, statusF, priorityF, severityF]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER));
   const safePage = Math.min(page, totalPages - 1);
   const paged = filtered.slice(safePage * PER, (safePage + 1) * PER);
 
-  const boards = useMemo<Record<Status, Issue[]>>(() => {
-    const map: Record<Status, Issue[]> = { OPEN: [], IN_PROGRESS: [], RESOLVED: [], CLOSED: [] };
-    filtered.forEach((i) => {
-      (map[i.status] ?? map.CLOSED).push(i);
-    });
-    return map;
-  }, [filtered]);
-
   const resetPage = () => setPage(0);
   const openDetail = (issue: Issue) => navigation.navigate('TaskDetail', { issueId: issue.id });
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refreshData();
+    setRefreshing(false);
+  }, [refreshData]);
 
   const clearFilters = () => {
     setStatusF('all');
@@ -99,67 +156,57 @@ export default function TasksListScreen() {
     resetPage();
   };
 
+  const handleSwipeDelete = (issue: Issue) => {
+    Alert.alert('Delete Issue', `Delete ${issue.id}? This cannot be undone.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        try { await deleteIssue(issue.id); } catch { Alert.alert('Error', 'Failed to delete issue'); }
+      }},
+    ]);
+  };
+
   const renderListCard = (issue: Issue, index: number) => (
     <AnimatedEntry key={issue.id} index={index}>
-      <TouchableOpacity activeOpacity={0.85} onPress={() => openDetail(issue)}>
-      <Card padding={14}>
-        <Text numberOfLines={2} style={[styles.cardTitle, { color: colors.greenFg }]}>
-          {issue.title}
-        </Text>
-        <Text style={[styles.monoId, { color: colors.mutedForeground }]}>{issue.id}</Text>
-        <View style={styles.badgeRow}>
-          <Badge kind="type" value={issue.type} />
-          <Badge kind="status" value={issue.status} />
-          <Badge kind="priority" value={issue.priority} />
-        </View>
-        <View style={[styles.cardFooter, { borderTopColor: colors.cardBorder }]}>
-          <View style={styles.footerLeft}>
-            <Avatar size="xs" name={issue.assignee} />
-            <Text numberOfLines={1} style={[styles.footerText, { color: colors.mutedForeground }]}>
-              {issue.assignee ?? 'Unassigned'}
-            </Text>
-          </View>
-          <Text style={[styles.footerText, { color: colors.mutedForeground }]}>
-            {relativeTime(issue.created_at)}
-          </Text>
-        </View>
-      </Card>
-    </TouchableOpacity>
-    </AnimatedEntry>
-  );
-
-  const renderMiniCard = (issue: Issue, index: number) => (
-    <AnimatedEntry key={issue.id} index={index}>
-      <TouchableOpacity activeOpacity={0.85} onPress={() => openDetail(issue)}>
-      <Card padding={12} style={{ marginBottom: 8 }}>
-        <View style={styles.miniHeader}>
-          <Text numberOfLines={2} style={[styles.miniTitle, { color: colors.greenFg }]}>
+      <SwipeableRow onDelete={() => handleSwipeDelete(issue)}>
+        <Card padding={spacing.md}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`View ${issue.title}`} activeOpacity={0.85} onPress={() => openDetail(issue)}>
+          <Text numberOfLines={2} style={[typography.bodySmBold, { color: colors.greenFg }]}>
             {issue.title}
           </Text>
-          <Grip size={12} color={colors.mutedForeground} style={{ marginTop: 2 }} />
-        </View>
-        <View style={styles.miniBadgeRow}>
-          <Badge kind="type" value={issue.type} />
-          <Badge kind="priority" value={issue.priority} />
-        </View>
-        <View style={styles.miniFooter}>
-          <View style={styles.footerLeft}>
-            <Avatar size="xs" name={issue.assignee} />
-            <Text numberOfLines={1} style={[styles.footerText, { color: colors.mutedForeground }]}>
-              {issue.assignee ?? 'Unassigned'}
-            </Text>
+          <Text style={[typography.monoId, styles.monoId, { color: colors.mutedForeground }]}>{issue.id}</Text>
+          <View style={[styles.badgeRow, { gap: spacing.iconGap, marginTop: spacing.sm }]}>
+            <Badge kind="type" value={issue.type} />
+            <Badge kind="status" value={issue.status} />
+            <Badge kind="priority" value={issue.priority} />
           </View>
-          <Text style={[styles.monoId, { color: colors.mutedForeground }]}>{issue.id}</Text>
+        </TouchableOpacity>
+        <View style={[styles.cardFooter, { borderTopColor: colors.cardBorder, marginTop: spacing.md, paddingTop: spacing.sm }]}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel={`View ${issue.title}`} activeOpacity={0.85} onPress={() => openDetail(issue)} style={{ flex: 1 }}>
+            <View style={[styles.footerLeft, { gap: spacing.iconGap, marginRight: spacing.sm }]}>
+              <Avatar size="xs" name={issue.assignee} />
+              <Text numberOfLines={1} style={[typography.cardDesc, { color: colors.mutedForeground }]}>
+                {issue.assignee ?? 'Unassigned'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.iconGap }}>
+            <Text style={[typography.cardDesc, { color: colors.mutedForeground }]}>
+              {relativeTime(issue.created_at)}
+            </Text>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={`More actions for ${issue.title}`} onPress={() => openMenu(issue)} hitSlop={8} style={styles.menuBtn}>
+              <MoreVertical size={14} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
         </View>
       </Card>
-    </TouchableOpacity>
+      </SwipeableRow>
     </AnimatedEntry>
   );
 
   return (
-    <Screen title="Issues" subtitle="Track, filter, and manage all open tasks">
+    <Screen title="Issues" subtitle="Track, filter, and manage all open tasks" scroll={view === 'compact'} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}>
       {/* Toolbar */}
-      <View style={[styles.toolbar, { paddingHorizontal: isTablet ? 24 : 16 }]}>
+      <View style={[styles.toolbar, { paddingHorizontal: isTablet ? 24 : 16, gap: spacing.sm, paddingTop: spacing.md, paddingBottom: spacing.xs }]}>
         <SearchBar
           value={search}
           onChangeText={(v) => {
@@ -172,17 +219,19 @@ export default function TasksListScreen() {
           icon={<SlidersHorizontal size={15} color={filtersOpen || activeCount > 0 ? '#fff' : colors.mutedForeground} />}
           active={filtersOpen || activeCount > 0}
           badge={activeCount}
+          accessibilityLabel="Toggle filters"
           onPress={() => setFiltersOpen((v) => !v)}
         />
         <IconButton
           icon={
-            view === 'list' ? (
-              <LayoutGrid size={15} color={colors.mutedForeground} />
-            ) : (
+            view === 'compact' ? (
               <List size={15} color={colors.mutedForeground} />
+            ) : (
+              <LayoutGrid size={15} color={colors.mutedForeground} />
             )
           }
-          onPress={() => setView((v) => (v === 'list' ? 'board' : 'list'))}
+          accessibilityLabel={view === 'compact' ? 'Switch to table view' : 'Switch to compact view'}
+          onPress={() => setView((v) => (v === 'compact' ? 'table' : 'compact'))}
         />
         <Button
           title="Create"
@@ -194,17 +243,17 @@ export default function TasksListScreen() {
 
       {/* Filters panel */}
       {filtersOpen && (
-        <View style={[styles.filterWrap, { paddingHorizontal: isTablet ? 24 : 16 }]}>
-          <Card padding={16}>
-            <View style={styles.filterHeader}>
-              <Text style={[styles.filterTitle, { color: colors.foreground }]}>Filters</Text>
+        <View style={[styles.filterWrap, { paddingHorizontal: isTablet ? 24 : 16, paddingTop: spacing.sm }]}>
+          <Card padding={spacing.cardPadding}>
+            <View style={[styles.filterHeader, { marginBottom: spacing.md }]}>
+              <Text style={[typography.cardTitle, { color: colors.foreground }]}>Filters</Text>
               {activeCount > 0 && (
-                <TouchableOpacity onPress={clearFilters} hitSlop={8}>
-                  <Text style={[styles.clearText, { color: colors.mutedForeground }]}>Clear all</Text>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Clear all filters" onPress={clearFilters} hitSlop={spacing.sm}>
+                  <Text style={[typography.statLabel, styles.clearText, { color: colors.mutedForeground }]}>Clear all</Text>
                 </TouchableOpacity>
               )}
             </View>
-            <View style={{ gap: 12 }}>
+            <View style={{ gap: spacing.md }}>
               <Select
                 label="Status"
                 value={statusF}
@@ -238,46 +287,81 @@ export default function TasksListScreen() {
       )}
 
       {/* Content */}
-      {view === 'board' ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[styles.board, { paddingHorizontal: isTablet ? 24 : 16 }]}
-        >
-          {BOARD_COLUMNS.map((col) => (
-            <View key={col} style={styles.column}>
-              <View style={styles.columnHeader}>
-                <Badge kind="status" value={col} />
-                <Text style={[styles.columnCount, { color: colors.mutedForeground }]}>
-                  {boards[col].length}
-                </Text>
+      {isLoading ? (
+        <View style={[styles.listWrap, { paddingHorizontal: isTablet ? 24 : 16, paddingTop: spacing.md, gap: spacing.md }]}>
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} padding={spacing.cardPadding}>
+              <Skeleton width="70%" height={14} borderRadius={4} style={{ marginBottom: spacing.xs }} />
+              <Skeleton width="40%" height={10} borderRadius={4} style={{ marginBottom: spacing.sm }} />
+              <View style={{ flexDirection: 'row', gap: spacing.iconGap }}>
+                <Skeleton width={50} height={18} borderRadius={4} />
+                <Skeleton width={60} height={18} borderRadius={4} />
               </View>
-              {boards[col].length === 0 ? (
-                <Text style={[styles.emptyCol, { color: colors.mutedForeground }]}>No issues</Text>
-              ) : (
-                boards[col].map((issue, index) => renderMiniCard(issue, index))
+            </Card>
+          ))}
+        </View>
+      ) : (
+      <>
+      {view === 'table' ? (
+        paged.length === 0 ? (
+          <View style={[styles.empty, { gap: spacing.md, paddingTop: spacing.xl * 3 }]}>
+            <Table size={48} color={colors.mutedForeground + '33'} />
+            <Text style={[typography.detailValue, { color: colors.mutedForeground }]}>No issues found</Text>
+            <Text style={[typography.bodySm, { color: colors.mutedForeground, textAlign: 'center' }]}>
+              {search || statusF !== 'all'
+                ? 'Try adjusting your search or filters.'
+                : 'Get started by creating your first issue.'}
+            </Text>
+            {!search && statusF === 'all' && (
+              <Button
+                title="Create Issue"
+                icon={<Plus size={14} color="#fff" />}
+                onPress={() => navigation.navigate('CreateTask')}
+              />
+            )}
+          </View>
+        ) : (
+        <TaskTableView
+          data={paged}
+          onPress={(item) => openDetail(item as any)}
+          onMenu={(item) => openMenu(item as any)}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+        />
+        )
+      ) : (
+        <View style={[styles.listWrap, { paddingHorizontal: isTablet ? 24 : 16, paddingTop: spacing.md }]}>
+          {paged.length === 0 ? (
+            <View style={[styles.empty, { gap: spacing.md }]}>
+              <ClipboardList size={48} color={colors.mutedForeground + '33'} />
+              <Text style={[typography.detailValue, { color: colors.mutedForeground }]}>No issues found</Text>
+              <Text style={[typography.bodySm, { color: colors.mutedForeground, textAlign: 'center' }]}>
+                {search || statusF !== 'all'
+                  ? 'Try adjusting your search or filters.'
+                  : 'Get started by creating your first issue.'}
+              </Text>
+              {!search && statusF === 'all' && (
+                <Button
+                  title="Create Issue"
+                  icon={<Plus size={14} color="#fff" />}
+                  onPress={() => navigation.navigate('CreateTask')}
+                />
               )}
             </View>
-          ))}
-        </ScrollView>
-      ) : (
-        <View style={[styles.listWrap, { paddingHorizontal: isTablet ? 24 : 16 }]}>
-          {paged.length === 0 ? (
-            <Text style={[styles.empty, { color: colors.mutedForeground }]}>No issues found.</Text>
           ) : isTablet ? (
-            <Grid columns={2} gap={12}>
+            <Grid columns={2} gap={spacing.md}>
               {paged.map((issue, index) => renderListCard(issue, index))}
             </Grid>
           ) : (
-            <View style={{ gap: 12 }}>{paged.map((issue, index) => renderListCard(issue, index))}</View>
+            <View style={{ gap: spacing.md }}>{paged.map((issue, index) => renderListCard(issue, index))}</View>
           )}
 
           {/* Pagination */}
-          <View style={styles.pagination}>
-            <Text style={[styles.pageInfo, { color: colors.mutedForeground }]}>
+          {(view === 'compact' || paged.length > 0) && (
+          <View style={[styles.pagination, { marginTop: spacing.lg, gap: spacing.sm }]}>
+            <Text style={[typography.micro, { color: colors.mutedForeground }]}>
               Page {safePage + 1} of {totalPages} · {filtered.length} issues
             </Text>
-            <View style={styles.pageBtns}>
+            <View style={[styles.pageBtns, { gap: spacing.sm }]}>
               <Button
                 title="Prev"
                 variant="outline"
@@ -296,71 +380,61 @@ export default function TasksListScreen() {
               />
             </View>
           </View>
+          )}
         </View>
       )}
+      </>
+      )}
+
+      {/* Action menu modal */}
+      <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Cancel" style={styles.menuOverlay} onPress={() => setMenuVisible(false)}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Issue actions menu" style={[styles.menuSheet, { backgroundColor: colors.card }]}>
+            <Text style={[typography.cardTitle, { color: colors.foreground, marginBottom: spacing.sm }]}>
+              {menuIssue?.id}
+            </Text>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Edit issue" style={styles.menuItem} onPress={handleEdit}>
+              <Edit3 size={16} color={colors.foreground} />
+              <Text style={[typography.bodySm, { color: colors.foreground, marginLeft: spacing.sm }]}>Edit</Text>
+            </TouchableOpacity>
+            {menuIssue && STATUS_TRANSITIONS[menuIssue.status]?.map((s) => (
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Move to ${s.replace('_', ' ')}`} key={s} style={styles.menuItem} onPress={() => handleStatusChange(s)}>
+                <ArrowRight size={16} color={colors.foreground} />
+                <Text style={[typography.bodySm, { color: colors.foreground, marginLeft: spacing.sm }]}>
+                  Move to {s.replace('_', ' ')}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Delete issue" style={styles.menuItem} onPress={handleDelete}>
+              <Trash2 size={16} color={colors.error} />
+              <Text style={[typography.bodySm, { color: colors.error, marginLeft: spacing.sm }]}>Delete</Text>
+            </TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel" style={[styles.menuCancel, { borderTopColor: colors.cardBorder }]} onPress={() => setMenuVisible(false)}>
+              <Text style={[typography.bodySmBold, { color: colors.mutedForeground }]}>Cancel</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  toolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingTop: 14,
-    paddingBottom: 6,
-  },
-  filterWrap: { paddingTop: 8 },
-  filterHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  filterTitle: { fontFamily: 'Outfit_700Bold', fontSize: 13 },
-  clearText: { fontFamily: 'Outfit_500Medium', fontSize: 11, textDecorationLine: 'underline' },
-  listWrap: { paddingTop: 12 },
-  cardTitle: { fontFamily: 'Outfit_600SemiBold', fontSize: 14, lineHeight: 19 },
-  monoId: { fontFamily: 'JetBrainsMono_400Regular', fontSize: 10, marginTop: 3 },
-  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
-  cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 12,
-    paddingTop: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  footerLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8 },
-  footerText: { fontFamily: 'Outfit_400Regular', fontSize: 11 },
-  pagination: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 16,
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  pageInfo: { fontFamily: 'Outfit_400Regular', fontSize: 12 },
-  pageBtns: { flexDirection: 'row', gap: 8 },
-  board: { paddingTop: 12, gap: 12 },
-  column: { width: 260 },
-  columnHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  columnCount: { fontFamily: 'Outfit_600SemiBold', fontSize: 12 },
-  emptyCol: { fontFamily: 'Outfit_400Regular', fontSize: 12, paddingVertical: 8 },
-  miniHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  miniTitle: { flex: 1, fontFamily: 'Outfit_600SemiBold', fontSize: 12, lineHeight: 16 },
-  miniBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
-  miniFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  empty: { fontFamily: 'Outfit_400Regular', fontSize: 13, textAlign: 'center', paddingVertical: 40 },
+  toolbar: { flexDirection: 'row', alignItems: 'center' },
+  filterWrap: {},
+  filterHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  clearText: { textDecorationLine: 'underline' },
+  listWrap: {},
+  monoId: { marginTop: 3 },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  cardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: StyleSheet.hairlineWidth },
+  footerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' },
+  pageBtns: { flexDirection: 'row' },
+  empty: { textAlign: 'center', paddingVertical: 40 },
+  menuBtn: { padding: 4 },
+  menuOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  menuSheet: { borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20, paddingBottom: 32 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
+  menuCancel: { alignItems: 'center', paddingTop: 14, marginTop: 8, borderTopWidth: StyleSheet.hairlineWidth },
 });

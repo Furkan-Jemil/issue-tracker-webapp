@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Edit3, Trash2, Send } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
@@ -13,6 +13,7 @@ import {
   Select,
   Textarea,
   SecLabel,
+  Skeleton,
 } from '../components/ui';
 import TwoPane from '../responsive/TwoPane';
 import { relativeTime, getInitials } from '../utils/formatters';
@@ -62,17 +63,48 @@ const SEVERITY_OPTIONS = [
 ];
 
 export default function TaskDetailScreen() {
-  const { colors, isTablet, pagePadding } = useTheme();
+  const { colors, isTablet, pagePadding, spacing, typography } = useTheme();
   const navigation = useNavigation<any>();
   const route = useRoute();
   const { issueId } = route.params as { issueId: string };
 
-  const { issues, members } = useAppContext();
+  const { issues, members, isLoading } = useAppContext();
   const issueList = issues as unknown as Issue[];
   const memberList = members as unknown as Member[];
-  const issue = issueList.find((i) => i.id === issueId) ?? issueList[0];
+  const issue = issueList.find((i) => i.id === issueId);
+
+  if (isLoading) {
+    return (
+      <Screen title="Issue Detail" scroll={false}>
+        <View style={{ padding: spacing.xl, gap: spacing.md }}>
+          <Skeleton width="40%" height={12} borderRadius={4} />
+          <Skeleton width="80%" height={22} borderRadius={6} />
+          <View style={{ flexDirection: 'row', gap: spacing.iconGap }}>
+            <Skeleton width={60} height={22} borderRadius={6} />
+            <Skeleton width={60} height={22} borderRadius={6} />
+          </View>
+          <Skeleton width="100%" height={120} borderRadius={12} />
+          <Skeleton width="100%" height={80} borderRadius={12} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (!issue) {
+    return (
+      <Screen title="Issue Not Found">
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <Text style={[typography.bodySm, { color: colors.mutedForeground, textAlign: 'center' }]}>
+            The issue you're looking for doesn't exist or has been deleted.
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
 
   const assigneeOptions = memberList.map((m) => ({ value: m.name, label: m.name }));
+
+  const { deleteIssue, updateIssue, auditLogs, addComment } = useAppContext();
 
   const [status, setStatus] = useState(issue.status);
   const [priority, setPriority] = useState(issue.priority);
@@ -80,86 +112,134 @@ export default function TaskDetailScreen() {
   const [assignee, setAssignee] = useState(issue.assignee ?? '');
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState<Comment[]>(issue.comments ?? []);
+  const [saving, setSaving] = useState<Record<string, boolean>>({});
 
-  const postComment = () => {
+  const issueLogs = (auditLogs as any[]).filter(
+    (l: any) => l.description && l.description.includes(issue.id)
+  ).sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const onFieldChange = (field: string, value: string, setter: (v: string) => void) => {
+    setter(value);
+    setSaving((prev) => ({ ...prev, [field]: true }));
+    updateIssue(issue.id, { [field]: value }).finally(() => {
+      setSaving((prev) => ({ ...prev, [field]: false }));
+    });
+  };
+
+  const postComment = async () => {
     const body = comment.trim();
     if (!body) return;
-    setComments((prev) => [
-      ...prev,
-      { id: `local-${Date.now()}`, author: 'You', body, created_at: new Date().toISOString() },
-    ]);
+    try {
+      const saved = await addComment(issue.id, body);
+      setComments((prev) => [...prev, saved]);
+    } catch {
+      setComments((prev) => [
+        ...prev,
+        { id: `local-${Date.now()}`, author: 'You', body, created_at: new Date().toISOString() },
+      ]);
+    }
     setComment('');
   };
 
+  const onDelete = () => {
+    Alert.alert('Delete Issue', `Are you sure you want to delete ${issue.id}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        await deleteIssue(issue.id);
+        navigation.goBack();
+      }},
+    ]);
+  };
+
   const headerBlock = (
-    <View style={styles.headerBlock}>
+    <View style={[styles.headerBlock, { gap: spacing.lg }]}>
       <View style={{ flex: 1, minWidth: 0 }}>
-        <View style={styles.idRow}>
-          <Text style={[styles.monoId, { color: colors.mutedForeground }]}>{issue.id}</Text>
+        <View style={[styles.idRow, { gap: spacing.sm, marginBottom: spacing.xs }]}>
+          <Text style={[typography.monoId, { color: colors.mutedForeground }]}>{issue.id}</Text>
           <Badge kind="type" value={issue.type} />
         </View>
-        <Text style={[styles.title, { color: colors.foreground }]}>{issue.title}</Text>
-        <View style={styles.badgeRow}>
+        <Text style={[typography.detailTitle, { color: colors.foreground }]}>{issue.title}</Text>
+        <View style={[styles.badgeRow, { gap: spacing.iconGap, marginTop: spacing.sm }]}>
           <Badge kind="status" value={status} />
           <Badge kind="priority" value={priority} />
           <Badge kind="severity" value={severity} />
         </View>
       </View>
-      {isTablet && (
-        <View style={styles.headerActions}>
+      <View style={[styles.headerActions, { gap: spacing.sm }]}>
           <Button
             title="Edit"
             variant="outline"
             size="sm"
             icon={<Edit3 size={12} color={colors.foreground} />}
+            onPress={() => navigation.navigate('CreateTask', { issue: { id: issue.id, title: issue.title, description: issue.description, type: issue.type, priority: issue.priority, severity: issue.severity, assignee: issue.assignee } })}
           />
-          <Button
-            title="Delete"
-            variant="destructive"
-            size="sm"
-            icon={<Trash2 size={12} color="#fff" />}
-          />
-        </View>
-      )}
+        <Button
+          title="Delete"
+          variant="destructive"
+          size="sm"
+          icon={<Trash2 size={12} color="#fff" />}
+          onPress={onDelete}
+        />
+      </View>
     </View>
   );
 
   const main = (
-    <View style={{ gap: 20 }}>
+    <View style={{ gap: spacing.xl }}>
       {/* Description */}
-      <View style={{ gap: 8 }}>
+      <View style={{ gap: spacing.sm }}>
         <SecLabel>Description</SecLabel>
-        <Card padding={16}>
-          <Text style={[styles.bodyText, { color: colors.foreground }]}>{issue.description}</Text>
+        <Card padding={spacing.cardPadding}>
+          <Text style={[typography.bodySm, { color: colors.foreground }]}>{issue.description}</Text>
         </Card>
       </View>
 
-      {/* Comments */}
-      <View style={{ gap: 8 }}>
-        <SecLabel>Comments ({comments.length})</SecLabel>
-        <View style={{ gap: 12 }}>
-          {comments.map((c) => (
-            <Card key={c.id} padding={16}>
-              <View style={styles.commentRow}>
-                <Avatar initials={getInitials(c.author)} size="sm" />
-                <View style={{ flex: 1, gap: 6 }}>
-                  <View style={styles.commentMeta}>
-                    <Text style={[styles.author, { color: colors.foreground }]}>{c.author}</Text>
-                    <Text style={[styles.time, { color: colors.mutedForeground }]}>
-                      {relativeTime(c.created_at)}
-                    </Text>
+      {/* Activity Timeline */}
+      {issueLogs.length > 0 && (
+        <View style={{ gap: spacing.sm }}>
+          <SecLabel>Activity ({issueLogs.length})</SecLabel>
+          <Card padding={spacing.cardPadding}>
+            <View style={{ gap: spacing.md }}>
+              {issueLogs.map((log: any) => (
+                <View key={log.id} style={styles.timelineItem}>
+                  <View style={[styles.timelineDot, { backgroundColor: colors.mutedForeground }]} />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={[typography.bodySm, { color: colors.foreground, fontSize: 12 }]}>{log.description}</Text>
+                    <Text style={[styles.time, { color: colors.mutedForeground }]}>{relativeTime(log.created_at)}</Text>
                   </View>
-                  <Text style={[styles.bodyText, { color: colors.foreground }]}>{c.body}</Text>
+                </View>
+              ))}
+            </View>
+          </Card>
+        </View>
+      )}
+
+      {/* Comments */}
+      <View style={{ gap: spacing.sm }}>
+        <SecLabel>Comments ({comments.length})</SecLabel>
+        <View style={{ gap: spacing.md }}>
+          {comments.map((c) => (
+            <Card key={c.id} padding={spacing.cardPadding}>
+              <View style={[styles.commentRow, { gap: spacing.md }]}>
+                <Avatar initials={getInitials(c.author)} size="sm" />
+                  <View style={{ flex: 1, gap: spacing.xs }}>
+                    <View style={styles.commentMeta}>
+                      <Text style={[typography.labelBadge, { color: colors.foreground }]}>{c.author}</Text>
+                      <Text style={[styles.time, { color: colors.mutedForeground }]}>
+                        {relativeTime(c.created_at)}
+                      </Text>
+                    </View>
+                    <Text style={[typography.bodySm, { color: colors.foreground }]}>{c.body}</Text>
                 </View>
               </View>
             </Card>
           ))}
 
           {/* Composer */}
-          <Card padding={12}>
-            <View style={styles.commentRow}>
+          <Card padding={spacing.md}>
+            <View style={[styles.commentRow, { gap: spacing.md }]}>
               <Avatar initials="YOU" size="sm" />
-              <View style={{ flex: 1, gap: 8 }}>
+              <View style={{ flex: 1, gap: spacing.sm }}>
                 <Textarea
                   value={comment}
                   onChangeText={setComment}
@@ -184,32 +264,32 @@ export default function TaskDetailScreen() {
   );
 
   const side = (
-    <View style={[{ gap: 16 }, isTablet ? null : { marginTop: 20 }]}>
-      <Card padding={16}>
-        <View style={{ gap: 16 }}>
+    <View style={[{ gap: spacing.lg }, isTablet ? null : { marginTop: spacing.lg }]}>
+      <Card padding={spacing.cardPadding}>
+        <View style={{ gap: spacing.lg }}>
           <SecLabel>Issue Details</SecLabel>
-          <Select label="Status" value={status} options={STATUS_OPTIONS} onChange={setStatus} />
+          <Select label="Status" value={status} options={STATUS_OPTIONS} onChange={(v) => onFieldChange('status', v, setStatus)} />
           <Select
             label="Priority"
             value={priority}
             options={PRIORITY_OPTIONS}
-            onChange={setPriority}
+            onChange={(v) => onFieldChange('priority', v, setPriority)}
           />
           <Select
             label="Severity"
             value={severity}
             options={SEVERITY_OPTIONS}
-            onChange={setSeverity}
+            onChange={(v) => onFieldChange('severity', v, setSeverity)}
           />
           <Select
             label="Assignee"
             value={assignee}
             options={assigneeOptions}
-            onChange={setAssignee}
+            onChange={(v) => onFieldChange('assignee', v, setAssignee)}
             placeholder="Unassigned"
           />
 
-          <View style={[styles.divider, { borderTopColor: colors.cardBorder }]}>
+          <View style={[styles.divider, { borderTopColor: colors.cardBorder, paddingTop: spacing.md, gap: spacing.sm }]}>
             <MetaRow label="Reporter" value={issue.reporter} colors={colors} />
             <MetaRow label="Created" value={relativeTime(issue.created_at)} colors={colors} />
             {issue.category ? (
@@ -222,6 +302,7 @@ export default function TaskDetailScreen() {
             variant="destructive"
             fullWidth
             icon={<Trash2 size={13} color="#fff" />}
+            onPress={onDelete}
           />
         </View>
       </Card>
@@ -234,7 +315,7 @@ export default function TaskDetailScreen() {
       subtitle="Full task context and activity"
       onBack={() => navigation.goBack()}
     >
-      <View style={{ paddingHorizontal: pagePadding, paddingVertical: 20, gap: 20 }}>
+      <View style={{ paddingHorizontal: pagePadding, paddingVertical: spacing.xl, gap: spacing.xl }}>
         {headerBlock}
         <TwoPane main={main} side={side} sideWidth={300} />
       </View>
@@ -253,26 +334,22 @@ function MetaRow({
 }) {
   return (
     <View style={styles.metaRow}>
-      <Text style={[styles.metaLabel, { color: colors.mutedForeground }]}>{label}</Text>
-      <Text style={[styles.metaValue, { color: colors.foreground }]}>{value}</Text>
+      <Text style={[{ fontFamily: 'Outfit_500Medium', fontSize: 11, lineHeight: 14, color: colors.mutedForeground }]}>{label}</Text>
+      <Text style={[{ fontFamily: 'Outfit_600SemiBold', fontSize: 12, lineHeight: 16, color: colors.foreground }]}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerBlock: { flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
-  idRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  monoId: { fontFamily: 'JetBrainsMono_400Regular', fontSize: 10 },
-  title: { fontFamily: 'Outfit_700Bold', fontSize: 18, lineHeight: 24 },
-  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 8 },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  bodyText: { fontFamily: 'Outfit_400Regular', fontSize: 14, lineHeight: 22 },
-  commentRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  headerBlock: { flexDirection: 'row', alignItems: 'flex-start' },
+  idRow: { flexDirection: 'row', alignItems: 'center' },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
+  headerActions: { flexDirection: 'row', alignItems: 'center' },
+  commentRow: { flexDirection: 'row', alignItems: 'flex-start' },
   commentMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  author: { fontFamily: 'Outfit_600SemiBold', fontSize: 12 },
   time: { fontFamily: 'Outfit_400Regular', fontSize: 10 },
-  divider: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 12, gap: 8 },
+  divider: { borderTopWidth: StyleSheet.hairlineWidth },
   metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  metaLabel: { fontFamily: 'Outfit_400Regular', fontSize: 12 },
-  metaValue: { fontFamily: 'Outfit_500Medium', fontSize: 12 },
+  timelineItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  timelineDot: { width: 6, height: 6, borderRadius: 3, marginTop: 5 },
 });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Link, Paperclip } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
@@ -25,18 +25,29 @@ const SEVERITY_OPTIONS: SelectOption[] = [
 ];
 
 export default function CreateTaskScreen() {
-  const { colors, pagePadding } = useTheme();
+  const { colors, spacing, typography, pagePadding } = useTheme();
   const { isTablet } = useResponsive();
   const navigation = useNavigation<any>();
-  const { members } = useAppContext();
+  const route = useRoute();
+  const { members, createIssue } = useAppContext();
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [type, setType] = useState('BUG');
-  const [priority, setPriority] = useState('MEDIUM');
-  const [severity, setSeverity] = useState('MINOR');
-  const [assignee, setAssignee] = useState('');
+  const editing = (route.params as any)?.issue;
+  const [title, setTitle] = useState(editing?.title ?? '');
+  const [description, setDescription] = useState(editing?.description ?? '');
+  const [type, setType] = useState(editing?.type ?? 'BUG');
+  const [priority, setPriority] = useState(editing?.priority ?? 'MEDIUM');
+  const [severity, setSeverity] = useState(editing?.severity ?? 'MINOR');
+  const [assignee, setAssignee] = useState(editing?.assignee ?? '');
   const [url, setUrl] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!title.trim()) e.title = 'Title is required';
+    if (!description.trim()) e.description = 'Description is required';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   const assigneeOptions: SelectOption[] = [
     { value: '', label: 'Unassigned' },
@@ -47,8 +58,8 @@ export default function CreateTaskScreen() {
 
   return (
     <Screen
-      title="Create Issue"
-      subtitle="Report a new bug or improvement"
+      title={editing ? 'Edit Issue' : 'Create Issue'}
+      subtitle={editing ? `Editing ${editing.title}` : 'Report a new bug or improvement'}
       onBack={goBack}
     >
       <View
@@ -57,8 +68,8 @@ export default function CreateTaskScreen() {
           maxWidth: 640,
           alignSelf: 'center',
           paddingHorizontal: pagePadding,
-          paddingVertical: 20,
-          gap: 20,
+          paddingVertical: spacing.xl,
+          gap: spacing.xl,
         }}
       >
         <Input
@@ -67,6 +78,7 @@ export default function CreateTaskScreen() {
           placeholder="Brief, descriptive title"
           value={title}
           onChangeText={setTitle}
+          error={errors.title}
         />
 
         <Textarea
@@ -75,9 +87,10 @@ export default function CreateTaskScreen() {
           placeholder="Detailed description — steps to reproduce, expected vs actual behavior."
           value={description}
           onChangeText={setDescription}
+          error={errors.description}
         />
 
-        <Grid columns={isTablet ? 4 : 2} gap={12}>
+        <Grid columns={isTablet ? 4 : 2} gap={spacing.md}>
           <Select label="Type" value={type} options={TYPE_OPTIONS} onChange={setType} />
           <Select label="Priority" value={priority} options={PRIORITY_OPTIONS} onChange={setPriority} />
           <Select label="Severity" value={severity} options={SEVERITY_OPTIONS} onChange={setSeverity} />
@@ -94,27 +107,37 @@ export default function CreateTaskScreen() {
           keyboardType="url"
         />
 
-        <View style={{ gap: 6 }}>
-          <Text style={[styles.label, { color: colors.foreground }]}>Screenshots & Files</Text>
+        <View style={{ gap: spacing.xs }}>
+          <Text style={[typography.labelBadge, { color: colors.foreground }]}>Screenshots & Files</Text>
           <Card padding={0}>
             <TouchableOpacity
               activeOpacity={0.7}
-              style={[styles.upload, { borderColor: colors.outline }]}
+              accessibilityRole="button"
+              accessibilityLabel="Add file attachments"
+              style={[styles.upload, { borderColor: colors.outline, paddingHorizontal: spacing.lg, gap: spacing.xs }]}
             >
               <Paperclip size={22} color={colors.mutedForeground} />
-              <Text style={[styles.uploadTitle, { color: colors.foreground }]}>
+              <Text style={[typography.bodySmBold, { color: colors.foreground }]}>
                 Tap to add files
               </Text>
-              <Text style={[styles.uploadSub, { color: colors.mutedForeground }]}>
+              <Text style={[typography.micro, { color: colors.mutedForeground }]}>
                 PNG, JPG, PDF, TXT up to 10 MB
               </Text>
             </TouchableOpacity>
           </Card>
         </View>
 
-        <View style={styles.footer}>
-          <Button title="Cancel" variant="outline" onPress={goBack} style={{ flex: 1 }} />
-          <Button title="Create Task" variant="default" onPress={goBack} style={{ flex: 1 }} />
+        <View style={[styles.footer, { gap: spacing.md }]}>
+            <Button title="Cancel" variant="outline" onPress={goBack} style={{ flex: 1 }} />
+            <Button title={editing ? 'Save' : 'Create Task'} variant="default" onPress={async () => {
+              if (!validate()) return;
+              if (editing) {
+                goBack();
+              } else {
+                await createIssue({ title, description, type, priority, severity, assignee: assignee || '' });
+                goBack();
+              }
+            }} style={{ flex: 1 }} />
         </View>
       </View>
     </Screen>
@@ -122,17 +145,15 @@ export default function CreateTaskScreen() {
 }
 
 const styles = StyleSheet.create({
-  label: { fontFamily: 'Outfit_600SemiBold', fontSize: 12 },
+  label: {},
   upload: {
     borderWidth: 2,
     borderStyle: 'dashed',
     borderRadius: 10,
     paddingVertical: 28,
-    paddingHorizontal: 16,
     alignItems: 'center',
-    gap: 6,
   },
-  uploadTitle: { fontFamily: 'Outfit_600SemiBold', fontSize: 14, marginTop: 2 },
-  uploadSub: { fontFamily: 'Outfit_400Regular', fontSize: 12 },
-  footer: { flexDirection: 'row', gap: 12, paddingTop: 4 },
+  uploadTitle: { marginTop: 2 },
+  uploadSub: {},
+  footer: { flexDirection: 'row', paddingTop: 4 },
 });
