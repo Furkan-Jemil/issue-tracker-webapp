@@ -1,41 +1,80 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
-const projectRoot = __dirname;
-const workspaceRoot = path.resolve(projectRoot, '../..');
+const projectRoot = __dirname;           // apps/mobile
+const workspaceRoot = path.resolve(projectRoot, '../..');  // repo root
 
 const config = getDefaultConfig(projectRoot);
 
-// 1. Watch all directories in the monorepo
-config.watchFolders = [workspaceRoot, ...config.watchFolders];
+// ─── 1. Watch the entire monorepo ────────────────────────────────────────────
+config.watchFolders = [workspaceRoot];
 
-// 2. Block root's react/react-native and duplicate native modules to prevent
-//    conflicting versions (root: 19.2.x / 0.86.0 vs mobile: 19.1.0 / 0.81.5).
-//    Other packages like @react-native/* resolve normally from root.
-const rootNodeModules = `${workspaceRoot}/node_modules/`;
-config.resolver.blockList = [
-  new RegExp(`${rootNodeModules}react/`),
-  new RegExp(`${rootNodeModules}react-native/`),
-  new RegExp(`${rootNodeModules}react-native-safe-area-context/`),
-  new RegExp(`${rootNodeModules}react-native-screens/`),
-];
-config.resolver.extraNodeModules = {
-  'react': path.resolve(projectRoot, 'node_modules/react'),
-  'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
-  'react-native-safe-area-context': path.resolve(
-    projectRoot,
-    'node_modules/react-native-safe-area-context',
-  ),
-  'react-native-screens': path.resolve(
-    projectRoot,
-    'node_modules/react-native-screens',
-  ),
-};
-
-// 3. Resolve other node_modules from both local app and monorepo root
+// ─── 2. Tell Metro where to look for node_modules ────────────────────────────
+// Order matters: local (apps/mobile) first, then root.
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   path.resolve(workspaceRoot, 'node_modules'),
 ];
+
+// ─── 3. Explicit resolution for packages that MUST be singletons ─────────────
+// These packages must resolve to exactly one copy — pick the root copy since
+// that is where npm/yarn hoisted them.  If a package only lives at root, point
+// there.  If a local copy exists (e.g. react in apps/mobile/node_modules),
+// point to the local copy so it overrides the root.
+function resolveFrom(base, pkg) {
+  try {
+    // Try to find the package's directory relative to `base`
+    return path.resolve(base, 'node_modules', pkg);
+  } catch {
+    return null;
+  }
+}
+
+const mobileModules = path.resolve(projectRoot, 'node_modules');
+const rootModules   = path.resolve(workspaceRoot, 'node_modules');
+
+// Pick local copy if it exists, otherwise fall back to root
+function pickBest(pkg) {
+  const localPath = path.resolve(mobileModules, pkg);
+  const rootPath  = path.resolve(rootModules, pkg);
+  const fs = require('fs');
+  return fs.existsSync(localPath) ? localPath : rootPath;
+}
+
+config.resolver.extraNodeModules = {
+  'react':                           pickBest('react'),
+  'react-native':                    pickBest('react-native'),
+  'react-native-safe-area-context':  pickBest('react-native-safe-area-context'),
+  'react-native-screens':            pickBest('react-native-screens'),
+  'react-native-svg':                pickBest('react-native-svg'),
+  '@react-native-async-storage/async-storage': pickBest('@react-native-async-storage/async-storage'),
+};
+
+// ─── 4. Block list — only block a root copy when a LOCAL copy also exists ────
+// This prevents duplicate-module conflicts (two React trees, two registries).
+// IMPORTANT: do NOT block packages that only live at root — that breaks bundling.
+const fs = require('fs');
+
+function blockRootIfLocal(pkg) {
+  const localPath = path.resolve(mobileModules, pkg);
+  if (fs.existsSync(localPath)) {
+    // There IS a local copy → block the root one to force using local
+    const escaped = rootModules.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`${escaped}[/\\\\]${pkg.replace(/\//g, '[/\\\\]')}[/\\\\]`);
+  }
+  return null; // No local copy → don't block root (it's the only copy)
+}
+
+const SINGLETON_PACKAGES = [
+  'react',
+  'react-native',
+  'react-native-safe-area-context',
+  'react-native-screens',
+  'react-native-svg',
+];
+
+config.resolver.blockList = SINGLETON_PACKAGES
+  .map(blockRootIfLocal)
+  .filter(Boolean);
 
 module.exports = config;
