@@ -220,13 +220,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // ---------------------------------------------------------------------------
   const changeUserRole = useCallback(
     async (userId: string, role: string) => {
-      await apiFetch(`/api/admin/users/${userId}/role`, {
-        method: 'PATCH',
-        body: JSON.stringify({ role }),
-      });
-      await fetchMembers();
+      let previousMembers = members;
+      if (isMounted.current) {
+        setMembers((prev) => prev.map((m) => (m.id === userId ? { ...m, role } : m)));
+      }
+      try {
+        await apiFetch(`/api/admin/users/${userId}/role`, {
+          method: 'PATCH',
+          body: JSON.stringify({ role }),
+        });
+        await fetchMembers();
+      } catch (err) {
+        if (isMounted.current) setMembers(previousMembers);
+        throw err;
+      }
     },
-    [fetchMembers],
+    [fetchMembers, members],
   );
 
   const markNotificationsRead = useCallback(async () => {
@@ -239,19 +248,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const deleteIssue = useCallback(async (id: string) => {
-    await apiFetch(`/api/issues/${id}`, { method: 'DELETE' });
+    let previousIssues = issues;
     if (isMounted.current) setIssues((prev) => prev.filter((i) => i.id !== id));
-  }, []);
+    try {
+      await apiFetch(`/api/issues/${id}`, { method: 'DELETE' });
+    } catch (err) {
+      if (isMounted.current) setIssues(previousIssues);
+      throw err;
+    }
+  }, [issues]);
 
   const updateIssue = useCallback(async (id: string, data: Record<string, string>) => {
-    const result: any = await apiFetch(`/api/issues/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-    if (result?.issue && isMounted.current) {
-      setIssues((prev) => prev.map((i) => (i.id === id ? result.issue : i)));
+    let previousIssues = issues;
+    if (isMounted.current) {
+      setIssues((prev) => prev.map((i) => (i.id === id ? { ...i, ...data } as any : i)));
     }
-  }, []);
+    try {
+      const result: any = await apiFetch(`/api/issues/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      });
+      if (result?.issue && isMounted.current) {
+        setIssues((prev) => prev.map((i) => (i.id === id ? result.issue : i)));
+      }
+    } catch (err) {
+      if (isMounted.current) setIssues(previousIssues);
+      throw err;
+    }
+  }, [issues]);
 
   const updateProfile = useCallback(async (data: { name?: string }) => {
     const result: any = await apiFetch('/api/users/profile', {

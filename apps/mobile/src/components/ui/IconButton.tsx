@@ -22,6 +22,7 @@ export default function IconButton({ icon, onPress, active, badge, size = 36, ac
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      hitSlop={{ top: Math.max(0, (44 - size) / 2), bottom: Math.max(0, (44 - size) / 2), left: Math.max(0, (44 - size) / 2), right: Math.max(0, (44 - size) / 2) }}
       style={[
         styles.btn,
         {

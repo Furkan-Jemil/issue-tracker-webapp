@@ -62,6 +62,8 @@ function Sidebar({ state, navigation }: BottomTabBarProps) {
               key={it.key}
               activeOpacity={0.7}
               onPress={() => navigation.navigate(it.key as never)}
+              accessibilityRole="button"
+              accessibilityLabel={`Navigate to ${it.label}`}
               style={[
                 styles.navItem,
                 { borderRadius: radius.md },
@@ -84,7 +86,13 @@ function Sidebar({ state, navigation }: BottomTabBarProps) {
 
       {/* Footer: theme toggle + user */}
       <View style={[styles.footer, { borderTopColor: colors.cardBorder }]}>
-        <TouchableOpacity activeOpacity={0.7} onPress={toggleTheme} style={[styles.navItem, { borderRadius: radius.md }]}>
+        <TouchableOpacity 
+          activeOpacity={0.7} 
+          onPress={toggleTheme} 
+          accessibilityRole="button"
+          accessibilityLabel={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          style={[styles.navItem, { borderRadius: radius.md }]}
+        >
           {isDark ? <Moon size={15} color={colors.mutedForeground} /> : <Sun size={15} color={colors.mutedForeground} />}
           <Text style={[styles.navLabel, { color: colors.mutedForeground }]}>{isDark ? 'Light mode' : 'Dark mode'}</Text>
         </TouchableOpacity>
@@ -94,7 +102,12 @@ function Sidebar({ state, navigation }: BottomTabBarProps) {
             <Text numberOfLines={1} style={[styles.userName, { color: colors.foreground }]}>{user?.name ?? 'User'}</Text>
             <Text style={[styles.userRole, { color: colors.mutedForeground }]}>{user?.role ?? ''}</Text>
           </View>
-          <TouchableOpacity onPress={logout} hitSlop={8}>
+          <TouchableOpacity 
+            onPress={logout} 
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityRole="button"
+            accessibilityLabel="Log out"
+          >
             <LogOut size={14} color={colors.mutedForeground} />
           </TouchableOpacity>
         </View>
@@ -124,6 +137,8 @@ function FloatingBar({ state, navigation }: BottomTabBarProps) {
                 key="fab"
                 activeOpacity={0.85}
                 onPress={() => navigation.navigate('CreateTask' as never)}
+                accessibilityRole="button"
+                accessibilityLabel="Create new issue"
                 style={styles.fabSlot}
               >
                 <View style={[styles.fab, { backgroundColor: colors.green }]}>
@@ -141,6 +156,9 @@ function FloatingBar({ state, navigation }: BottomTabBarProps) {
               key={name}
               activeOpacity={0.7}
               onPress={() => navigation.navigate(name as never)}
+              accessibilityRole="button"
+              accessibilityLabel={`Navigate to ${meta.label}`}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               style={styles.tab}
             >
               <meta.Icon size={20} color={color} style={focused ? styles.tabActive : undefined} />

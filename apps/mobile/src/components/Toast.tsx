@@ -27,6 +27,7 @@ import {
 } from 'react-native';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -129,6 +130,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const showToast = useCallback((opts: Omit<Toast, 'id'>) => {
     const id = `toast-${Date.now()}-${Math.random()}`;
     setToasts((prev) => [...prev.slice(-2), { ...opts, id }]); // max 3 at a time
+
+    // Haptics feedback
+    if (opts.type === 'success') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } else if (opts.type === 'error') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+    } else {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    }
   }, []);
 
   const dismiss = useCallback((id: string) => {
