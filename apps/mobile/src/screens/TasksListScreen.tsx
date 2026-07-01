@@ -12,6 +12,8 @@ import useDebounce from '../utils/useDebounce';
 import { Screen, Card, Badge, Avatar, Button, SearchBar, IconButton, Select, AnimatedEntry, Skeleton } from '../components/ui';
 import TaskTableView from '../components/TaskTableView';
 import SwipeableRow from '../components/SwipeableRow';
+import EmptyState from '../components/EmptyState';
+import { useToast } from '../components/Toast';
 
 type Status = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 type ViewMode = 'compact' | 'table';
@@ -62,7 +64,8 @@ export default function TasksListScreen() {
   const { isTablet } = useResponsive();
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { issues, isLoading, deleteIssue, refreshData } = useAppContext();
+  const { issues, isLoading, fetchError, deleteIssue, refreshData } = useAppContext();
+  const { showToast } = useToast();
 
   const [search, setSearch] = usePersistedState('tasks_search', '');
   const debouncedSearch = useDebounce(search, 300);
@@ -106,8 +109,12 @@ export default function TasksListScreen() {
         onPress: async () => {
           try {
             await deleteIssue(menuIssue.id);
-          } catch {
-            Alert.alert('Error', 'Failed to delete issue');
+            showToast({ message: `${menuIssue.id} deleted.`, type: 'success' });
+          } catch (err) {
+            showToast({
+              message: err instanceof Error ? err.message : 'Failed to delete issue',
+              type: 'error',
+            });
           }
         },
       },
@@ -286,8 +293,14 @@ export default function TasksListScreen() {
         </View>
       )}
 
-      {/* Content */}
-      {isLoading ? (
+      {/* Error state — shown when API fetch fails */}
+      {fetchError && !isLoading ? (
+        <EmptyState
+          variant="error"
+          subtitle={fetchError}
+          onRetry={() => void refreshData()}
+        />
+      ) : isLoading ? (
         <View style={[styles.listWrap, { paddingHorizontal: isTablet ? 24 : 16, paddingTop: spacing.md, gap: spacing.md }]}>
           {[1, 2, 3, 4].map((i) => (
             <Card key={i} padding={spacing.cardPadding}>

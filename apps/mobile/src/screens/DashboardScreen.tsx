@@ -18,6 +18,8 @@ import usePersistedState from '../utils/usePersistedState';
 import StatusDonut from '../charts/StatusDonut';
 import ComparisonBars from '../charts/ComparisonBars';
 import TrendLine from '../charts/TrendLine';
+import EmptyState from '../components/EmptyState';
+import { useToast } from '../components/Toast';
 
 const RANGE_OPTIONS = [
   { value: '7 days', label: '7 days' },
@@ -52,7 +54,7 @@ export default function DashboardScreen() {
   const { colors, spacing, typography, pagePadding } = useTheme();
   const { isTablet } = useResponsive();
   const navigation = useNavigation<any>();
-  const { issues, isLoading, refreshData } = useAppContext();
+  const { issues, isLoading, fetchError, refreshData } = useAppContext();
 
   const [search, setSearch] = useState('');
   const [range, setRange] = usePersistedState('dashboard_range', '30 days');
@@ -181,6 +183,12 @@ export default function DashboardScreen() {
           </View>
           <Skeleton width="100%" height={200} borderRadius={16} style={{ marginTop: spacing.md }} />
         </View>
+      ) : fetchError ? (
+        <EmptyState
+          variant="error"
+          subtitle={fetchError}
+          onRetry={() => void refreshData()}
+        />
       ) : issues.length === 0 ? (
         <View style={{ paddingHorizontal: pagePadding, paddingTop: spacing.xl * 3, gap: spacing.md, alignItems: 'center' }}>
           <BarChart3 size={56} color={colors.mutedForeground + '33'} />
