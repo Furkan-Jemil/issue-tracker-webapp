@@ -31,22 +31,22 @@ const STATUS_META: Record<IssueStatus, BadgeMeta> = {
   OPEN: {
     label: "Open",
     icon: Circle,
-    className: "border-amber-300/70 bg-amber-100/75 text-amber-900 dark:border-amber-400/40 dark:bg-amber-400/15 dark:text-amber-200",
+    className: "border-[hsl(var(--color-open)/0.4)] bg-[hsl(var(--color-open)/0.12)] text-[hsl(var(--color-resolved))] dark:border-[hsl(var(--color-open)/0.35)] dark:bg-[hsl(var(--color-open)/0.15)] dark:text-[hsl(var(--color-open))]",
   },
   IN_PROGRESS: {
     label: "In progress",
     icon: CircleDot,
-    className: "border-yellow-400/70 bg-yellow-100/80 text-yellow-900 dark:border-yellow-300/45 dark:bg-yellow-300/15 dark:text-yellow-200",
+    className: "border-[hsl(var(--color-in-progress)/0.4)] bg-[hsl(var(--color-in-progress)/0.12)] text-[hsl(var(--color-resolved))] dark:border-[hsl(var(--color-in-progress)/0.4)] dark:bg-[hsl(var(--color-in-progress)/0.18)] dark:text-[hsl(var(--color-in-progress))]",
   },
   RESOLVED: {
     label: "Resolved",
     icon: CheckCircle2,
-    className: "border-emerald-300/70 bg-emerald-100/75 text-emerald-900 dark:border-emerald-400/45 dark:bg-emerald-300/15 dark:text-emerald-200",
+    className: "border-[hsl(var(--color-resolved)/0.4)] bg-[hsl(var(--color-resolved)/0.1)] text-[hsl(var(--color-resolved))] dark:border-[hsl(var(--color-resolved)/0.4)] dark:bg-[hsl(var(--color-resolved)/0.18)] dark:text-[hsl(var(--color-open))]",
   },
   CLOSED: {
     label: "Closed",
     icon: CircleSlash,
-    className: "border-slate-300/70 bg-slate-100/80 text-slate-800 dark:border-slate-400/45 dark:bg-slate-300/10 dark:text-slate-200",
+    className: "border-[hsl(var(--color-closed)/0.35)] bg-[hsl(var(--color-closed)/0.08)] text-[hsl(var(--color-closed))] dark:border-[hsl(var(--color-closed)/0.35)] dark:bg-[hsl(var(--color-closed)/0.15)] dark:text-[hsl(214_60%_65%)]",
   },
 };
 
