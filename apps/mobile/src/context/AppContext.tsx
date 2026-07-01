@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { z } from 'zod';
 import { ThemeProvider } from '../theme/useTheme';
-import { apiUrl } from '../utils/api';
+import { mockApiFetch } from '../utils/mockData';
 
 const TOKEN_KEY = '@auth_token';
 
@@ -40,24 +40,17 @@ interface AppContextValue {
   fetchIssues: () => Promise<void>;
   changeUserRole: (userId: string, role: string) => Promise<void>;
   markNotificationsRead: () => Promise<void>;
+  deleteIssue: (id: string) => Promise<void>;
+  updateProfile: (data: { name?: string }) => Promise<void>;
+  updateIssue: (id: string, data: Record<string, string>) => Promise<void>;
+  addComment: (issueId: string, body: string) => Promise<{ id: string; author: string; body: string; created_at: string }>;
+  createIssue: (data: Record<string, string>) => Promise<any>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 async function apiFetch(url: string, options: RequestInit = {}): Promise<unknown> {
-  const token = await AsyncStorage.getItem(TOKEN_KEY);
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  const res = await fetch(apiUrl(url), { ...options, headers });
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
-  }
-  return res.json();
+  return mockApiFetch(url, options);
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -127,8 +120,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const fetchIssues = useCallback(async () => {
     try {
-      const data = (await apiFetch('/api/issues-mobile')) as { issues?: unknown[]; data?: unknown[] };
-      const list = data.issues ?? data.data ?? [];
+      const data: any = await apiFetch('/api/issues-mobile');
+      const list = Array.isArray(data) ? data : (data.issues ?? data.data ?? []);
       const validIssues = z.array(BaseEntitySchema).parse(list);
       setIssues(validIssues);
     } catch (error) {
@@ -138,8 +131,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const fetchMembers = useCallback(async () => {
     try {
-      const data = (await apiFetch('/api/admin/users')) as { users?: unknown[]; data?: unknown[] };
-      const list = data.users ?? data.data ?? [];
+      const data: any = await apiFetch('/api/admin/users');
+      const list = Array.isArray(data) ? data : (data.users ?? data.data ?? []);
       const validMembers = z.array(BaseEntitySchema).parse(list);
       setMembers(validMembers);
       setAssignableUsers(validMembers);
@@ -150,8 +143,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const data = (await apiFetch('/api/notifications?limit=100')) as { notifications?: unknown[]; data?: unknown[] };
-      const list = data.notifications ?? data.data ?? [];
+      const data: any = await apiFetch('/api/notifications?limit=100');
+      const list = Array.isArray(data) ? data : (data.notifications ?? data.data ?? []);
       const validNotifications = z.array(BaseEntitySchema).parse(list);
       setNotifications(validNotifications);
     } catch (error) {
@@ -188,6 +181,51 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const deleteIssue = useCallback(async (id: string) => {
+    await apiFetch(`/api/issues/${id}`, { method: 'DELETE' });
+    setIssues((prev) => prev.filter((i) => i.id !== id));
+  }, []);
+
+  const updateIssue = useCallback(async (id: string, data: Record<string, string>) => {
+    const result: any = await apiFetch(`/api/issues/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      headers: {},
+    });
+    if (result?.issue) {
+      setIssues((prev) => prev.map((i) => (i.id === id ? result.issue : i)));
+    }
+  }, []);
+
+  const updateProfile = useCallback(async (data: { name?: string }) => {
+    const result: any = await apiFetch('/api/users/profile', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      headers: {},
+    });
+    if (result?.user) {
+      setUser(result.user);
+    }
+  }, []);
+
+  const addComment = useCallback(async (issueId: string, body: string) => {
+    const result: any = await apiFetch(`/api/issues/${issueId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ body }),
+      headers: {},
+    });
+    return result;
+  }, []);
+
+  const createIssue = useCallback(async (data: Record<string, string>) => {
+    const result: any = await apiFetch('/api/issues', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {},
+    });
+    return result;
+  }, []);
+
   useEffect(() => {
     if (token) refreshData();
   }, [token, refreshData]);
@@ -208,6 +246,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     fetchIssues,
     changeUserRole,
     markNotificationsRead,
+    deleteIssue,
+    updateProfile,
+    updateIssue,
+    addComment,
+    createIssue,
   };
 
   return (

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import { TextStyle, useWindowDimensions } from 'react-native';
+import { TextStyle, ViewStyle, Platform, useWindowDimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /// ──────────────────────────────────────────────
@@ -24,7 +24,7 @@ const lightColors = {
   inversePrimary: '#8fdb39',
 
   // Surfaces (Figma: slate-100 bg, white cards)
-  background: '#f1f5f9',
+  background: '#F4F7FA',
   surface: '#ffffff',
   surfaceDim: '#e2e8f0',
   surfaceBright: '#ffffff',
@@ -34,10 +34,10 @@ const lightColors = {
   surfaceContainerHigh: '#e2e8f0',
   surfaceContainerHighest: '#e2e8f0',
 
-  onBackground: '#0f172a',
-  onSurface: '#0f172a',
+  onBackground: '#0A192F',
+  onSurface: '#0A192F',
   onSurfaceVariant: '#64748b',
-  foreground: '#0f172a',
+  foreground: '#0A192F',
   mutedForeground: '#64748b',
   muted: '#f1f5f9',
 
@@ -78,15 +78,15 @@ const lightColors = {
   input: '#ffffff',
   primaryForeground: '#ffffff',
 
-  // Status semantics (badge bg + text) — Figma tailwind tints
-  statusOpenBg: '#fee2e2',
-  statusOpenText: '#b91c1c',
-  statusInProgressBg: '#dbeafe',
-  statusInProgressText: '#1d4ed8',
-  statusResolvedBg: '#dcfce7',
-  statusResolvedText: '#15803d',
-  statusClosedBg: '#f1f5f9',
-  statusClosedText: '#64748b',
+  // Status semantics (badge bg + text) — Blue monochromatic palette
+  statusOpenBg: '#DBEAFE',
+  statusOpenText: '#2563EB',
+  statusInProgressBg: '#BFDBFE',
+  statusInProgressText: '#1D4ED8',
+  statusResolvedBg: '#DBEAFE',
+  statusResolvedText: '#1D4ED8',
+  statusClosedBg: '#F1F5F9',
+  statusClosedText: '#475569',
 
   // Priority semantics
   priorityHighBg: '#ffedd5',
@@ -96,17 +96,17 @@ const lightColors = {
   priorityLowBg: '#f1f5f9',
   priorityLowText: '#64748b',
 
-  // Charts — Figma multi-color (green / blue / amber / red / violet)
-  chart1: '#80ca28',
+  // Charts — Blue monochromatic palette
+  chart1: '#93C5FD',
   chart2: '#3b82f6',
-  chart3: '#f59e0b',
+  chart3: '#1D4ED8',
   chart4: '#ef4444',
-  chart5: '#8b5cf6',
-  chartOpen: '#3b82f6',
-  chartInProgress: '#f59e0b',
-  chartResolved: '#80ca28',
-  chartClosed: '#8b5cf6',
-  chartInProgressSoft: '#fef3c7',
+  chart5: '#1E3A8A',
+  chartOpen: '#93C5FD',
+  chartInProgress: '#3b82f6',
+  chartResolved: '#1D4ED8',
+  chartClosed: '#1E3A8A',
+  chartInProgressSoft: '#DBEAFE',
 };
 
 export type ThemeColors = typeof lightColors;
@@ -170,14 +170,14 @@ const darkColors: ThemeColors = {
   input: '#1e293b',
   primaryForeground: '#0f172a',
 
-  statusOpenBg: '#450a0a',
-  statusOpenText: '#f87171',
-  statusInProgressBg: '#172554',
-  statusInProgressText: '#60a5fa',
-  statusResolvedBg: '#052e16',
-  statusResolvedText: '#4ade80',
-  statusClosedBg: '#1e293b',
-  statusClosedText: '#94a3b8',
+  statusOpenBg: '#1E3A5F',
+  statusOpenText: '#93C5FD',
+  statusInProgressBg: '#1E3A8A',
+  statusInProgressText: '#60A5FA',
+  statusResolvedBg: '#172554',
+  statusResolvedText: '#93C5FD',
+  statusClosedBg: '#1E293B',
+  statusClosedText: '#94A3B8',
 
   priorityHighBg: '#431407',
   priorityHighText: '#fb923c',
@@ -186,16 +186,16 @@ const darkColors: ThemeColors = {
   priorityLowBg: '#1e293b',
   priorityLowText: '#94a3b8',
 
-  chart1: '#80ca28',
+  chart1: '#93C5FD',
   chart2: '#3b82f6',
-  chart3: '#f59e0b',
+  chart3: '#1D4ED8',
   chart4: '#ef4444',
-  chart5: '#8b5cf6',
-  chartOpen: '#3b82f6',
-  chartInProgress: '#f59e0b',
-  chartResolved: '#80ca28',
-  chartClosed: '#8b5cf6',
-  chartInProgressSoft: '#78350f',
+  chart5: '#1E3A8A',
+  chartOpen: '#93C5FD',
+  chartInProgress: '#3b82f6',
+  chartResolved: '#1D4ED8',
+  chartClosed: '#1E3A8A',
+  chartInProgressSoft: '#172554',
 };
 
 const FONT = 'Outfit_400Regular';
@@ -216,6 +216,16 @@ const typography: Record<string, TextStyle> = {
   micro: { fontFamily: FONT_MED, fontSize: 11, lineHeight: 14 },
   nanoCaps: { fontFamily: FONT_SEMI, fontSize: 10, lineHeight: 12, letterSpacing: 0.5, textTransform: 'uppercase' },
   monoId: { fontFamily: FONT_MONO, fontSize: 10, lineHeight: 12, letterSpacing: 0.3 },
+  // Dashboard-specific
+  statValue: { fontFamily: FONT_BOLD, fontSize: 30, lineHeight: 36 },
+  statLabel: { fontFamily: FONT_MED, fontSize: 11, lineHeight: 14 },
+  cardDesc: { fontFamily: FONT, fontSize: 11, lineHeight: 16 },
+  footerCaption: { fontFamily: FONT_BOLD, fontSize: 12, lineHeight: 16, textAlign: 'center' as const },
+  footerSub: { fontFamily: FONT, fontSize: 10, lineHeight: 14, textAlign: 'center' as const },
+  // Task detail
+  detailTitle: { fontFamily: FONT_BOLD, fontSize: 18, lineHeight: 26 },
+  detailLabel: { fontFamily: FONT_MED, fontSize: 11, lineHeight: 14 },
+  detailValue: { fontFamily: FONT, fontSize: 13, lineHeight: 18 },
 };
 
 /// 4px base grid spacing
@@ -242,11 +252,34 @@ const radius = {
   full: 999,
 };
 
+const shadows: Record<string, ViewStyle> = {
+  sm: {
+    ...Platform.select({ ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 }, android: { elevation: 2 }, default: {} }),
+  },
+  md: {
+    ...Platform.select({ ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8 }, android: { elevation: 4 }, default: {} }),
+  },
+  lg: {
+    ...Platform.select({ ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16 }, android: { elevation: 8 }, default: {} }),
+  },
+  fab: {
+    ...Platform.select({ ios: { shadowColor: '#80ca28', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10 }, android: { elevation: 6 }, default: {} }),
+  },
+};
+
+const animation = {
+  duration: { fast: 200, normal: 400, slow: 600 },
+  spring: { tension: 120, friction: 14 },
+  easing: { default: [0.25, 0.1, 0.25, 1] as const },
+};
+
 interface ThemeContextValue {
   colors: ThemeColors;
   typography: typeof typography;
   spacing: typeof spacing;
   radius: typeof radius;
+  shadows: typeof shadows;
+  animation: typeof animation;
   isTablet: boolean;
   isLargeTablet: boolean;
   width: number;
@@ -284,6 +317,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       typography,
       spacing,
       radius,
+      shadows,
+      animation,
       isTablet,
       isLargeTablet,
       width,

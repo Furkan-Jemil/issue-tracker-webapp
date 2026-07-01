@@ -13,8 +13,9 @@ import Avatar from '../components/ui/Avatar';
 const TABS: Record<string, { Icon: React.ElementType; label: string }> = {
   Dashboard: { Icon: LayoutDashboard, label: 'Home' },
   TasksList: { Icon: ListChecks, label: 'Issues' },
-  Notifications: { Icon: Bell, label: 'Alerts' },
   Members: { Icon: Users, label: 'Members' },
+  AuditLog: { Icon: Activity, label: 'Logs' },
+  Settings: { Icon: Settings, label: 'Profile' },
 };
 
 export default function BottomTabBar(props: BottomTabBarProps) {
@@ -28,13 +29,14 @@ function Sidebar({ state, navigation }: BottomTabBarProps) {
   const { user, notifications, logout } = useAppContext();
   const unread = notifications.filter((n) => !(n as { read?: boolean }).read).length;
   const activeRoute = state.routes[state.index]?.name;
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
 
   const items = [
     { key: 'Dashboard', label: 'Dashboard', Icon: LayoutDashboard, badge: 0 },
     { key: 'TasksList', label: 'Issues', Icon: ListChecks, badge: 0 },
     { key: 'Notifications', label: 'Notifications', Icon: Bell, badge: unread },
-    { key: 'Members', label: 'Members', Icon: Users, badge: 0 },
-    { key: 'AuditLog', label: 'Audit Log', Icon: Activity, badge: 0 },
+    ...(isAdmin ? [{ key: 'Members', label: 'Members', Icon: Users, badge: 0 }] : []),
+    ...(isAdmin ? [] : [{ key: 'AuditLog', label: 'Audit Log', Icon: Activity, badge: 0 }]),
     { key: 'Settings', label: 'Settings', Icon: Settings, badge: 0 },
   ];
 
@@ -63,7 +65,7 @@ function Sidebar({ state, navigation }: BottomTabBarProps) {
               style={[
                 styles.navItem,
                 { borderRadius: radius.md },
-                active && { backgroundColor: colors.green + '18', borderColor: colors.green + '30', borderWidth: 1 },
+                active && { backgroundColor: colors.green + '18', borderColor: colors.green + '30', borderLeftWidth: 3, borderLeftColor: colors.green },
               ]}
             >
               <it.Icon size={15} color={active ? colors.greenFg : colors.mutedForeground} />
@@ -71,7 +73,7 @@ function Sidebar({ state, navigation }: BottomTabBarProps) {
                 {it.label}
               </Text>
               {it.badge ? (
-                <View style={styles.navBadge}>
+                <View style={[styles.navBadge, { backgroundColor: colors.error }]}>
                   <Text style={styles.navBadgeText}>{it.badge}</Text>
                 </View>
               ) : null}
@@ -101,14 +103,16 @@ function Sidebar({ state, navigation }: BottomTabBarProps) {
   );
 }
 
-// ─── Phone floating bar (Figma MobileTab: 4 tabs + center FAB) ───────────────
+// ─── Phone floating bar — role-based tabs + center FAB ─────────────────────
 function FloatingBar({ state, navigation }: BottomTabBarProps) {
   const { colors } = useTheme();
-  const { notifications } = useAppContext();
+  const { user } = useAppContext();
   const insets = useSafeAreaInsets();
-  const unread = notifications.filter((n) => !(n as { read?: boolean }).read).length;
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
 
-  const order = ['Dashboard', 'TasksList', '__FAB__', 'Notifications', 'Members'];
+  const order = isAdmin
+    ? ['Dashboard', 'TasksList', '__FAB__', 'Members', 'Settings']
+    : ['Dashboard', 'TasksList', '__FAB__', 'AuditLog', 'Settings'];
 
   return (
     <View style={[styles.barWrap, { paddingBottom: insets.bottom + 16 }]} pointerEvents="box-none">
@@ -139,14 +143,7 @@ function FloatingBar({ state, navigation }: BottomTabBarProps) {
               onPress={() => navigation.navigate(name as never)}
               style={styles.tab}
             >
-              <View>
-                <meta.Icon size={20} color={color} />
-                {name === 'Notifications' && unread > 0 && (
-                  <View style={styles.tabBadge}>
-                    <Text style={styles.tabBadgeText}>{unread}</Text>
-                  </View>
-                )}
-              </View>
+              <meta.Icon size={20} color={color} style={focused ? styles.tabActive : undefined} />
               <Text style={[styles.tabLabel, { color }]}>{meta.label}</Text>
             </TouchableOpacity>
           );
@@ -163,9 +160,9 @@ const styles = StyleSheet.create({
   brandIcon: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   brandName: { fontFamily: 'Outfit_700Bold', fontSize: 14 },
   brandSub: { fontFamily: 'Outfit_400Regular', fontSize: 10 },
-  navItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 9, borderColor: 'transparent', borderWidth: 1 },
+  navItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 9, borderLeftWidth: 0, borderColor: 'transparent', borderWidth: 1 },
   navLabel: { fontFamily: 'Outfit_500Medium', fontSize: 14, flex: 1 },
-  navBadge: { minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  navBadge: { minWidth: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   navBadgeText: { color: '#fff', fontFamily: 'Outfit_700Bold', fontSize: 8 },
   footer: { borderTopWidth: StyleSheet.hairlineWidth, padding: 12, gap: 4 },
   userRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 8 },
@@ -190,7 +187,8 @@ const styles = StyleSheet.create({
   },
   tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2, paddingVertical: 6 },
   tabLabel: { fontFamily: 'Outfit_600SemiBold', fontSize: 9 },
-  tabBadge: { position: 'absolute', top: -5, right: -7, minWidth: 14, height: 14, borderRadius: 7, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
+  tabActive: { transform: [{ scale: 1.15 }] },
+  tabBadge: { position: 'absolute', top: -5, right: -7, minWidth: 14, height: 14, borderRadius: 7, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   tabBadgeText: { color: '#fff', fontFamily: 'Outfit_700Bold', fontSize: 7 },
   fabSlot: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   fab: {
