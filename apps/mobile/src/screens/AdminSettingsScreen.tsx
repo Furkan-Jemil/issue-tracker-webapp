@@ -59,7 +59,7 @@ export default function AdminSettingsScreen() {
 
   return (
     <Screen title="Admin Settings" subtitle="System info and app preferences" onBack={undefined}>
-      <View style={{ paddingHorizontal: pagePadding, paddingVertical: 20, gap: 16, maxWidth: 560, width: '100%', alignSelf: 'center' }}>
+      <View style={{ paddingHorizontal: pagePadding, paddingVertical: spacing.xl, gap: spacing.lg, maxWidth: 560, width: '100%', alignSelf: 'center' }}>
         {/* App Info */}
         <Card padding={0}>
           {rows.map((r, i) => (
@@ -67,12 +67,12 @@ export default function AdminSettingsScreen() {
               key={r.label}
               style={[
                 styles.row,
-                { borderBottomColor: colors.cardBorder },
+                { borderBottomColor: colors.cardBorder, paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
                 i < rows.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth },
               ]}
             >
-              <Text style={[styles.rowLabel, { color: colors.mutedForeground }]}>{r.label}</Text>
-              <Text style={[styles.rowValue, { color: colors.foreground }]}>{r.value}</Text>
+              <Text style={[typography.bodySmBold, { color: colors.mutedForeground }]}>{r.label}</Text>
+              <Text style={[typography.bodySmBold, { color: colors.foreground }]}>{r.value}</Text>
             </View>
           ))}
         </Card>
@@ -82,17 +82,17 @@ export default function AdminSettingsScreen() {
           <TouchableOpacity
             onPress={toggleTheme}
             activeOpacity={0.7}
-            style={[styles.row, { borderBottomWidth: 0 }]}
+            style={[styles.row, { borderBottomWidth: 0, paddingHorizontal: spacing.xl, paddingVertical: spacing.md }]}
           >
-            <View style={styles.rowLeft}>
+            <View style={[styles.rowLeft, { gap: spacing.md }]}>
               {isDark ? (
                 <Moon size={16} color={colors.mutedForeground} />
               ) : (
                 <Sun size={16} color={colors.mutedForeground} />
               )}
               <View style={{ marginLeft: 12 }}>
-                <Text style={[styles.rowLabel, { color: colors.foreground }]}>Appearance</Text>
-                <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>
+                <Text style={[typography.bodySmBold, { color: colors.foreground }]}>Appearance</Text>
+                <Text style={[typography.micro, { color: colors.mutedForeground }]}>
                   {isDark ? 'Dark mode' : 'Light mode'}
                 </Text>
               </View>
@@ -132,13 +132,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
   },
   rowLeft: { flexDirection: 'row', alignItems: 'center' },
-  rowLabel: { fontFamily: 'Outfit_500Medium', fontSize: 14 },
-  rowSub: { fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
-  rowValue: { fontFamily: 'Outfit_600SemiBold', fontSize: 13 },
   toggle: { width: 44, height: 24, borderRadius: 12, padding: 2, justifyContent: 'center' },
   knob: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff' },
 });

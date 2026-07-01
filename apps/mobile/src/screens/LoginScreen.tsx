@@ -8,7 +8,7 @@ import { useAppContext } from '../context/AppContext';
 import { Card, Input, Button } from '../components/ui';
 
 export default function LoginScreen() {
-  const { colors } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<any>();
   const { login } = useAppContext();
   const [email, setEmail] = useState('admin@ethiotelecom.et');
@@ -33,7 +33,7 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={[styles.scroll, { padding: spacing.xl, gap: spacing.xl }]} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
             <View style={[styles.logo, { backgroundColor: colors.green }]}>
               <Shield size={22} color="#fff" />
@@ -42,17 +42,17 @@ export default function LoginScreen() {
             <Text style={[styles.tag, { color: colors.mutedForeground }]}>Ethio Telecom Internal Platform</Text>
           </View>
 
-          <Card padding={24} style={{ width: '100%', maxWidth: 400 }}>
-            <Text style={[styles.cardTitle, { color: colors.foreground }]}>Sign in to your account</Text>
+          <Card padding={spacing.xl} style={{ width: '100%', maxWidth: 400 }}>
+            <Text style={[typography.sectionHeading, { color: colors.foreground, marginBottom: spacing.xl }]}>Sign in to your account</Text>
 
             {error ? (
-              <View style={[styles.error, { backgroundColor: colors.statusOpenBg }]}>
+              <View style={[styles.error, { backgroundColor: colors.statusOpenBg, gap: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.lg }]}>
                 <AlertCircle size={13} color={colors.statusOpenText} />
-                <Text style={[styles.errorText, { color: colors.statusOpenText }]}>{error}</Text>
+                <Text style={[typography.micro, { color: colors.statusOpenText, flex: 1 }]}>{error}</Text>
               </View>
             ) : null}
 
-            <View style={{ gap: 16 }}>
+            <View style={{ gap: spacing.lg }}>
               <Input
                 label="Email address"
                 value={email}
@@ -71,13 +71,13 @@ export default function LoginScreen() {
               <Button title={loading ? 'Signing in…' : 'Sign In'} onPress={submit} loading={loading} fullWidth size="lg" />
             </View>
 
-            <View style={styles.footerRow}>
-              <Text style={[styles.muted, { color: colors.mutedForeground }]}>Don't have an account? </Text>
-              <Text onPress={() => navigation.navigate('Register')} style={[styles.link, { color: colors.greenFg }]}>Sign up</Text>
+            <View style={[styles.footerRow, { marginTop: spacing.xl }]}>
+              <Text style={[typography.bodySm, { color: colors.mutedForeground }]}>Don't have an account? </Text>
+              <Text onPress={() => navigation.navigate('Register')} style={[typography.bodySmBold, { color: colors.greenFg }]}>Sign up</Text>
             </View>
           </Card>
 
-          <Text style={[styles.copyright, { color: colors.mutedForeground }]}>© 2026 Ethio Telecom · All rights reserved</Text>
+          <Text style={[typography.micro, { color: colors.mutedForeground }]}>© 2026 Ethio Telecom · All rights reserved</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -86,16 +86,12 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 20 },
+  scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center' },
   brand: { alignItems: 'center', marginBottom: 8 },
   logo: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   appName: { fontFamily: 'Outfit_700Bold', fontSize: 24 },
   tag: { fontFamily: 'Outfit_400Regular', fontSize: 14, marginTop: 4 },
-  cardTitle: { fontFamily: 'Outfit_600SemiBold', fontSize: 16, marginBottom: 20 },
-  error: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 16 },
-  errorText: { fontFamily: 'Outfit_400Regular', fontSize: 12, flex: 1 },
-  footerRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
-  muted: { fontFamily: 'Outfit_400Regular', fontSize: 14 },
-  link: { fontFamily: 'Outfit_600SemiBold', fontSize: 14 },
-  copyright: { fontFamily: 'Outfit_400Regular', fontSize: 12 },
+  error: { flexDirection: 'row', alignItems: 'center', borderRadius: 10 },
+  errorText: { flex: 1 },
+  footerRow: { flexDirection: 'row', justifyContent: 'center' },
 });
