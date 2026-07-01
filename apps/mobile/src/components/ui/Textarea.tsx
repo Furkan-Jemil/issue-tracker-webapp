@@ -5,10 +5,11 @@ import { useTheme } from '../../theme/useTheme';
 interface TextareaProps extends TextInputProps {
   label?: string;
   rows?: number;
+  error?: string;
 }
 
-export default function Textarea({ label, rows = 4, style, ...rest }: TextareaProps) {
-  const { colors, radius } = useTheme();
+export default function Textarea({ label, rows = 4, style, error, ...rest }: TextareaProps) {
+  const { colors, radius, typography } = useTheme();
   const [focused, setFocused] = useState(false);
 
   return (
@@ -24,7 +25,7 @@ export default function Textarea({ label, rows = 4, style, ...rest }: TextareaPr
           styles.area,
           {
             backgroundColor: colors.card,
-            borderColor: focused ? colors.green : colors.outline,
+            borderColor: error ? colors.error : focused ? colors.green : colors.outline,
             borderRadius: radius.lg,
             color: colors.foreground,
             minHeight: 22 * rows,
@@ -33,6 +34,9 @@ export default function Textarea({ label, rows = 4, style, ...rest }: TextareaPr
         ]}
         {...rest}
       />
+      {error && (
+        <Text style={[typography.micro, { color: colors.error }]}>{error}</Text>
+      )}
     </View>
   );
 }

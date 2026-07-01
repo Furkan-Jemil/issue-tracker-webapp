@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControlProps } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControlProps, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Bell, ArrowLeft } from 'lucide-react-native';
@@ -33,22 +33,28 @@ export default function Screen({
   const { colors, isTablet } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { notifications } = useAppContext();
+  const { user, notifications } = useAppContext();
   const unread = notifications.filter((n) => !(n as { read?: boolean }).read).length;
   const showHeader = header ?? title != null;
 
   const bottomPad = (isTablet ? 24 : FLOATING_BAR_CLEARANCE) + insets.bottom;
 
   const body = scroll ? (
-    <ScrollView
+    <KeyboardAvoidingView
       style={{ flex: 1 }}
-      contentContainerStyle={[{ paddingBottom: bottomPad }, contentStyle]}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-      refreshControl={refreshControl}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 52 : 0}
     >
-      {children}
-    </ScrollView>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[{ paddingBottom: bottomPad }, contentStyle]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
+        {children}
+      </ScrollView>
+    </KeyboardAvoidingView>
   ) : (
     <View style={[{ flex: 1, paddingBottom: bottomPad }, contentStyle]}>{children}</View>
   );
@@ -59,7 +65,7 @@ export default function Screen({
         <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.cardBorder }]}>
           <View style={styles.headerLeft}>
             {onBack && (
-              <TouchableOpacity onPress={onBack} hitSlop={8} style={{ marginRight: 8 }}>
+              <TouchableOpacity onPress={onBack} hitSlop={8} style={{ marginRight: 8 }} accessibilityRole="button" accessibilityLabel="Go back">
                 <ArrowLeft size={20} color={colors.foreground} />
               </TouchableOpacity>
             )}
@@ -75,12 +81,18 @@ export default function Screen({
               <TouchableOpacity
                 onPress={() => navigation.navigate('Notifications')}
                 style={[styles.iconBtn, { backgroundColor: colors.muted }]}
+                accessibilityRole="button"
+                accessibilityLabel={`Notifications${unread > 0 ? `, ${unread} unread` : ''}`}
               >
                 <Bell size={16} color={colors.mutedForeground} />
-                {unread > 0 && <View style={styles.dot} />}
+                {unread > 0 && (
+                  <View style={[styles.badge, { backgroundColor: colors.error }]}>
+                    <Text style={[styles.badgeText, { color: colors.onError }]}>{unread > 9 ? '9+' : unread}</Text>
+                  </View>
+                )}
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                <Avatar size="sm" />
+              <TouchableOpacity onPress={() => navigation.navigate('Settings')} accessibilityRole="button" accessibilityLabel="Settings">
+                <Avatar size="sm" name={user?.name} email={user?.email} />
               </TouchableOpacity>
             </View>
           )}
@@ -106,5 +118,7 @@ const styles = StyleSheet.create({
   subtitle: { fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   iconBtn: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  dot: { position: 'absolute', top: 7, right: 7, width: 6, height: 6, borderRadius: 3, backgroundColor: '#ef4444' },
+  dot: { position: 'absolute', top: 7, right: 7, width: 6, height: 6, borderRadius: 3 },
+  badge: { position: 'absolute', top: 4, right: 0, minWidth: 16, height: 14, borderRadius: 7, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
+  badgeText: { fontFamily: 'Outfit_700Bold', fontSize: 9 },
 });

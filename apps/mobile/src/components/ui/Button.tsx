@@ -1,5 +1,5 @@
-import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, ViewStyle } from 'react-native';
+import React, { useRef } from 'react';
+import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, Animated, ViewStyle } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 
 type Variant = 'default' | 'outline' | 'ghost' | 'destructive';
@@ -25,52 +25,59 @@ export default function Button({
   title, onPress, variant = 'default', size = 'md', loading, disabled, icon, fullWidth, style,
 }: ButtonProps) {
   const { colors, radius } = useTheme();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const bg = {
     default: colors.green,
     outline: 'transparent',
     ghost: 'transparent',
-    destructive: '#ef4444',
+    destructive: colors.destructive,
   }[variant];
 
   const fg = {
     default: '#ffffff',
     outline: colors.foreground,
     ghost: colors.mutedForeground,
-    destructive: '#ffffff',
+    destructive: colors.onError,
   }[variant];
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={disabled || loading}
-      activeOpacity={0.85}
-      style={[
-        styles.base,
-        {
-          backgroundColor: bg,
-          borderColor: variant === 'outline' ? colors.outline : 'transparent',
-          borderWidth: variant === 'outline' ? 1 : 0,
-          height: HEIGHTS[size],
-          paddingHorizontal: PAD[size],
-          borderRadius: radius.lg,
-          opacity: disabled ? 0.5 : 1,
-          width: fullWidth ? '100%' : undefined,
-        },
-        style,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator size="small" color={fg} />
-      ) : (
-        <>
-          {icon}
-          <Text style={[styles.label, { color: fg, fontSize: FONT[size], marginLeft: icon ? 6 : 0 }]}>
-            {title}
-          </Text>
-        </>
-      )}
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={disabled || loading}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        onPressIn={() => Animated.spring(scaleAnim, { toValue: 0.96, tension: 150, friction: 8, useNativeDriver: true }).start()}
+        onPressOut={() => Animated.spring(scaleAnim, { toValue: 1, tension: 150, friction: 8, useNativeDriver: true }).start()}
+        style={[
+          styles.base,
+          {
+            backgroundColor: bg,
+            borderColor: variant === 'outline' ? colors.outline : 'transparent',
+            borderWidth: variant === 'outline' ? 1 : 0,
+            height: HEIGHTS[size],
+            paddingHorizontal: PAD[size],
+            borderRadius: radius.lg,
+            opacity: disabled ? 0.5 : 1,
+            width: fullWidth ? '100%' : undefined,
+          },
+          style,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color={fg} />
+        ) : (
+          <>
+            {icon}
+            <Text style={[styles.label, { color: fg, fontSize: FONT[size], marginLeft: icon ? 6 : 0 }]}>
+              {title}
+            </Text>
+          </>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 

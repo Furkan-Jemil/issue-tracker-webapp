@@ -7,11 +7,12 @@ interface InputProps extends TextInputProps {
   required?: boolean;
   leftIcon?: React.ReactNode;
   height?: number;
+  error?: string;
 }
 
 /** Figma input: white card bg, slate border, lime focus ring. */
-export default function Input({ label, required, leftIcon, height = 40, style, ...rest }: InputProps) {
-  const { colors, radius } = useTheme();
+export default function Input({ label, required, leftIcon, height = 40, style, error, ...rest }: InputProps) {
+  const { colors, radius, typography } = useTheme();
   const [focused, setFocused] = useState(false);
 
   return (
@@ -19,7 +20,7 @@ export default function Input({ label, required, leftIcon, height = 40, style, .
       {label && (
         <Text style={[styles.label, { color: colors.foreground }]}>
           {label}
-          {required && <Text style={{ color: '#ef4444' }}> *</Text>}
+          {required && <Text style={{ color: colors.error }}> *</Text>}
         </Text>
       )}
       <View
@@ -27,7 +28,7 @@ export default function Input({ label, required, leftIcon, height = 40, style, .
           styles.well,
           {
             backgroundColor: colors.card,
-            borderColor: focused ? colors.green : colors.outline,
+            borderColor: error ? colors.error : focused ? colors.green : colors.outline,
             borderRadius: radius.lg,
             height,
           },
@@ -46,6 +47,9 @@ export default function Input({ label, required, leftIcon, height = 40, style, .
           {...rest}
         />
       </View>
+      {error && (
+        <Text style={[typography.micro, { color: colors.error }]}>{error}</Text>
+      )}
     </View>
   );
 }

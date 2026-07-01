@@ -13,3 +13,4 @@ export { default as Screen, FLOATING_BAR_CLEARANCE } from './Screen';
 export { getBadge } from './badgeConfig';
 export type { BadgeKind, BadgeStyle } from './badgeConfig';
 export { default as AnimatedEntry } from '../AnimatedEntry';
+export { default as Skeleton } from '../Skeleton';

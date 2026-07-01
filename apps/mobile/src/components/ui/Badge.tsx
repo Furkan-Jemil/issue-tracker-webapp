@@ -35,7 +35,7 @@ export default function Badge({ bg, fg, label, kind, value, showIcon = true, sty
   return (
     <View style={[styles.badge, { backgroundColor: resolvedBg ?? colors.muted }, style]}>
       {showIcon && Icon ? <Icon size={11} color={resolvedFg} style={{ marginRight: 4 }} /> : null}
-      <Text style={[styles.text, { color: resolvedFg ?? colors.mutedForeground }]}>{resolvedLabel}</Text>
+      <Text numberOfLines={1} style={[styles.text, { color: resolvedFg ?? colors.mutedForeground }]}>{resolvedLabel}</Text>
     </View>
   );
 }

@@ -10,15 +10,18 @@ interface IconButtonProps {
   /** Small count badge in the corner. */
   badge?: number;
   size?: number;
+  accessibilityLabel?: string;
 }
 
 /** Square card button used across toolbars (filter, view toggle, theme). */
-export default function IconButton({ icon, onPress, active, badge, size = 36 }: IconButtonProps) {
+export default function IconButton({ icon, onPress, active, badge, size = 36, accessibilityLabel }: IconButtonProps) {
   const { colors, radius } = useTheme();
   return (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       style={[
         styles.btn,
         {
@@ -31,7 +34,7 @@ export default function IconButton({ icon, onPress, active, badge, size = 36 }: 
     >
       {icon}
       {badge != null && badge > 0 && (
-        <View style={styles.badge}>
+        <View style={[styles.badge, { backgroundColor: colors.error }]}>
           <Text style={styles.badgeText}>{badge}</Text>
         </View>
       )}
@@ -57,7 +60,6 @@ const styles = StyleSheet.create({
     height: 16,
     paddingHorizontal: 3,
     borderRadius: 8,
-    backgroundColor: '#ef4444',
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { getInitials } from '../../utils/formatters';
 
@@ -14,6 +14,7 @@ interface AvatarProps {
   size?: AvatarSize;
   /** Online/offline dot. Omit to hide. */
   online?: boolean;
+  onPress?: () => void;
 }
 
 const DIMS: Record<AvatarSize, { box: number; font: number }> = {
@@ -23,12 +24,12 @@ const DIMS: Record<AvatarSize, { box: number; font: number }> = {
   lg: { box: 44, font: 15 },
 };
 
-export default function Avatar({ initials, name, email, size = 'md', online }: AvatarProps) {
+export default function Avatar({ initials, name, email, size = 'md', online, onPress }: AvatarProps) {
   const { colors } = useTheme();
   const { box, font } = DIMS[size];
   const label = initials ?? getInitials(name, email);
 
-  return (
+  const inner = (
     <View>
       <View
         style={[
@@ -54,6 +55,16 @@ export default function Avatar({ initials, name, email, size = 'md', online }: A
       )}
     </View>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
+        {inner}
+      </TouchableOpacity>
+    );
+  }
+
+  return inner;
 }
 
 const styles = StyleSheet.create({

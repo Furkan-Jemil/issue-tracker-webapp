@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Animated, ViewStyle } from 'react-native';
-import { useTheme } from '../theme/useTheme';
+import { Animated, StyleSheet, ViewStyle } from 'react-native';
 
 interface SkeletonProps {
   width?: number | string;
@@ -10,36 +9,30 @@ interface SkeletonProps {
 }
 
 export default function Skeleton({ width = '100%', height = 16, borderRadius = 6, style }: SkeletonProps) {
-  const { colors } = useTheme();
-  const shimmer = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(shimmer, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmer, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
+        Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
       ]),
     );
     loop.start();
     return () => loop.stop();
-  }, [shimmer]);
-
-  const bg = shimmer.interpolate({
-    inputRange: [0, 1],
-    outputRange: [colors.surfaceContainerHighest, colors.surfaceContainerLow],
-  });
+  }, [opacity]);
 
   return (
     <Animated.View
-      style={[{ width: width as any, height, borderRadius, backgroundColor: bg }, style]}
+      style={[
+        styles.base,
+        { width: width as any, height, borderRadius, opacity },
+        style,
+      ]}
     />
   );
 }
+
+const styles = StyleSheet.create({
+  base: { backgroundColor: '#CBD5E1' },
+});

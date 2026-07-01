@@ -44,7 +44,7 @@ export function getBadge(kind: BadgeKind, raw: string, c: ThemeColors): BadgeSty
       }
     case 'type':
       switch (value) {
-        case 'BUG': return { bg: c.statusOpenBg, fg: c.statusOpenText, label: 'Bug', Icon: Bug };
+        case 'BUG': return { bg: '#fee2e2', fg: '#dc2626', label: 'Bug', Icon: Bug };
         case 'IMPROVEMENT': return { bg: c.statusInProgressBg, fg: c.statusInProgressText, label: 'Improvement', Icon: Sparkles };
         case 'FEATURE': return { bg: c.statusResolvedBg, fg: c.statusResolvedText, label: 'Feature', Icon: Sparkles };
         case 'TASK': return { bg: c.priorityLowBg, fg: c.priorityLowText, label: 'Task', Icon: ListChecks };

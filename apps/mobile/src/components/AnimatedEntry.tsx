@@ -13,17 +13,18 @@ export default function AnimatedEntry({ children, index = 0, delay = 50, style }
   const translateY = useRef(new Animated.Value(24)).current;
 
   useEffect(() => {
-    const duration = 400;
     Animated.parallel([
-      Animated.timing(opacity, {
+      Animated.spring(opacity, {
         toValue: 1,
-        duration,
+        tension: 100,
+        friction: 12,
         delay: index * delay,
         useNativeDriver: true,
       }),
-      Animated.timing(translateY, {
+      Animated.spring(translateY, {
         toValue: 0,
-        duration,
+        tension: 100,
+        friction: 12,
         delay: index * delay,
         useNativeDriver: true,
       }),
