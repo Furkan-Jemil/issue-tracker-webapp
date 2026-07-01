@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
+  Alert,
   TouchableOpacity,
   FlatList,
   StyleSheet,
@@ -20,7 +21,7 @@ import {
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
 import { safeFetch } from '../utils/api';
-import { Screen, Card, SearchBar } from '../components/ui';
+import { Screen, Card, SearchBar, AnimatedEntry, Skeleton } from '../components/ui';
 import { getInitials, relativeTime } from '../utils/formatters';
 
 const FILTER_OPTIONS = [
@@ -108,7 +109,7 @@ export default function AuditLogScreen() {
     try {
       await safeFetch('/api/audit-log/export');
     } catch {
-      // silently fail on mobile
+      Alert.alert('Error', 'Failed to export audit log. Please try again.');
     }
   }, []);
 
@@ -138,7 +139,7 @@ export default function AuditLogScreen() {
         ]}
       >
         <View style={styles.logEntryRow}>
-          <View style={styles.timelineCol}>
+          <View style={[styles.timelineCol, { marginRight: spacing.md }]}>
             <View
               style={[
                 styles.avatar,
@@ -149,16 +150,16 @@ export default function AuditLogScreen() {
                 {initials}
               </Text>
             </View>
-            <View style={[styles.timelineLine, { backgroundColor: colors.cardBorder }]} />
+            <View style={[styles.timelineLine, { backgroundColor: colors.cardBorder, marginTop: spacing.xs }]} />
           </View>
-          <View style={[styles.logContent, { paddingBottom: spacing.elementGap }]}>
+          <View style={[styles.logContent, { paddingBottom: spacing.elementGap, marginLeft: spacing.xs }]}>
             <View
               style={[
                 styles.eventBadge,
                 {
                   backgroundColor: event.color + '15',
                   borderRadius: radius.full,
-                  paddingHorizontal: 8,
+                  paddingHorizontal: spacing.sm,
                   paddingVertical: 3,
                   alignSelf: 'flex-start',
                 },
@@ -168,19 +169,19 @@ export default function AuditLogScreen() {
               <Text
                 style={[
                   typography.micro,
-                  { color: event.color, fontWeight: '700', marginLeft: 4 },
+                  { color: event.color, fontWeight: '700', marginLeft: spacing.xs },
                 ]}
               >
                 {event.label}
               </Text>
             </View>
             <Text
-              style={[typography.bodySm, { color: colors.foreground, marginTop: 4 }]}
+              style={[typography.bodySm, { color: colors.foreground, marginTop: spacing.xs }]}
               numberOfLines={3}
             >
               {item.description ?? item.message ?? ''}
             </Text>
-            <Text style={[typography.micro, { color: colors.mutedForeground, marginTop: 4 }]}>
+            <Text style={[typography.micro, { color: colors.mutedForeground, marginTop: spacing.xs }]}>
               {relativeTime(item.createdAt ?? item.timestamp ?? new Date())}
             </Text>
           </View>
@@ -190,12 +191,12 @@ export default function AuditLogScreen() {
   };
 
   return (
-    <Screen title="Audit Log" subtitle="Track all changes and activities">
+    <Screen title="Audit Log" subtitle="Track all changes and activities" scroll={false}>
       {/* Search + export */}
       <View
         style={[
           styles.searchRow,
-          { paddingHorizontal: pagePadding, paddingTop: 12, marginBottom: 8 },
+          { paddingHorizontal: pagePadding, paddingTop: spacing.md, marginBottom: spacing.elementGap, gap: spacing.elementGap },
         ]}
       >
         <SearchBar
@@ -215,13 +216,15 @@ export default function AuditLogScreen() {
           ]}
           onPress={handleExport}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Export audit log"
         >
           <Download size={18} color={colors.mutedForeground} />
         </TouchableOpacity>
       </View>
 
       {/* Filter chips */}
-      <View style={[styles.chipRow, { paddingHorizontal: pagePadding, gap: spacing.xs, marginBottom: 8 }]}>
+      <View style={[styles.chipRow, { paddingHorizontal: pagePadding, gap: spacing.xs, marginBottom: spacing.elementGap }]}>
         {FILTER_OPTIONS.map((opt) => (
           <TouchableOpacity
             key={opt}
@@ -234,10 +237,13 @@ export default function AuditLogScreen() {
                 paddingVertical: spacing.xs,
                 borderWidth: 1,
                 borderColor: filterType === opt ? colors.primary : colors.outlineVariant,
+                marginBottom: spacing.xs,
               },
             ]}
             onPress={() => setFilterType(opt)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`Filter by ${opt}`}
           >
             <Text
               style={[
@@ -251,14 +257,29 @@ export default function AuditLogScreen() {
         ))}
       </View>
 
-      {/* Log entries */}
+      {isLoading ? (
+        <View style={[styles.listContent, { paddingHorizontal: pagePadding, paddingTop: spacing.xs, gap: spacing.xs }]}>
+          {[1,2,3,4].map((i) => (
+            <Card key={i} padding={20}>
+              <View style={{ flexDirection: 'row', gap: spacing.md }}>
+                <Skeleton width={36} height={36} borderRadius={18} />
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Skeleton width="30%" height={10} borderRadius={4} />
+                  <Skeleton width="90%" height={10} borderRadius={4} />
+                  <Skeleton width="20%" height={8} borderRadius={4} />
+                </View>
+              </View>
+            </Card>
+          ))}
+        </View>
+      ) : (
       <FlatList
         data={filteredLogs}
         keyExtractor={(item) => item.id}
         renderItem={renderLogEntry}
         contentContainerStyle={[
           styles.listContent,
-          { paddingHorizontal: pagePadding, paddingBottom: 120 },
+          { paddingHorizontal: pagePadding, paddingBottom: 120, paddingTop: spacing.xs },
         ]}
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
@@ -267,31 +288,34 @@ export default function AuditLogScreen() {
         }
         ListEmptyComponent={
           !isLoading ? (
-            <View style={styles.empty}>
-              <History size={40} color={colors.mutedForeground + '40'} />
-              <Text style={[styles.emptyTitle, { color: colors.mutedForeground }]}>
-                No Log Entries
-              </Text>
-              <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>
-                {searchQuery || filterType !== 'All'
-                  ? 'Try adjusting your search or filters.'
-                  : 'Audit log entries will appear here.'}
-              </Text>
-            </View>
+            <AnimatedEntry>
+              <View style={[styles.empty, { gap: spacing.md }]}>
+                <History size={40} color={colors.mutedForeground + '40'} />
+                <Text style={[typography.sectionHeading, { color: colors.mutedForeground }]}>
+                  No Log Entries
+                </Text>
+                <Text style={[typography.bodySm, { color: colors.mutedForeground, textAlign: 'center' }]}>
+                  {searchQuery || filterType !== 'All'
+                    ? 'Try adjusting your search or filters.'
+                    : 'Audit log entries will appear here.'}
+                </Text>
+              </View>
+            </AnimatedEntry>
           ) : null
         }
         ItemSeparatorComponent={() => <View style={{ height: spacing.xs }} />}
       />
+      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  searchRow: { flexDirection: 'row', alignItems: 'center' },
   exportBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap' },
-  chip: { marginBottom: 4 },
-  listContent: { flexGrow: 1, paddingTop: 4 },
+  chip: {},
+  listContent: { flexGrow: 1 },
   logCard: {
     padding: 20,
     shadowColor: '#0b1c30',
@@ -301,17 +325,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   logEntryRow: { flexDirection: 'row' },
-  timelineCol: { alignItems: 'center', width: 36, marginRight: 12 },
+  timelineCol: { alignItems: 'center', width: 36 },
   avatar: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  timelineLine: { width: 2, flex: 1, marginTop: 4 },
-  logContent: { flex: 1, marginLeft: 4 },
+  timelineLine: { width: 2, flex: 1 },
+  logContent: { flex: 1 },
   eventBadge: { flexDirection: 'row', alignItems: 'center' },
-  empty: { alignItems: 'center', justifyContent: 'center', paddingVertical: 80, gap: 12 },
-  emptyTitle: { fontFamily: 'Outfit_600SemiBold', fontSize: 16 },
-  emptySubtitle: {
-    fontFamily: 'Outfit_400Regular',
-    fontSize: 13,
-    textAlign: 'center',
-    paddingHorizontal: 32,
-  },
+  empty: { alignItems: 'center', justifyContent: 'center', paddingVertical: 80 },
 });
