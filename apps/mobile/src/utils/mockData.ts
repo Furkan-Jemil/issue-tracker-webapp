@@ -257,6 +257,24 @@ export function mockApiFetch(url: string, options: RequestInit = {}): Promise<an
 
   // Issues CRUD
   if (path.startsWith('/api/issues')) {
+    // POST comment on an issue
+    const commentMatch = path.match(/^\/api\/issues\/(.+)\/comments$/);
+    if (commentMatch && options.method === 'POST') {
+      const issueId = commentMatch[1];
+      const body = JSON.parse(options.body as string);
+      const comment = {
+        id: `c-${Date.now()}`,
+        author: mockUser.name,
+        body: body.body,
+        created_at: new Date().toISOString(),
+      };
+      const idx = mockIssues.findIndex(i => i.id === issueId);
+      if (idx >= 0) {
+        mockIssues[idx].comments.push(comment);
+      }
+      return Promise.resolve(comment);
+    }
+
     if (options.method === 'POST') {
       const body = JSON.parse(options.body as string);
       return Promise.resolve({
@@ -269,8 +287,14 @@ export function mockApiFetch(url: string, options: RequestInit = {}): Promise<an
     if (options.method === 'DELETE') {
       return Promise.resolve({ success: true });
     }
-    if (path.endsWith('/status') && options.method === 'PATCH') {
-      return Promise.resolve({ success: true });
+    if (options.method === 'PATCH') {
+      const body = JSON.parse(options.body as string);
+      const issueId = path.replace('/api/issues/', '').replace('/status', '');
+      const idx = mockIssues.findIndex(i => i.id === issueId);
+      if (idx >= 0) {
+        mockIssues[idx] = { ...mockIssues[idx], ...body };
+      }
+      return Promise.resolve({ success: true, issue: mockIssues[idx] || null });
     }
     return Promise.resolve(mockIssues);
   }
@@ -290,6 +314,18 @@ export function mockApiFetch(url: string, options: RequestInit = {}): Promise<an
   }
   if (path.match(/\/api\/notifications\/.+/) && options.method === 'DELETE') {
     return Promise.resolve({ success: true });
+  }
+
+  // Profile update
+  if (path === '/api/users/profile' && options.method === 'PATCH') {
+    const body = JSON.parse(options.body as string);
+    if (body.name) mockUser.name = body.name;
+    return Promise.resolve({ success: true, user: { ...mockUser } });
+  }
+
+  // User activity log
+  if (path === '/api/users/activity') {
+    return Promise.resolve(mockAuditLogs.filter((l) => l.actor === mockUser.name));
   }
 
   // Audit log export
