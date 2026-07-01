@@ -1,6 +1,23 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { createMockSessionJWT } from "@/lib/auth/mock-session";
+import type { Role } from "@prisma/client";
+
+const MOCK_USERS: Record<
+  string,
+  { password: string; name: string; role: Role }
+> = {
+  "admin@ethiotelecom.et": {
+    password: "admin",
+    name: "Admin",
+    role: "ADMIN",
+  },
+  "user@ethiotelecom.et": { password: "user", name: "User", role: "USER" },
+  "tester@ethiotelecom.et": {
+    password: "tester",
+    name: "Tester",
+    role: "TESTER",
+  },
+};
 
 export async function POST(request: Request) {
   try {
@@ -13,49 +30,30 @@ export async function POST(request: Request) {
       );
     }
 
-    // Authenticate with Better-Auth email provider
-    let signInRes;
-    try {
-      signInRes = await auth.api.signInEmail({
-        body: {
-          email,
-          password,
-        },
-      });
-    } catch (authError: any) {
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const mock = MOCK_USERS[normalizedEmail];
+
+    if (!mock || mock.password !== password) {
       return NextResponse.json(
-        { error: authError.message || "Invalid credentials" },
+        { error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    if (!signInRes || !signInRes.user) {
-      return NextResponse.json(
-        { error: "Authentication failed" },
-        { status: 401 }
-      );
-    }
-
-    // Retrieve the session token from the database
-    const session = await prisma.session.findFirst({
-      where: { userId: signInRes.user.id },
-      orderBy: { expiresAt: "desc" },
+    const token = await createMockSessionJWT({
+      id: normalizedEmail,
+      name: mock.name,
+      email: normalizedEmail,
+      role: mock.role,
     });
 
-    if (!session) {
-      return NextResponse.json(
-        { error: "Failed to retrieve session token" },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json({
-      token: session.token,
+      token,
       user: {
-        id: signInRes.user.id,
-        email: signInRes.user.email,
-        name: signInRes.user.name,
-        role: (signInRes.user as any).role,
+        id: normalizedEmail,
+        email: normalizedEmail,
+        name: mock.name,
+        role: mock.role,
       },
     });
   } catch (err: any) {
