@@ -24,9 +24,16 @@ function buildNavItems(role: string | undefined): AppNavItem[] {
   }
   items.push({ href: "/tasks", label: "Tasks", icon: "issues", section: "primary" });
   if (role === "ADMIN") {
+    // Admin: Members page in primary nav; Audit Log in admin section
     items.push(
-      { href: "/members", label: "Members", icon: "admin", section: "admin" },
+      { href: "/members", label: "Members", icon: "admin", section: "primary" },
       { href: "/admin/audit-log", label: "Audit Log", icon: "audit", section: "admin" },
+    );
+  } else if (role) {
+    // Non-admin: Activity Log and Profile at the bottom
+    items.push(
+      { href: "/notifications", label: "Activity Log", icon: "notifications", section: "primary" },
+      { href: "/profile", label: "Profile", icon: "profile", section: "primary" },
     );
   }
   return items;

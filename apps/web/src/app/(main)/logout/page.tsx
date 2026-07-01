@@ -7,20 +7,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { auth } from "@/lib/auth";
-import { applyAuthResponseCookies } from "@/lib/auth/apply-response-cookies";
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { COOKIE_NAME } from "@/lib/auth/mock-session";
 
 async function signOut() {
   "use server";
 
-  const response = await auth.api.signOut({
-    headers: await headers(),
-    asResponse: true,
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE_NAME, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
   });
 
-  await applyAuthResponseCookies(response);
   redirect("/login");
 }
 

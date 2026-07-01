@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Bell,
   ClipboardList,
   History,
   LayoutDashboard,
@@ -11,6 +12,7 @@ import {
   PanelLeft,
   PanelRight,
   Plus,
+  User,
   UsersRound,
   Ticket,
 } from "lucide-react";
@@ -22,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { AppShellProfileProvider } from "@/components/layout/app-shell-profile-context";
 import { AppShellControls } from "@/components/layout/app-shell-controls";
 
-type NavIcon = "dashboard" | "issues" | "admin" | "audit";
+type NavIcon = "dashboard" | "issues" | "admin" | "audit" | "notifications" | "profile";
 
 export type AppNavItem = {
   href: string;
@@ -41,6 +43,10 @@ function getIcon(icon: NavIcon) {
       return UsersRound;
     case "audit":
       return History;
+    case "notifications":
+      return Bell;
+    case "profile":
+      return User;
   }
 }
 

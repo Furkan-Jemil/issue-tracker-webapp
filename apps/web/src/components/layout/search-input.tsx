@@ -7,6 +7,7 @@ import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useAutoSearch } from "@/lib/useAutoSearch";
 
 export function SearchInput({
   placeholder = "Search",
@@ -35,11 +36,6 @@ export function SearchInput({
 
   function applySearch(nextValue: string) {
     const trimmed = nextValue.trim();
-    const charCount = trimmed.length;
-
-    if (trimmed !== "" && charCount < minChars) {
-      return;
-    }
 
     const params = new URLSearchParams(searchParams.toString());
 
@@ -61,12 +57,7 @@ export function SearchInput({
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname);
   }
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      applySearch(value);
-    }, 320);
-    return () => window.clearTimeout(timer);
-  }, [value]);
+  useAutoSearch(value, applySearch, minChars, 320);
 
   return (
     <div className={cn("relative", className)}>
