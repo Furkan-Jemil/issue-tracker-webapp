@@ -22,78 +22,89 @@ const METRICS = [
     label: "Total tasks",
     href: "/tasks",
     Icon: Ticket,
-    tone: "text-primary",
-    strip: "bg-primary",
+    tone: "text-[hsl(var(--color-in-progress))]",
+    strip: "bg-[hsl(var(--color-in-progress))]",
+    wide: true,
     getVal: (d: MetricsGridProps) => d.totalIssues,
   },
   {
     key: "open",
     label: "Open",
-    href: "/tasks/filter?status=OPEN",
+    href: "/tasks?status=OPEN",
     Icon: CircleDot,
-    tone: "text-amber-500 dark:text-amber-400",
-    strip: "bg-amber-400",
+    tone: "text-[hsl(var(--color-open))]",
+    strip: "bg-[hsl(var(--color-open))]",
+    wide: false,
     getVal: (d: MetricsGridProps) => d.open,
   },
   {
     key: "inProgress",
-    label: "In progress",
-    href: "/tasks/filter?status=IN_PROGRESS",
+    label: "In Progress",
+    href: "/tasks?status=IN_PROGRESS",
     Icon: LoaderCircle,
-    tone: "text-blue-500 dark:text-blue-400",
-    strip: "bg-blue-500",
+    tone: "text-[hsl(var(--color-in-progress))]",
+    strip: "bg-[hsl(var(--color-in-progress))]",
+    wide: false,
     getVal: (d: MetricsGridProps) => d.inProgress,
   },
   {
     key: "resolved",
     label: "Resolved",
-    href: "/tasks/filter?status=RESOLVED",
+    href: "/tasks?status=RESOLVED",
     Icon: BadgeCheck,
-    tone: "text-emerald-600 dark:text-emerald-400",
-    strip: "bg-emerald-500",
+    tone: "text-[hsl(var(--color-resolved))]",
+    strip: "bg-[hsl(var(--color-resolved))]",
+    wide: false,
     getVal: (d: MetricsGridProps) => d.resolved,
   },
   {
     key: "closed",
     label: "Closed",
-    href: "/tasks/filter?status=CLOSED",
+    href: "/tasks?status=CLOSED",
     Icon: CheckCircle2,
-    tone: "text-slate-500 dark:text-slate-400",
-    strip: "bg-slate-400",
+    tone: "text-[hsl(var(--color-closed))]",
+    strip: "bg-[hsl(var(--color-closed))]",
+    wide: false,
     getVal: (d: MetricsGridProps) => d.closed,
   },
 ];
 
 export function MetricsGrid(props: MetricsGridProps) {
   return (
-    <section className="space-y-2" aria-label="Issue metrics">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-foreground/90">
-          Performance Snapshot
-        </h2>
-      </div>
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-3 xl:grid-cols-5">
-        {METRICS.map(({ key, label, href, Icon, tone, strip, getVal }) => (
-          <Link key={key} href={href}>
-            <Card className="group relative h-full cursor-pointer overflow-hidden bg-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50 dark:bg-card">
+    <section aria-label="Issue metrics">
+      {/*
+       * Layout logic:
+       *  Mobile  (< sm):  Total = full width; 2-col grid for the 4 status cards
+       *  Tablet  (sm–lg): Total = col-span-2 wide banner; 2 + 2 below
+       *  Desktop (≥ xl):  All 5 in a single row
+       */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-5">
+        {METRICS.map(({ key, label, href, Icon, tone, strip, wide, getVal }) => (
+          <Link
+            key={key}
+            href={href}
+            className={wide ? "col-span-2 sm:col-span-4 xl:col-span-1" : "col-span-1"}
+          >
+            <Card className="group relative h-full cursor-pointer overflow-hidden bg-card shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring/50">
+              {/* Left-border color strip */}
               <div
                 className={`absolute left-0 top-0 h-full w-[3px] ${strip}`}
                 aria-hidden="true"
               />
-              <CardContent className="flex items-center justify-between gap-2.5 py-2.5 pl-4 pr-2.5">
-                <div>
-                  <p className="text-[12px] font-medium text-muted-foreground">
+              <CardContent className="flex items-center justify-between gap-3 py-3 pl-4 pr-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                     {label}
                   </p>
-                  <p className={`text-xl font-semibold leading-tight ${tone}`}>
+                  <p className={`mt-0.5 text-2xl font-bold leading-tight tabular-nums ${tone}`}>
                     {getVal(props)}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground transition-colors group-hover:text-foreground">
+                  <p className="mt-0.5 text-[11px] text-muted-foreground/70 transition-colors group-hover:text-muted-foreground">
                     View issues →
                   </p>
                 </div>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground/80 transition-colors group-hover:bg-muted">
-                  <Icon className="h-4 w-4" aria-hidden="true" />
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors group-hover:bg-muted ${strip} bg-opacity-10`}>
+                  <Icon className={`h-4 w-4 ${tone}`} aria-hidden="true" />
                 </div>
               </CardContent>
             </Card>

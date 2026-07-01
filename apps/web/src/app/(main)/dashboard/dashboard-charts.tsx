@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { useAutoSearch } from "@/lib/useAutoSearch";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -98,13 +99,13 @@ type BucketSummary = {
 };
 
 const SHADCN_CHART_COLORS = {
-  total: "hsl(210 66% 70%)",
-  open: "hsl(214 74% 62%)",
-  inProgress: "hsl(216 83% 56%)",
-  resolved: "hsl(225 73% 48%)",
-  closed: "hsl(230 68% 42%)",
-  openSoft: "hsl(214 74% 62% / 0.22)",
-  inProgressSoft: "hsl(216 83% 56% / 0.2)",
+  total: "hsl(var(--color-in-progress))",
+  open: "hsl(var(--color-open))",
+  inProgress: "hsl(var(--color-in-progress))",
+  resolved: "hsl(var(--color-resolved))",
+  closed: "hsl(var(--color-closed))",
+  openSoft: "hsl(var(--color-open) / 0.22)",
+  inProgressSoft: "hsl(var(--color-in-progress) / 0.2)",
 } as const;
 
 function getThemeColor(variableName: string, alpha?: number) {
@@ -214,20 +215,7 @@ export default function DashboardCharts() {
     };
   }, [filtersOpen]);
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const trimmed = searchInput.trim();
-      if (trimmed.length === 0) {
-        setSearchQuery("");
-        return;
-      }
-      if (trimmed.length >= 2) {
-        setSearchQuery(trimmed);
-      }
-    }, 320);
-
-    return () => window.clearTimeout(timer);
-  }, [searchInput]);
+  useAutoSearch(searchInput, setSearchQuery, 2, 320);
 
   function openFiltersPanel() {
     setField("status", statusFilter);
@@ -714,15 +702,6 @@ export default function DashboardCharts() {
                   </Card>
                 ) : null}
               </div>
-              <Select
-                value={timeRange}
-                onValueChange={setTimeRange}
-                className="h-8 w-[124px] text-xs">
-                <option value="7d">7 days</option>
-                <option value="30d">30 days</option>
-                <option value="90d">90 days</option>
-                <option value="365d">1 year</option>
-              </Select>
             </div>
             </div>
           </div>
