@@ -12,8 +12,7 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
-import { useResponsive } from '../responsive/useResponsive';
-import { Screen, Card, SearchBar, IconButton, Select, Skeleton } from '../components/ui';
+import { Screen, Card, SearchBar, IconButton, Select, Skeleton, FilterPopover } from '../components/ui';
 import usePersistedState from '../utils/usePersistedState';
 import StatusDonut from '../charts/StatusDonut';
 import ComparisonBars from '../charts/ComparisonBars';
@@ -126,13 +125,15 @@ export default function DashboardScreen() {
         Open versus closed issue volume by grouped date buckets.
       </Text>
       <ComparisonBars data={barData} onBarPress={() => navigation.navigate('TasksList')} />
-      <View style={[styles.footerDivider, { borderTopColor: colors.cardBorder }]} />
-      <Text style={[typography.footerCaption, { color: colors.foreground }]}>
-        Trending up by 5.2% this month
-      </Text>
-      <Text style={[typography.footerSub, { color: colors.mutedForeground }]}>
-        Based on current sprint data
-      </Text>
+      <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('TasksList')}>
+        <View style={[styles.footerDivider, { borderTopColor: colors.cardBorder }]} />
+        <Text style={[typography.footerCaption, { color: colors.foreground }]}>
+          Trending up by 5.2% this month
+        </Text>
+        <Text style={[typography.footerSub, { color: colors.mutedForeground }]}>
+          Based on current sprint data
+        </Text>
+      </TouchableOpacity>
     </Card>
   );
 
@@ -143,13 +144,15 @@ export default function DashboardScreen() {
         Open and in-progress issues across the selected range.
       </Text>
       <TrendLine data={trendData} onPointPress={() => navigation.navigate('TasksList')} />
-      <View style={[styles.footerDivider, { borderTopColor: colors.cardBorder }]} />
-      <Text style={[typography.footerCaption, { color: colors.foreground }]}>
-        Trending up by 5.2% this month
-      </Text>
-      <Text style={[typography.footerSub, { color: colors.mutedForeground }]}>
-        Based on current sprint data
-      </Text>
+      <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('TasksList')}>
+        <View style={[styles.footerDivider, { borderTopColor: colors.cardBorder }]} />
+        <Text style={[typography.footerCaption, { color: colors.foreground }]}>
+          Trending up by 5.2% this month
+        </Text>
+        <Text style={[typography.footerSub, { color: colors.mutedForeground }]}>
+          Based on current sprint data
+        </Text>
+      </TouchableOpacity>
     </Card>
   );
 
@@ -274,22 +277,18 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        <Modal transparent visible={filtersOpen} animationType="fade" onRequestClose={() => setFiltersOpen(false)}>
-          <View style={styles.modalOverlay}>
-            <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setFiltersOpen(false)} accessibilityRole="button" accessibilityLabel="Close filters" />
-            <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
-              <Text style={[typography.cardTitle, { color: colors.foreground, marginBottom: spacing.sm }]}>Filters</Text>
-              <Select label="Status" value={filterStatus} options={FILTER_STATUS_OPTIONS} onChange={(v) => { setFilterStatus(v); setFiltersOpen(false); }} />
-              <Select label="Priority" value={filterPriority} options={FILTER_PRIORITY_OPTIONS} onChange={(v) => { setFilterPriority(v); setFiltersOpen(false); }} />
-              <Select label="Severity" value={filterSeverity} options={FILTER_SEVERITY_OPTIONS} onChange={(v) => { setFilterSeverity(v); setFiltersOpen(false); }} />
-              {(filterStatus || filterPriority || filterSeverity) && (
-                <TouchableOpacity onPress={() => { setFilterStatus(''); setFilterPriority(''); setFilterSeverity(''); setFiltersOpen(false); }} accessibilityRole="button" accessibilityLabel="Clear all filters">
-                  <Text style={[typography.statLabel, { color: colors.mutedForeground, textAlign: 'center', marginTop: spacing.sm }]}>Clear all</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </Modal>
+        <FilterPopover
+          visible={filtersOpen}
+          onClose={() => setFiltersOpen(false)}
+          statusF={filterStatus}
+          priorityF={filterPriority}
+          severityF={filterSeverity}
+          onApply={(s, p, sev) => {
+            setFilterStatus(s);
+            setFilterPriority(p);
+            setFilterSeverity(sev);
+          }}
+        />
 
         {/* Status Mix */}
         <Card padding={spacing.xl}>
@@ -298,13 +297,15 @@ export default function DashboardScreen() {
             Current issue distribution by workflow state.
           </Text>
           <StatusDonut data={donutData} onSlicePress={(label) => navigation.navigate('TasksList', { initialStatus: label === 'In Progress' ? 'IN_PROGRESS' : label.toUpperCase() })} />
-          <View style={[styles.footerDivider, { borderTopColor: colors.cardBorder }]} />
-          <Text style={[typography.footerCaption, { color: colors.foreground }]}>
-            Trending up by 5.2% this month
-          </Text>
-          <Text style={[typography.footerSub, { color: colors.mutedForeground }]}>
-            Based on current sprint data
-          </Text>
+          <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('TasksList')}>
+            <View style={[styles.footerDivider, { borderTopColor: colors.cardBorder }]} />
+            <Text style={[typography.footerCaption, { color: colors.foreground }]}>
+              Trending up by 5.2% this month
+            </Text>
+            <Text style={[typography.footerSub, { color: colors.mutedForeground }]}>
+              Based on current sprint data
+            </Text>
+          </TouchableOpacity>
         </Card>
 
         {isTablet ? (

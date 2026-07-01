@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
-import { LogOut, Edit3, Save, Clock } from 'lucide-react-native';
+import { LogOut, Edit3, Save, Clock, Check } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
@@ -80,48 +80,44 @@ export default function ProfileScreen() {
         {/* Info rows */}
         <SecLabel>Account details</SecLabel>
         <Card padding={0}>
-          {isEditing ? (
-            <>
-              <View style={[styles.row, { borderBottomColor: colors.cardBorder, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-                <Text style={[typography.bodySm, { color: colors.mutedForeground }]}>Full name</Text>
-                <TextInput
-                  value={editName}
-                  onChangeText={setEditName}
-                  style={[typography.bodySmBold, { color: colors.foreground, textAlign: 'right', flex: 1, marginLeft: spacing.md }]}
-                  placeholderTextColor={colors.mutedForeground}
-                />
-              </View>
-              <View style={[styles.row, { paddingHorizontal: spacing.xl, paddingVertical: spacing.md }]}>
-                <Button title="Save" size="sm" icon={<Save size={12} color="#fff" />} onPress={handleSave} />
-                <Button title="Cancel" variant="outline" size="sm" onPress={() => setIsEditing(false)} />
-              </View>
-            </>
-          ) : (
-            rows.map((r, i) => (
-              <View
-                key={r.label}
-                style={[
-                  styles.row,
-                  { borderBottomColor: colors.cardBorder, paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
-                  i < rows.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth },
-                ]}
-              >
+          {rows.map((r, i) => {
+            if (r.label === 'Full name') {
+              return (
+                <View key={r.label} style={[styles.row, { borderBottomColor: colors.cardBorder, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+                  <Text style={[typography.bodySm, { color: colors.mutedForeground }]}>{r.label}</Text>
+                  {isEditing ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'flex-end' }}>
+                      <TextInput
+                        value={editName}
+                        onChangeText={setEditName}
+                        style={[typography.bodySmBold, { color: colors.foreground, textAlign: 'right', flex: 1, marginLeft: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.primary, padding: 0 }]}
+                        placeholderTextColor={colors.mutedForeground}
+                        autoFocus
+                        onBlur={() => setIsEditing(false)}
+                      />
+                      <TouchableOpacity onPress={handleSave} style={{ marginLeft: 12, backgroundColor: colors.primary, borderRadius: 4, padding: 4 }} hitSlop={8}>
+                        <Check size={14} color="#fff" />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'flex-end' }}>
+                      <Text style={[typography.bodySmBold, { color: colors.foreground }]}>{r.value}</Text>
+                      <TouchableOpacity onPress={() => setIsEditing(true)} style={{ marginLeft: 12 }} hitSlop={8}>
+                        <Edit3 size={14} color={colors.primary} />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              );
+            }
+            return (
+              <View key={r.label} style={[styles.row, { borderBottomColor: colors.cardBorder, paddingHorizontal: spacing.xl, paddingVertical: spacing.md }, i < rows.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth }]}>
                 <Text style={[typography.bodySm, { color: colors.mutedForeground }]}>{r.label}</Text>
                 <Text style={[typography.bodySmBold, { color: colors.foreground }]}>{r.value}</Text>
               </View>
-            ))
-          )}
+            );
+          })}
         </Card>
-
-        {!isEditing && (
-          <Button
-            title="Edit Profile"
-            variant="outline"
-            fullWidth
-            icon={<Edit3 size={14} color={colors.foreground} />}
-            onPress={() => { setEditName(user?.name ?? ''); setIsEditing(true); }}
-          />
-        )}
 
         {/* Activity Log */}
         {userLogs.length > 0 && (

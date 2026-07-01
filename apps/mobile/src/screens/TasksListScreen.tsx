@@ -9,7 +9,7 @@ import Grid from '../responsive/Grid';
 import { relativeTime } from '../utils/formatters';
 import usePersistedState from '../utils/usePersistedState';
 import useDebounce from '../utils/useDebounce';
-import { Screen, Card, Badge, Avatar, Button, SearchBar, IconButton, Select, AnimatedEntry, Skeleton } from '../components/ui';
+import { Screen, Card, Badge, Avatar, Button, SearchBar, IconButton, Select, AnimatedEntry, Skeleton, FilterPopover } from '../components/ui';
 import TaskTableView from '../components/TaskTableView';
 import SwipeableRow from '../components/SwipeableRow';
 import EmptyState from '../components/EmptyState';
@@ -225,7 +225,6 @@ export default function TasksListScreen() {
         <IconButton
           icon={<SlidersHorizontal size={15} color={filtersOpen || activeCount > 0 ? '#fff' : colors.mutedForeground} />}
           active={filtersOpen || activeCount > 0}
-          badge={activeCount}
           accessibilityLabel="Toggle filters"
           onPress={() => setFiltersOpen((v) => !v)}
         />
@@ -248,50 +247,20 @@ export default function TasksListScreen() {
         />
       </View>
 
-      {/* Filters panel */}
-      {filtersOpen && (
-        <View style={[styles.filterWrap, { paddingHorizontal: isTablet ? 24 : 16, paddingTop: spacing.sm }]}>
-          <Card padding={spacing.cardPadding}>
-            <View style={[styles.filterHeader, { marginBottom: spacing.md }]}>
-              <Text style={[typography.cardTitle, { color: colors.foreground }]}>Filters</Text>
-              {activeCount > 0 && (
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Clear all filters" onPress={clearFilters} hitSlop={spacing.sm}>
-                  <Text style={[typography.statLabel, styles.clearText, { color: colors.mutedForeground }]}>Clear all</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            <View style={{ gap: spacing.md }}>
-              <Select
-                label="Status"
-                value={statusF}
-                options={STATUS_OPTIONS}
-                onChange={(v) => {
-                  setStatusF(v);
-                  resetPage();
-                }}
-              />
-              <Select
-                label="Priority"
-                value={priorityF}
-                options={PRIORITY_OPTIONS}
-                onChange={(v) => {
-                  setPriorityF(v);
-                  resetPage();
-                }}
-              />
-              <Select
-                label="Severity"
-                value={severityF}
-                options={SEVERITY_OPTIONS}
-                onChange={(v) => {
-                  setSeverityF(v);
-                  resetPage();
-                }}
-              />
-            </View>
-          </Card>
-        </View>
-      )}
+      {/* Filters popover */}
+      <FilterPopover
+        visible={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        statusF={statusF}
+        priorityF={priorityF}
+        severityF={severityF}
+        onApply={(s, p, sev) => {
+          setStatusF(s);
+          setPriorityF(p);
+          setSeverityF(sev);
+          resetPage();
+        }}
+      />
 
       {/* Error state — shown when API fetch fails */}
       {fetchError && !isLoading ? (
@@ -334,12 +303,14 @@ export default function TasksListScreen() {
             )}
           </View>
         ) : (
-        <TaskTableView
-          data={paged}
-          onPress={(item) => openDetail(item as any)}
-          onMenu={(item) => openMenu(item as any)}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
-        />
+        <View style={{ flex: 1, paddingHorizontal: isTablet ? 24 : 16, paddingTop: spacing.md }}>
+          <TaskTableView
+            data={paged}
+            onPress={(item) => openDetail(item as any)}
+            onMenu={(item) => openMenu(item as any)}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+          />
+        </View>
         )
       ) : (
         <View style={[styles.listWrap, { paddingHorizontal: isTablet ? 24 : 16, paddingTop: spacing.md }]}>

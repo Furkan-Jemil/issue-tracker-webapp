@@ -60,6 +60,7 @@ export default function StatusDonut({ data, size = 150, strokeWidth = 22, onSlic
                   fill="none"
                   strokeDasharray={`${dash} ${circ - dash}`}
                   strokeDashoffset={-offsetAcc}
+                  onPress={() => onSlicePress?.(d.label)}
                 />
               );
               offsetAcc += dash;
@@ -89,7 +90,7 @@ export default function StatusDonut({ data, size = 150, strokeWidth = 22, onSlic
 
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center' },
-  center: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+  center: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   total: { fontFamily: 'Outfit_700Bold', fontSize: 24 },
   totalLabel: { fontFamily: 'Outfit_400Regular', fontSize: 10, marginTop: -2 },
   legend: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 14, marginTop: 12 },

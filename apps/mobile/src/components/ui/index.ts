@@ -14,3 +14,4 @@ export { getBadge } from './badgeConfig';
 export type { BadgeKind, BadgeStyle } from './badgeConfig';
 export { default as AnimatedEntry } from '../AnimatedEntry';
 export { default as Skeleton } from '../Skeleton';
+export { default as FilterPopover } from './FilterPopover';

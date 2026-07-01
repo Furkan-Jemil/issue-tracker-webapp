@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Moon, Sun, Bell, Shield, Trash2, ChevronRight, LogOut, Edit3 } from 'lucide-react-native';
+import { Moon, Sun, Bell, Shield, Trash2, ChevronRight, LogOut, Edit3, Activity } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
 import { Screen, Card, Badge, Avatar, Button } from '../components/ui';
@@ -39,7 +39,7 @@ export default function SettingsScreen() {
 
   const rows = [
     { Icon: Bell, label: 'Notifications', sub: 'Email and in-app alerts' },
-    { Icon: Shield, label: 'Security & Privacy', sub: '2FA, sessions, access control' },
+    { Icon: Activity, label: 'Audit Logs', sub: 'Track system activity and changes' },
   ];
 
   return (
@@ -76,7 +76,7 @@ export default function SettingsScreen() {
             <TouchableOpacity key={r.label} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={r.label} style={[styles.row, { paddingHorizontal: spacing.xl, paddingVertical: spacing.md }, i < rows.length - 1 && { borderBottomColor: colors.cardBorder, borderBottomWidth: StyleSheet.hairlineWidth }]}
               onPress={() => {
                 if (r.label === 'Notifications') navigation.navigate('Notifications');
-                else Alert.alert('Coming Soon', 'Security & Privacy settings will be available in a future update.');
+                else if (r.label === 'Audit Logs') navigation.navigate('AuditLog');
               }}>
               <View style={[styles.rowLeft, { gap: spacing.md }]}>
                 <r.Icon size={16} color={colors.mutedForeground} />
