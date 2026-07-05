@@ -522,7 +522,7 @@ export default function DashboardCharts() {
               strip: "bg-primary",
             },
             {
-              href: "/tasks/filter?status=OPEN",
+              href: "/tasks?status=OPEN",
               label: "Open",
               value: data.open,
               icon: CircleDot,
@@ -530,7 +530,7 @@ export default function DashboardCharts() {
               strip: "bg-amber-400",
             },
             {
-              href: "/tasks/filter?status=IN_PROGRESS",
+              href: "/tasks?status=IN_PROGRESS",
               label: "In progress",
               value: data.inProgress,
               icon: LoaderCircle,
@@ -538,7 +538,7 @@ export default function DashboardCharts() {
               strip: "bg-blue-500",
             },
             {
-              href: "/tasks/filter?status=RESOLVED",
+              href: "/tasks?status=RESOLVED",
               label: "Resolved",
               value: data.resolved,
               icon: BadgeCheck,
@@ -546,7 +546,7 @@ export default function DashboardCharts() {
               strip: "bg-emerald-500",
             },
             {
-              href: "/tasks/filter?status=CLOSED",
+              href: "/tasks?status=CLOSED",
               label: "Closed",
               value: data.closed,
               icon: CheckCircle2,

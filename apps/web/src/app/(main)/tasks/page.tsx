@@ -1,9 +1,9 @@
 import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import {
-  parseIssueStatus,
-  parsePriority,
-  parseSeverity,
+  parseIssueStatuses,
+  parsePriorities,
+  parseSeverities,
 } from "@/lib/issueFilters";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -62,11 +62,13 @@ export default async function IssuesListPage({
   const currentPage = Math.max(1, Number(params?.page || "1") || 1);
   const pageSize = DEFAULT_PAGE_SIZE;
   const query = params?.q?.trim() || "";
-  const status = isAdmin ? parseIssueStatus(params?.status) || "" : "";
-  const priority = isAdmin ? parsePriority(params?.priority) || "" : "";
-  const severity = isAdmin ? parseSeverity(params?.severity) || "" : "";
+  const statuses = parseIssueStatuses(params?.status);
+  const priorities = parsePriorities(params?.priority);
+  const severities = parseSeverities(params?.severity);
   const reporter = isAdmin && typeof params?.reporter === "string" ? params.reporter.trim() : "";
   const assignee = isAdmin && typeof params?.assignee === "string" ? params.assignee.trim() : "";
+  const reporterList = reporter ? reporter.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const assigneeList = assignee ? assignee.split(",").map((s) => s.trim()).filter(Boolean) : [];
   const createdFromRaw = params?.createdFrom?.trim() || "";
   const createdToRaw = params?.createdTo?.trim() || "";
   const createdFrom = /^\d{4}-\d{2}-\d{2}$/.test(createdFromRaw)
@@ -80,12 +82,12 @@ export default async function IssuesListPage({
 
   const where = {
     ...baseWhere,
-    ...(isAdmin && reporter ? { createdBy: reporter } : {}),
-    ...(isAdmin && assignee ? { assigneeId: assignee } : {}),
+    ...(isAdmin && reporterList.length ? { createdBy: { in: reporterList } } : {}),
+    ...(isAdmin && assigneeList.length ? { assigneeId: { in: assigneeList } } : {}),
     ...(query ? { title: { contains: query, mode: "insensitive" as const } } : {}),
-    ...(status ? { status } : {}),
-    ...(priority ? { priority } : {}),
-    ...(severity ? { severity } : {}),
+    ...(statuses?.length ? { status: { in: statuses } } : {}),
+    ...(priorities?.length ? { priority: { in: priorities } } : {}),
+    ...(severities?.length ? { severity: { in: severities } } : {}),
     ...(createdFrom || createdTo ? {
       createdAt: {
         ...(createdFrom ? { gte: createdFrom } : {}),
@@ -127,13 +129,15 @@ export default async function IssuesListPage({
   const { totalPages, hasPrev, hasNext } = getPaginationMeta(filteredTotal, pageSize, currentPage);
 
   const hasActiveFilterFields = Boolean(
-    status || priority || severity || reporter || assignee || createdFrom || createdTo,
+    statuses?.length || priorities?.length || severities?.length || reporterList.length || assigneeList.length || createdFrom || createdTo,
   );
   const showActionsColumn = canQuickStatus || issues.some(
     (issue) => canEditIssue && (isAdmin || issue.status === "OPEN"),
   );
-  const activeFilterCount = [status, priority, severity, reporter, assignee, createdFromRaw, createdToRaw]
-    .filter(Boolean).length;
+  const activeFilterCount = [
+    ...(statuses || []), ...(priorities || []), ...(severities || []),
+    ...reporterList, ...assigneeList, createdFromRaw, createdToRaw,
+  ].filter(Boolean).length;
   const tableColumnCount = 5 + (showActionsColumn ? 1 : 0);
   const issuesTableCaption = `Showing page ${currentPage} of ${getTotalPages(filteredTotal, pageSize)} (${filteredTotal} issues)`;
 
@@ -162,9 +166,9 @@ export default async function IssuesListPage({
   function buildIssuesHref(page: number) {
     const p = new URLSearchParams({ page: String(page) });
     if (query) p.set("q", query);
-    if (status) p.set("status", status);
-    if (priority) p.set("priority", priority);
-    if (severity) p.set("severity", severity);
+    if (params?.status) p.set("status", params.status);
+    if (params?.priority) p.set("priority", params.priority);
+    if (params?.severity) p.set("severity", params.severity);
     if (reporter) p.set("reporter", reporter);
     if (assignee) p.set("assignee", assignee);
     if (createdFromRaw) p.set("createdFrom", createdFromRaw);
@@ -204,13 +208,12 @@ export default async function IssuesListPage({
             query={query}
             createdFrom={createdFromRaw}
             createdTo={createdToRaw}
-            status={status}
-            priority={priority}
-            severity={severity}
+            status={params?.status ?? ""}
+            priority={params?.priority ?? ""}
+            severity={params?.severity ?? ""}
             reporter={reporter}
             assignee={assignee}
             reporters={reporters.map((u) => ({ id: u.id, label: u.name || u.email, role: u.role }))}
-            onSubmitHref="/tasks"
             onResetHref={buildClearFiltersHref()}
           />
           <Button asChild size="sm" className="h-9 gap-1.5 rounded-lg px-3 text-xs font-semibold">
@@ -247,7 +250,7 @@ export default async function IssuesListPage({
             <caption className="sr-only">{issuesTableCaption}</caption>
             <TableHeader className="sticky top-0 z-[5] bg-muted/80 backdrop-blur">
               <TableRow>
-                <TableHead scope="col" className="sticky left-0 z-[6] bg-muted/80 backdrop-blur h-9 py-0 pl-3 after:pointer-events-none after:absolute after:inset-y-0 after:-right-3 after:w-3 after:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">Title</TableHead>
+                <TableHead scope="col" className="sticky left-0 z-[6] bg-muted/80 backdrop-blur h-9 py-0 pl-3">Title</TableHead>
                 <TableHead scope="col" className="h-9 py-0 hidden lg:table-cell">Type</TableHead>
                 <TableHead scope="col" className="h-9 py-0">Priority</TableHead>
                 <TableHead scope="col" className="h-9 py-0 hidden xl:table-cell">Severity</TableHead>
@@ -267,10 +270,10 @@ export default async function IssuesListPage({
                     <TableRow
                       key={issue.id}
                       className="group cursor-pointer transition-colors hover:bg-muted/40 focus-within:bg-muted/30 focus-visible:ring-1 focus-visible:ring-primary/30">
-                      <TableCell className="sticky left-0 z-[3] bg-background group-hover:bg-muted/40 py-2.5 pl-3 after:pointer-events-none after:absolute after:inset-y-0 after:-right-3 after:w-3 after:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
+                      <TableCell className="sticky left-0 z-[3] bg-background group-hover:bg-muted/40 py-2.5 pl-3">
                         <Link
                           href={`/tasks/${issue.id}`}
-                          className="block break-words text-[13px] font-medium text-primary hover:underline">
+                          className="block break-words text-[13px] font-medium text-foreground hover:underline">
                           {issue.title}
                         </Link>
                         {/* Mobile badges below title */}

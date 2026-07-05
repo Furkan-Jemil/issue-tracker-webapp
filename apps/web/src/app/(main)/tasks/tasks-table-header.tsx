@@ -27,7 +27,6 @@ export function IssuesToolbar({
   reporter,
   assignee,
   reporters,
-  onSubmitHref,
   onResetHref,
 }: {
   view?: "compact" | "details" | "board";
@@ -43,7 +42,6 @@ export function IssuesToolbar({
   reporter: string;
   assignee: string;
   reporters: ReporterOption[];
-  onSubmitHref: string;
   onResetHref: string;
 }) {
   return (
@@ -66,7 +64,6 @@ export function IssuesToolbar({
           reporter={reporter}
           assignee={assignee}
           reporters={reporters}
-          onSubmitHref={onSubmitHref}
           onResetHref={onResetHref}
         />
         <Button asChild size="sm" className="h-9 gap-1.5 rounded-lg px-3 text-xs font-semibold">

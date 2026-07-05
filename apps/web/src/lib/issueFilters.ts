@@ -20,6 +20,18 @@ export function parseIssueStatus(
   return undefined;
 }
 
+export function parseIssueStatuses(
+  value: string | null | undefined,
+): IssueStatus[] | undefined {
+  if (!value?.trim()) return undefined;
+  const parts = value.split(",").map((v: string) => v.trim().toUpperCase());
+  const valid = parts.filter(
+    (v: string) =>
+      v === "OPEN" || v === "IN_PROGRESS" || v === "RESOLVED" || v === "CLOSED",
+  ) as IssueStatus[];
+  return valid.length > 0 ? valid : undefined;
+}
+
 export function parsePriority(
   value: string | null | undefined,
 ): Priority | undefined {
@@ -30,6 +42,17 @@ export function parsePriority(
   return undefined;
 }
 
+export function parsePriorities(
+  value: string | null | undefined,
+): Priority[] | undefined {
+  if (!value?.trim()) return undefined;
+  const parts = value.split(",").map((v: string) => v.trim().toUpperCase());
+  const valid = parts.filter(
+    (v: string) => v === "LOW" || v === "MEDIUM" || v === "HIGH",
+  ) as Priority[];
+  return valid.length > 0 ? valid : undefined;
+}
+
 export function parseSeverity(
   value: string | null | undefined,
 ): Severity | undefined {
@@ -38,6 +61,17 @@ export function parseSeverity(
     return v;
   }
   return undefined;
+}
+
+export function parseSeverities(
+  value: string | null | undefined,
+): Severity[] | undefined {
+  if (!value?.trim()) return undefined;
+  const parts = value.split(",").map((v: string) => v.trim().toUpperCase());
+  const valid = parts.filter(
+    (v: string) => v === "MINOR" || v === "MAJOR" || v === "CRITICAL",
+  ) as Severity[];
+  return valid.length > 0 ? valid : undefined;
 }
 
 export function parseDashboardRange(

@@ -19,6 +19,12 @@ async function main() {
 
   // 1. Configure furkanjemil54@gmail.com as ADMIN
   const adminEmail = "furkanjemil54@gmail.com";
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) {
+    console.error("✗ ADMIN_PASSWORD environment variable is not set. Set it before seeding:\n  ADMIN_PASSWORD='your-secure-password' npx tsx packages/database/scripts/seed-everything.ts");
+    process.exit(1);
+  }
+
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail },
   });
@@ -35,7 +41,7 @@ async function main() {
         body: {
           name: "Furkan Jemil",
           email: adminEmail,
-          password: "Furkan@2026",
+          password: adminPassword,
         },
       });
       const userId =
@@ -47,7 +53,7 @@ async function main() {
           where: { id: userId },
           data: { role: "ADMIN" },
         });
-        console.log(`✓ Created new ADMIN user: ${adminEmail} (Password: Furkan@2026)`);
+        console.log(`✓ Created new ADMIN user: ${adminEmail}`);
       }
     } catch (e) {
       console.error(`✗ Error creating admin ${adminEmail}:`, e);

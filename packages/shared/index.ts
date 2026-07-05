@@ -7,9 +7,13 @@ export const CreateIssueSchema = z.object({
   type: z.enum(["BUG", "IMPROVEMENT"]),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
   severity: z.enum(["MINOR", "MAJOR", "CRITICAL"]),
+  // Optional at creation. assigneeId must be a valid user id; url is a reference link.
+  assigneeId: z.string().uuid().optional().nullable(),
+  url: z.string().url().optional().nullable(),
 });
 
 export type CreateIssueInput = z.infer<typeof CreateIssueSchema>;
 
 export * from "./casl";
 export * from "./routes";
+export * from "./statusWorkflow";

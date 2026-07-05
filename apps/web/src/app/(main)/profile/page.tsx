@@ -1,37 +1,66 @@
-import { getAppSession } from "@/lib/auth/session";
-import { redirect } from "next/navigation";
-import Link from "next/link";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/utils";
-import { LogOut, User, Mail, Shield, Calendar } from "lucide-react";
-import prisma from "@/lib/prisma";
+import { LogOut, User, Mail, Shield, Calendar, Edit3, Save, X } from "lucide-react";
 
-export default async function ProfilePage() {
-  const session = await getAppSession();
-  if (!session?.user) {
-    redirect("/login");
+export default function ProfilePage() {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/users/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        setUser(data);
+        setEditName(data.name || "");
+      })
+      .catch(() => router.push("/login"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function handleSave() {
+    if (!editName.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/users/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName.trim() }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setUser(updated);
+        setEditing(false);
+      }
+    } finally {
+      setSaving(false);
+    }
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      createdAt: true,
-      _count: { select: { issues: true } },
-    },
-  });
+  if (loading) {
+    return (
+      <div className="page-stack">
+        <PageHeader title="My Profile" description="Loading..." />
+      </div>
+    );
+  }
 
-  if (!user) redirect("/login");
+  if (!user) return null;
 
   const initials = (user.name ?? user.email)
     .split(" ")
-    .map((w) => w[0])
+    .map((w: string) => w[0])
     .slice(0, 2)
     .join("")
     .toUpperCase();
@@ -48,22 +77,32 @@ export default async function ProfilePage() {
     <div className="page-stack">
       <PageHeader
         title="My Profile"
-        description="Your account details and activity summary."
+        description="Your account details."
       />
 
       <div className="mx-auto w-full max-w-lg">
         <Card className="overflow-hidden shadow-md">
-          {/* Banner */}
           <div className="h-24 bg-gradient-to-br from-[hsl(var(--color-open)/0.6)] via-[hsl(var(--color-in-progress)/0.5)] to-[hsl(var(--color-resolved)/0.4)]" />
 
-          {/* Avatar */}
           <div className="-mt-12 flex flex-col items-center px-6 pb-6 pt-0 text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-background bg-[hsl(var(--color-in-progress))] text-xl font-bold text-white shadow-lg">
               {initials}
             </div>
-            <h2 className="mt-3 text-xl font-bold text-foreground">
-              {user.name || "Unnamed User"}
-            </h2>
+
+            {editing ? (
+              <div className="mt-3 flex items-center gap-2">
+                <Input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="h-9 w-48 text-center text-base font-bold"
+                  placeholder="Your name"
+                />
+              </div>
+            ) : (
+              <h2 className="mt-3 text-xl font-bold text-foreground">
+                {user.name || "Unnamed"}
+              </h2>
+            )}
             <p className="text-sm text-muted-foreground">{user.email}</p>
             <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${roleColor}`}>
               <Shield className="h-3 w-3" aria-hidden="true" />
@@ -71,27 +110,25 @@ export default async function ProfilePage() {
             </span>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-2 divide-x divide-border/60 border-t border-border/60">
             <div className="p-4 text-center">
               <p className="text-2xl font-bold tabular-nums text-[hsl(var(--color-in-progress))]">
-                {user._count.issues}
+                {user._count?.issues ?? 0}
               </p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Issues Submitted</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Issues</p>
             </div>
             <div className="p-4 text-center">
               <p className="text-sm font-semibold text-foreground">
                 {formatDate(user.createdAt)}
               </p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Member Since</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Since</p>
             </div>
           </div>
 
-          {/* Detail rows */}
           <div className="space-y-0 border-t border-border/60">
             {[
-              { icon: User, label: "Full name", value: user.name || "—" },
-              { icon: Mail, label: "Email address", value: user.email },
+              { icon: User, label: "Name", value: user.name || "—" },
+              { icon: Mail, label: "Email", value: user.email },
               { icon: Shield, label: "Role", value: roleLabel },
               { icon: Calendar, label: "Joined", value: formatDate(user.createdAt) },
             ].map(({ icon: Icon, label, value }) => (
@@ -101,25 +138,63 @@ export default async function ProfilePage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[11px] text-muted-foreground">{label}</p>
-                  <p className="text-sm font-medium text-foreground truncate">{value}</p>
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {label === "Name" && editing ? (
+                      <Input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="h-7 px-2 text-sm"
+                      />
+                    ) : (
+                      value
+                    )}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center justify-between border-t border-border/60 px-6 py-4">
-            <Button asChild variant="outline" size="sm" className="gap-1.5">
-              <Link href="/tasks">
-                View my issues
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="sm" className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive">
-              <Link href="/logout">
-                <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-                Sign out
-              </Link>
-            </Button>
+          <div className="flex items-center justify-between gap-2 border-t border-border/60 px-6 py-4">
+            {editing ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => { setEditing(false); setEditName(user.name || ""); }}
+                >
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={handleSave}
+                  disabled={saving || !editName.trim()}
+                >
+                  <Save className="h-3.5 w-3.5" aria-hidden="true" />
+                  {saving ? "Saving..." : "Save"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => setEditing(true)}
+                >
+                  <Edit3 className="h-3.5 w-3.5" aria-hidden="true" />
+                  Edit
+                </Button>
+                <Button asChild variant="outline" size="sm" className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive">
+                  <a href="/logout">
+                    <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+                    Sign out
+                  </a>
+                </Button>
+              </>
+            )}
           </div>
         </Card>
       </div>

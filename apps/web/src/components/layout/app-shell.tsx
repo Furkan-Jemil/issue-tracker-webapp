@@ -75,6 +75,7 @@ export function AppShell({
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const hideSidebar = pathname.startsWith("/login") || pathname.startsWith("/register");
 
   useEffect(() => {
@@ -110,6 +111,20 @@ export function AppShell({
     setMobileOpen(false);
   }, [pathname]);
 
+  // Scroll detection for header transparency
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 10 || (document.querySelector("#main-content")?.scrollTop ?? 0) > 10);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const main = document.querySelector("#main-content");
+    if (main) main.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (main) main.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
   const sidebarWidthClass = sidebarExpanded ? "w-48 md:w-52" : "w-16";
   const contentOffsetClass = sidebarExpanded
     ? "lg:pl-48 lg:md:pl-52"
@@ -143,7 +158,9 @@ export function AppShell({
     return (
       <div className="flex h-full flex-col">
         {/* ── Header: Logo + collapse toggle ─────────────────────────────── */}
-        <div className="flex h-14 shrink-0 items-center justify-between gap-1 border-b border-border/80 px-2.5">
+        <div className={`flex h-14 shrink-0 items-center justify-between gap-1 border-b border-border/80 px-2.5 transition-all duration-300 ${
+          scrolled ? "bg-card/60 backdrop-blur-md" : "bg-card"
+        }`}>
           <Link
             href="/tasks"
             className="flex min-w-0 items-center gap-2 outline-none">
@@ -336,7 +353,9 @@ export function AppShell({
       )}
 
       {/* ── Mobile top bar ───────────────────────────────────────────────── */}
-      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card px-3 lg:hidden">
+      <header className={`fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-border px-3 transition-all duration-300 lg:hidden ${
+        scrolled ? "bg-card/60 backdrop-blur-md" : "bg-card"
+      }`}>
         <Button
           type="button"
           variant="ghost"
