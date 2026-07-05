@@ -13,7 +13,6 @@ node_modules/
 !.yarn/versions
 public/uploads/
 ADVISOR_PRESENTATION_GUIDE.md
-scripts/check-sessions.ts
 
 # testing
 /coverage
@@ -64,5 +63,5 @@ next-env.d.ts
 /generated/prisma
 /tmp/
 /jira-clickup-uiux-analysis.md
-scripts/seed-test-users.ts
-scripts/seed-test-issues.ts
+scripts/
+apps/mobile/eas.json
