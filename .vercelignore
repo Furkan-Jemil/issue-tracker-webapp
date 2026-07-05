@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Build outputs
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage/
+
+# Turbo
+.turbo/
+
+# Docker
+.docker/
+
+# Git
+git/
+.git/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Prisma
+.prisma/
+
+# Expo
+web-build/
+
+# Mobile build artifacts
+android/
+ios/

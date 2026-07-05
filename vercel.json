@@ -4,7 +4,7 @@
   "buildCommand": "npx prisma generate --schema=packages/database/prisma/schema.prisma",
   "outputDirectory": "public",
   "functions": {
-    "api/[...route].ts": {
+    "api/[...route].mjs": {
       "maxDuration": 30
     }
   }
