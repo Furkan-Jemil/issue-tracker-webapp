@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "prisma generate --schema=../../packages/database/prisma/schema.prisma",
+  "functions": {
+    "api/[[...route]].ts": {
+      "maxDuration": 30
+    }
+  }
+}
