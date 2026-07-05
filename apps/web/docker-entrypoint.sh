@@ -1,17 +1,22 @@
 #!/bin/sh
 set -eu
 
-if [ "${SKIP_DB_PUSH:-false}" != "true" ]; then
-	npx prisma db push
+if [ -z "${DATABASE_URL:-}" ]; then
+	echo "ERROR: DATABASE_URL is not set."
+	echo "Make sure a PostgreSQL plugin is linked to this service in Railway."
+	exit 1
 fi
 
-if [ "${WAIT_FOR_DB:-true}" = "true" ]; then
-	if [ -f ./scripts/wait-for-db.js ]; then
-		echo "Waiting for database to become available..."
-		node ./scripts/wait-for-db.js
-	else
-		echo "No wait-for-db script found; skipping wait."
-	fi
+echo "DATABASE_URL is set (host:port: $(echo "$DATABASE_URL" | sed 's|.*@||;s|/.*||'))"
+
+if echo "$DATABASE_URL" | grep -qE '(localhost|127\.0\.0\.1)'; then
+	echo "WARNING: DATABASE_URL points to localhost — this won't work in Railway."
+	echo "Ensure your Railway PostgreSQL plugin is linked to this service."
+fi
+
+if [ "${SKIP_DB_PUSH:-false}" != "true" ]; then
+	echo "Running prisma db push..."
+	npx prisma db push 2>&1 || echo "prisma db push failed (non-fatal, continuing)"
 fi
 
 if [ "$#" -gt 0 ]; then
