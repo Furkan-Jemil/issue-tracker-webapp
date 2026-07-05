@@ -20,9 +20,6 @@ export default function SettingsScreen() {
 
   const signOut = async () => {
     await logout();
-    let nav: any = navigation;
-    while (nav.getParent && nav.getParent()) nav = nav.getParent();
-    nav.reset({ index: 0, routes: [{ name: 'Auth' }] });
   };
 
   const clearCache = () => {
@@ -75,8 +72,8 @@ export default function SettingsScreen() {
           {rows.map((r, i) => (
             <TouchableOpacity key={r.label} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={r.label} style={[styles.row, { paddingHorizontal: spacing.xl, paddingVertical: spacing.md }, i < rows.length - 1 && { borderBottomColor: colors.cardBorder, borderBottomWidth: StyleSheet.hairlineWidth }]}
               onPress={() => {
-                if (r.label === 'Notifications') navigation.navigate('Notifications');
-                else if (r.label === 'Audit Logs') navigation.navigate('AuditLog');
+                if (r.label === 'Notifications') navigation.navigate('Tabs', { screen: 'Notifications' });
+                else if (r.label === 'Audit Logs') navigation.navigate('Tabs', { screen: 'AuditLog' });
               }}>
               <View style={[styles.rowLeft, { gap: spacing.md }]}>
                 <r.Icon size={16} color={colors.mutedForeground} />

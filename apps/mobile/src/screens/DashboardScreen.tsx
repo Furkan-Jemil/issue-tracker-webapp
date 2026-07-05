@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, RefreshControl, TouchableOpacity, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -12,7 +12,8 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
-import { Screen, Card, SearchBar, IconButton, Select, Skeleton, FilterPopover } from '../components/ui';
+import { useResponsive } from '../responsive/useResponsive';
+import { Screen, Card, IconButton, Select, Skeleton, FilterPopover, Button } from '../components/ui';
 import usePersistedState from '../utils/usePersistedState';
 import StatusDonut from '../charts/StatusDonut';
 import ComparisonBars from '../charts/ComparisonBars';
@@ -27,41 +28,20 @@ const RANGE_OPTIONS = [
   { value: '1 year', label: '1 year' },
 ];
 
-const FILTER_STATUS_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: 'OPEN', label: 'Open' },
-  { value: 'IN_PROGRESS', label: 'In Progress' },
-  { value: 'RESOLVED', label: 'Resolved' },
-  { value: 'CLOSED', label: 'Closed' },
-];
-
-const FILTER_PRIORITY_OPTIONS = [
-  { value: '', label: 'All priorities' },
-  { value: 'LOW', label: 'Low' },
-  { value: 'MEDIUM', label: 'Medium' },
-  { value: 'HIGH', label: 'High' },
-];
-
-const FILTER_SEVERITY_OPTIONS = [
-  { value: '', label: 'All severities' },
-  { value: 'MINOR', label: 'Minor' },
-  { value: 'MAJOR', label: 'Major' },
-  { value: 'CRITICAL', label: 'Critical' },
-];
-
 export default function DashboardScreen() {
   const { colors, spacing, typography, pagePadding } = useTheme();
   const { isTablet } = useResponsive();
   const navigation = useNavigation<any>();
   const { issues, isLoading, fetchError, refreshData } = useAppContext();
 
-  const [search, setSearch] = useState('');
   const [range, setRange] = usePersistedState('dashboard_range', '30 days');
   const [refreshing, setRefreshing] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filterStatus, setFilterStatus] = usePersistedState('dashboard_status', '');
   const [filterPriority, setFilterPriority] = usePersistedState('dashboard_priority', '');
   const [filterSeverity, setFilterSeverity] = usePersistedState('dashboard_severity', '');
+
+  const activeFilterCount = [filterStatus, filterPriority, filterSeverity].filter(Boolean).length;
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -73,7 +53,12 @@ export default function DashboardScreen() {
   const rangeDays = { '7 days': 7, '30 days': 30, '90 days': 90, '1 year': 365 }[range] ?? 30;
   const cutoff = Date.now() - rangeDays * day;
 
-  const filteredByTime = issues.filter((i: any) => new Date(i.created_at).getTime() > cutoff);
+   const filteredByTime = (issues as any[]).filter((i: any) => {
+     const ts = i.created_at ?? i.createdAt;
+     if (!ts) return false;
+     const date = new Date(ts);
+     return !isNaN(date.getTime()) && date.getTime() > cutoff;
+   });
 
   const filtered = filteredByTime.filter((i) => {
     if (filterStatus && i.status !== filterStatus) return false;
@@ -105,18 +90,54 @@ export default function DashboardScreen() {
     { label: 'Closed', value: closed, color: colors.chartClosed },
   ];
 
-  const barData = [
-    { label: 'May 20–25', open: 0, closed: 0 },
-    { label: 'Jun 1–6', open: Math.min(open, 2), closed: Math.min(closed, 1) },
-    { label: 'Jun 13–18', open: Math.min(open, 3), closed: Math.min(closed, 2) },
-  ];
+   const barData = useMemo(() => {
+     if (!filtered.length) return [];
+     const buckets = 3;
+     const validDates = filtered.filter(i => {
+       const date = new Date(i.created_at ?? i.createdAt);
+       return !isNaN(date.getTime());
+     });
+     if (validDates.length === 0) return [];
+     
+     const minT = Math.min(...validDates.map((i) => new Date(i.created_at ?? i.createdAt).getTime()));
+     const maxT = Math.max(...validDates.map((i) => new Date(i.created_at ?? i.createdAt).getTime()));
+     const span = Math.max(maxT - minT, day);
+     const bucketSize = span / buckets;
+     return Array.from({ length: buckets }, (_, b) => {
+       const lo = minT + b * bucketSize;
+       const hi = lo + bucketSize;
+       const inBucket = validDates.filter((i) => {
+         const t = new Date(i.created_at ?? i.createdAt).getTime();
+         return t >= lo && t < hi;
+       });
+       const label = `${new Date(lo).toLocaleDateString('en', { month: 'short', day: 'numeric' })}–${new Date(hi).toLocaleDateString('en', { day: 'numeric' })}`;
+       return { label, open: inBucket.filter((i) => i.status === 'OPEN').length, closed: inBucket.filter((i) => i.status === 'CLOSED').length };
+     });
+   }, [filtered, day]);
 
-  const trendData = [
-    { label: 'May 20', open: 0, prog: 0 },
-    { label: 'Jun 1', open: Math.min(open, 1), prog: Math.min(inProgress, 1) },
-    { label: 'Jun 13', open: Math.min(open, 2), prog: Math.min(inProgress, 2) },
-    { label: 'Jun 17', open: Math.max(0, open - 1), prog: Math.max(0, inProgress - 1) },
-  ];
+   const trendData = useMemo(() => {
+     if (!filtered.length) return [];
+     const points = 4;
+     const validDates = filtered.filter(i => {
+       const date = new Date(i.created_at ?? i.createdAt);
+       return !isNaN(date.getTime());
+     });
+     if (validDates.length === 0) return [];
+     
+     const minT = Math.min(...validDates.map((i) => new Date(i.created_at ?? i.createdAt).getTime()));
+     const maxT = Math.max(...validDates.map((i) => new Date(i.created_at ?? i.createdAt).getTime()));
+     const span = Math.max(maxT - minT, day);
+     const step = span / (points - 1);
+     return Array.from({ length: points }, (_, p) => {
+       const t = minT + p * step;
+       const label = new Date(t).toLocaleDateString('en', { month: 'short', day: 'numeric' });
+       return { 
+         label, 
+         open: validDates.filter((i) => new Date(i.created_at ?? i.createdAt).getTime() <= t && i.status === 'OPEN').length, 
+         prog: validDates.filter((i) => new Date(i.created_at ?? i.createdAt).getTime() <= t && i.status === 'IN_PROGRESS').length 
+       };
+     });
+   }, [filtered, day]);
 
   const comparisonCard = (
     <Card padding={spacing.xl}>
@@ -124,14 +145,11 @@ export default function DashboardScreen() {
       <Text style={[typography.cardDesc, { color: colors.mutedForeground }]}>
         Open versus closed issue volume by grouped date buckets.
       </Text>
-      <ComparisonBars data={barData} onBarPress={() => navigation.navigate('TasksList')} />
-      <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('TasksList')}>
+      <ComparisonBars data={barData} onSegmentPress={(kind) => navigation.navigate('TasksList', { initialStatus: kind === 'open' ? 'OPEN' : 'CLOSED' })} />
+      <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('TasksList')} accessibilityRole="button" accessibilityLabel="View all issues">
         <View style={[styles.footerDivider, { borderTopColor: colors.cardBorder }]} />
-        <Text style={[typography.footerCaption, { color: colors.foreground }]}>
-          Trending up by 5.2% this month
-        </Text>
-        <Text style={[typography.footerSub, { color: colors.mutedForeground }]}>
-          Based on current sprint data
+        <Text style={[typography.footerCaption, { color: colors.primary }]}>
+          View all issues →
         </Text>
       </TouchableOpacity>
     </Card>
@@ -143,14 +161,11 @@ export default function DashboardScreen() {
       <Text style={[typography.cardDesc, { color: colors.mutedForeground }]}>
         Open and in-progress issues across the selected range.
       </Text>
-      <TrendLine data={trendData} onPointPress={() => navigation.navigate('TasksList')} />
-      <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('TasksList')}>
+      <TrendLine data={trendData} onSeriesPress={(series) => navigation.navigate('TasksList', { initialStatus: series === 'open' ? 'OPEN' : 'IN_PROGRESS' })} />
+      <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('TasksList')} accessibilityRole="button" accessibilityLabel="View all issues">
         <View style={[styles.footerDivider, { borderTopColor: colors.cardBorder }]} />
-        <Text style={[typography.footerCaption, { color: colors.foreground }]}>
-          Trending up by 5.2% this month
-        </Text>
-        <Text style={[typography.footerSub, { color: colors.mutedForeground }]}>
-          Based on current sprint data
+        <Text style={[typography.footerCaption, { color: colors.primary }]}>
+          View all issues →
         </Text>
       </TouchableOpacity>
     </Card>
@@ -263,15 +278,14 @@ export default function DashboardScreen() {
         <Text style={[typography.cardTitle, { color: colors.foreground }]}>Analytics</Text>
 
         <View style={styles.toolbar}>
-          <View style={{ flex: 1 }}>
-            <SearchBar value={search} onChangeText={setSearch} placeholder="Search dashboard…" />
-          </View>
           <IconButton
-            icon={<SlidersHorizontal size={15} color={filtersOpen || filterStatus || filterPriority || filterSeverity ? colors.primary : colors.mutedForeground} />}
-            active={filtersOpen || !!filterStatus || !!filterPriority || !!filterSeverity}
+            icon={<SlidersHorizontal size={15} color={colors.mutedForeground} />}
+            badge={activeFilterCount}
+            badgeColor={colors.primary}
             onPress={() => setFiltersOpen((v) => !v)}
-            accessibilityLabel="Toggle filters"
+            accessibilityLabel={`Filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ''}`}
           />
+          <View style={{ flex: 1 }} />
           <View style={{ width: 120 }}>
             <Select value={range} options={RANGE_OPTIONS} onChange={setRange} />
           </View>
@@ -284,41 +298,73 @@ export default function DashboardScreen() {
           priorityF={filterPriority}
           severityF={filterSeverity}
           onApply={(s, p, sev) => {
-            setFilterStatus(s);
-            setFilterPriority(p);
-            setFilterSeverity(sev);
+            // FilterPopover emits 'all' for "no filter"; this screen uses '' as the
+            // empty sentinel, so normalize here — otherwise 'all' is treated as a
+            // real status value and filters every issue out.
+            setFilterStatus(s === 'all' ? '' : s);
+            setFilterPriority(p === 'all' ? '' : p);
+            setFilterSeverity(sev === 'all' ? '' : sev);
           }}
         />
 
-        {/* Status Mix */}
-        <Card padding={spacing.xl}>
-          <Text style={[typography.cardTitle, { color: colors.foreground }]}>Status Mix</Text>
-          <Text style={[typography.cardDesc, { color: colors.mutedForeground }]}>
-            Current issue distribution by workflow state.
-          </Text>
-          <StatusDonut data={donutData} onSlicePress={(label) => navigation.navigate('TasksList', { initialStatus: label === 'In Progress' ? 'IN_PROGRESS' : label.toUpperCase() })} />
-          <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('TasksList')}>
-            <View style={[styles.footerDivider, { borderTopColor: colors.cardBorder }]} />
-            <Text style={[typography.footerCaption, { color: colors.foreground }]}>
-              Trending up by 5.2% this month
-            </Text>
-            <Text style={[typography.footerSub, { color: colors.mutedForeground }]}>
-              Based on current sprint data
-            </Text>
-          </TouchableOpacity>
-        </Card>
+        {filtered.length === 0 ? (
+          <Card padding={spacing.xl}>
+            <View style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.lg }}>
+              <BarChart3 size={40} color={colors.mutedForeground + '33'} />
+              <Text style={[typography.detailValue, { color: colors.mutedForeground }]}>
+                No issues match these filters
+              </Text>
+              <Text style={[typography.bodySm, { color: colors.mutedForeground, textAlign: 'center' }]}>
+                {activeFilterCount > 0
+                  ? 'Adjust or clear the filters to see analytics.'
+                  : 'No issues fall within the selected time range.'}
+              </Text>
+              {activeFilterCount > 0 && (
+                <Button
+                  title="Clear filters"
+                  variant="outline"
+                  size="sm"
+                  onPress={() => {
+                    setFilterStatus('');
+                    setFilterPriority('');
+                    setFilterSeverity('');
+                  }}
+                />
+              )}
+            </View>
+          </Card>
+         ) : (
+           <>
+             {/* Status Mix - only show if we have data */}
+             {donutData.some(d => d.value > 0) && (
+               <Card padding={spacing.xl}>
+                 <Text style={[typography.cardTitle, { color: colors.foreground }]}>Status Mix</Text>
+                 <Text style={[typography.cardDesc, { color: colors.mutedForeground }]}>
+                   Current issue distribution by workflow state.
+                 </Text>
+                 <StatusDonut data={donutData} onSlicePress={(label) => navigation.navigate('TasksList', { initialStatus: label === 'In Progress' ? 'IN_PROGRESS' : label.toUpperCase() })} />
+                 <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('TasksList')} accessibilityRole="button" accessibilityLabel="View all issues">
+                   <View style={[styles.footerDivider, { borderTopColor: colors.cardBorder }]} />
+                   <Text style={[typography.footerCaption, { color: colors.primary }]}>
+                     View all issues →
+                   </Text>
+                 </TouchableOpacity>
+               </Card>
+             )}
 
-        {isTablet ? (
-          <View style={styles.chartRow}>
-            <View style={{ flex: 1 }}>{comparisonCard}</View>
-            <View style={{ flex: 1 }}>{trendCard}</View>
-          </View>
-        ) : (
-          <>
-            {comparisonCard}
-            {trendCard}
-          </>
-        )}
+             {isTablet ? (
+               <View style={styles.chartRow}>
+                 {barData.length > 0 && <View style={{ flex: 1 }}>{comparisonCard}</View>}
+                 {trendData.length > 0 && <View style={{ flex: 1 }}>{trendCard}</View>}
+               </View>
+             ) : (
+               <>
+                 {barData.length > 0 && comparisonCard}
+                 {trendData.length > 0 && trendCard}
+               </>
+             )}
+           </>
+         )}
       </View>
       </>
       )}

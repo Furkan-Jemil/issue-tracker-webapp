@@ -16,7 +16,17 @@ import {
   Skeleton,
 } from '../components/ui';
 import TwoPane from '../responsive/TwoPane';
-import { relativeTime, getInitials } from '../utils/formatters';
+import { relativeTime, getInitials, shortId } from '../utils/formatters';
+import { useToast } from '../components/Toast';
+
+// Mirror of the canonical workflow in @workspace/shared/statusWorkflow — kept
+// local to avoid bundling the shared package (and its CASL deps) into the RN app.
+const STATUS_TRANSITIONS: Record<string, string[]> = {
+  OPEN: ['IN_PROGRESS', 'CLOSED'],
+  IN_PROGRESS: ['RESOLVED', 'OPEN'],
+  RESOLVED: ['CLOSED', 'IN_PROGRESS'],
+  CLOSED: ['OPEN'],
+};
 
 interface Comment {
   id: string;
@@ -75,7 +85,7 @@ export default function TaskDetailScreen() {
 
   if (isLoading) {
     return (
-      <Screen title="Issue Detail" scroll={false}>
+      <Screen title="Issue Detail">
         <View style={{ padding: spacing.xl, gap: spacing.md }}>
           <Skeleton width="40%" height={12} borderRadius={4} />
           <Skeleton width="80%" height={22} borderRadius={6} />
@@ -92,7 +102,7 @@ export default function TaskDetailScreen() {
 
   if (!issue) {
     return (
-      <Screen title="Issue Not Found">
+      <Screen title="Issue Not Found" scroll={false}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <Text style={[typography.bodySm, { color: colors.mutedForeground, textAlign: 'center' }]}>
             The issue you're looking for doesn't exist or has been deleted.
@@ -105,6 +115,7 @@ export default function TaskDetailScreen() {
   const assigneeOptions = memberList.map((m) => ({ value: m.name, label: m.name }));
 
   const { deleteIssue, updateIssue, auditLogs, addComment } = useAppContext();
+  const { showToast } = useToast();
 
   const [status, setStatus] = useState(issue.status);
   const [priority, setPriority] = useState(issue.priority);
@@ -115,15 +126,21 @@ export default function TaskDetailScreen() {
   const [saving, setSaving] = useState<Record<string, boolean>>({});
 
   const issueLogs = (auditLogs as any[]).filter(
-    (l: any) => l.description && l.description.includes(issue.id)
-  ).sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    (l: any) => (l.issueId ?? l.issue?.id) === issue.id
+  ).sort((a: any, b: any) => new Date(b.created_at ?? b.createdAt).getTime() - new Date(a.created_at ?? a.createdAt).getTime());
 
-  const onFieldChange = (field: string, value: string, setter: (v: string) => void) => {
+  const onFieldChange = (field: string, value: string, setter: (v: string) => void, previous: string) => {
     setter(value);
     setSaving((prev) => ({ ...prev, [field]: true }));
-    updateIssue(issue.id, { [field]: value }).finally(() => {
-      setSaving((prev) => ({ ...prev, [field]: false }));
-    });
+    updateIssue(issue.id, { [field]: value })
+      .catch((err) => {
+        // Revert the control and surface the reason (e.g. invalid status transition).
+        setter(previous);
+        showToast({ message: err instanceof Error ? err.message : `Failed to update ${field}`, type: 'error' });
+      })
+      .finally(() => {
+        setSaving((prev) => ({ ...prev, [field]: false }));
+      });
   };
 
   const postComment = async () => {
@@ -132,17 +149,15 @@ export default function TaskDetailScreen() {
     try {
       const saved = await addComment(issue.id, body);
       setComments((prev) => [...prev, saved]);
-    } catch {
-      setComments((prev) => [
-        ...prev,
-        { id: `local-${Date.now()}`, author: 'You', body, created_at: new Date().toISOString() },
-      ]);
+      setComment('');
+    } catch (err) {
+      // Do NOT fake a comment on failure — surface the real error instead.
+      showToast({ message: err instanceof Error ? err.message : 'Failed to post comment', type: 'error' });
     }
-    setComment('');
   };
 
   const onDelete = () => {
-    Alert.alert('Delete Issue', `Are you sure you want to delete ${issue.id}?`, [
+    Alert.alert('Delete Issue', `Are you sure you want to delete ${shortId(issue.id)}?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: async () => {
         await deleteIssue(issue.id);
@@ -155,7 +170,7 @@ export default function TaskDetailScreen() {
     <View style={[styles.headerBlock, { gap: spacing.lg }]}>
       <View style={{ flex: 1, minWidth: 0 }}>
         <View style={[styles.idRow, { gap: spacing.sm, marginBottom: spacing.xs }]}>
-          <Text style={[typography.monoId, { color: colors.mutedForeground }]}>{issue.id}</Text>
+          <Text style={[typography.monoId, { color: colors.mutedForeground }]}>{shortId(issue.id)}</Text>
           <Badge kind="type" value={issue.type} />
         </View>
         <Text style={[typography.detailTitle, { color: colors.foreground }]}>{issue.title}</Text>
@@ -268,24 +283,29 @@ export default function TaskDetailScreen() {
       <Card padding={spacing.cardPadding}>
         <View style={{ gap: spacing.lg }}>
           <SecLabel>Issue Details</SecLabel>
-          <Select label="Status" value={status} options={STATUS_OPTIONS} onChange={(v) => onFieldChange('status', v, setStatus)} />
+          <Select
+            label="Status"
+            value={status}
+            options={STATUS_OPTIONS.filter((o) => o.value === status || (STATUS_TRANSITIONS[status] ?? []).includes(o.value))}
+            onChange={(v) => onFieldChange('status', v, setStatus, status)}
+          />
           <Select
             label="Priority"
             value={priority}
             options={PRIORITY_OPTIONS}
-            onChange={(v) => onFieldChange('priority', v, setPriority)}
+            onChange={(v) => onFieldChange('priority', v, setPriority, priority)}
           />
           <Select
             label="Severity"
             value={severity}
             options={SEVERITY_OPTIONS}
-            onChange={(v) => onFieldChange('severity', v, setSeverity)}
+            onChange={(v) => onFieldChange('severity', v, setSeverity, severity)}
           />
           <Select
             label="Assignee"
             value={assignee}
             options={assigneeOptions}
-            onChange={(v) => onFieldChange('assignee', v, setAssignee)}
+            onChange={(v) => onFieldChange('assignee', v, setAssignee, assignee)}
             placeholder="Unassigned"
           />
 
@@ -311,11 +331,11 @@ export default function TaskDetailScreen() {
 
   return (
     <Screen
-      title={issue.id}
+      title={`Issue ${shortId(issue.id)}`}
       subtitle="Full task context and activity"
       onBack={() => navigation.goBack()}
     >
-      <View style={{ paddingHorizontal: pagePadding, paddingVertical: spacing.xl, gap: spacing.xl }}>
+      <View style={{ paddingHorizontal: pagePadding, paddingTop: spacing.xl, paddingBottom: spacing.xl, gap: spacing.xl }}>
         {headerBlock}
         <TwoPane main={main} side={side} sideWidth={300} />
       </View>

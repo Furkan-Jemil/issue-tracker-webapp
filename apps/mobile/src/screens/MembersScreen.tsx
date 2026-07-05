@@ -11,11 +11,12 @@ import {
   Dimensions,
   Platform,
   RefreshControl,
+  LayoutRectangle,
 } from 'react-native';
-import { UserCheck, Shield, X, ChevronDown } from 'lucide-react-native';
+import { UserCheck, Shield, X, ChevronDown, ChevronRight, Search } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
-import { Screen, Card, Badge, Avatar, Button, SearchBar, AnimatedEntry, Skeleton } from '../components/ui';
+import { Screen, Card, Badge, Avatar, Button, SearchOverlay, IconButton, AnimatedEntry, Skeleton, ContextualPopover, ContextualAnchor } from '../components/ui';
 import { getInitials } from '../utils/formatters';
 import usePersistedState from '../utils/usePersistedState';
 import useDebounce from '../utils/useDebounce';
@@ -31,11 +32,12 @@ export default function MembersScreen() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 300);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [filterRole, setFilterRole] = usePersistedState('members_role', 'ALL');
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedMember, setSelectedMember] = useState<any>(null);
-  const [showRoleSheet, setShowRoleSheet] = useState(false);
-  const [showFilterSheet, setShowFilterSheet] = useState(false);
+  const [roleAnchor, setRoleAnchor] = useState<LayoutRectangle | null>(null);
+  const [filterAnchor, setFilterAnchor] = useState<LayoutRectangle | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
@@ -43,6 +45,12 @@ export default function MembersScreen() {
     await refreshData();
     setRefreshing(false);
   }, [refreshData]);
+
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false);
+    setSearchQuery('');
+    setCurrentPage(0);
+  }, []);
 
   const filteredMembers = useMemo(() => {
     let list = [...members];
@@ -76,20 +84,20 @@ export default function MembersScreen() {
     [filteredMembers, safePage],
   );
 
-  const handleMemberPress = useCallback((member: any) => {
+  const handleMemberPress = useCallback((member: any, rect: LayoutRectangle) => {
     setSelectedMember(member);
-    setShowRoleSheet(true);
+    setRoleAnchor(rect);
   }, []);
 
   const handleRoleChange = useCallback(
     async (role: string) => {
       if (!selectedMember) return;
-      setShowRoleSheet(false);
+      setRoleAnchor(null);
       try {
-        await changeUserRole(selectedMember.id, role);
-      } catch {
-        Alert.alert('Error', 'Failed to update role. Please try again.');
-      }
+         await changeUserRole(selectedMember.id, role);
+       } catch (err) {
+         Alert.alert('Role Update Failed', err instanceof Error ? err.message : 'Please try again.');
+       }
     },
     [selectedMember, changeUserRole],
   );
@@ -131,31 +139,31 @@ export default function MembersScreen() {
 
     return (
       <AnimatedEntry index={index}>
-        <TouchableOpacity
-          style={[
+      <ContextualAnchor
+        style={[
           styles.memberCard,
           {
             backgroundColor: colors.card,
-            borderRadius: radius.xl,
-            padding: spacing.cardPadding,
+            borderRadius: radius.lg,
+            padding: spacing.md,
             borderColor: colors.cardBorder,
             borderWidth: StyleSheet.hairlineWidth,
             shadowColor: '#0b1c30',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.05,
-            shadowRadius: 20,
-            elevation: 2,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.04,
+            shadowRadius: 10,
+            elevation: 1,
           },
         ]}
         accessibilityRole="button"
         accessibilityLabel={`View ${item.name ?? 'Unnamed'}`}
-        onPress={() => handleMemberPress(item)}
+        onPressAnchor={(rect) => handleMemberPress(item, rect)}
         activeOpacity={isAdmin ? 0.7 : 1}
         disabled={!isAdmin}
       >
-        <View style={styles.memberRow}>
+        <View style={[styles.memberRow, { gap: spacing.md }]}>
           <Avatar name={item.name} email={item.email} size="sm" />
-          <View style={[styles.memberInfo, { marginLeft: spacing.md }]}>
+          <View style={styles.memberInfo}>
             <Text
               style={[typography.bodySmBold, { color: colors.onSurface }]}
               numberOfLines={1}
@@ -170,40 +178,61 @@ export default function MembersScreen() {
               {item.email ?? '—'}
             </Text>
           </View>
-          <View style={styles.memberRight}>
+          <View style={[styles.memberRight, { gap: spacing.xs }]}>
             <Badge kind="role" value={item.role ?? 'USER'} />
-            {isAdmin && (
-              <View style={{ marginLeft: spacing.xs }}>
-                <UserCheck size={16} color={colors.onSurfaceVariant} />
-              </View>
-            )}
+            {isAdmin && <ChevronRight size={16} color={colors.onSurfaceVariant} />}
           </View>
         </View>
-      </TouchableOpacity>
+      </ContextualAnchor>
     </AnimatedEntry>
     );
   };
 
   return (
     <Screen title="Members" subtitle={isAdmin ? 'Tap a member to change role' : undefined} scroll={false}>
-      {/* Search + role filter — horizontal */}
+      {/* Role filter + search icon — horizontal */}
       <View style={[styles.searchRow, { paddingHorizontal: pagePadding, paddingTop: spacing.md, gap: spacing.sm }]}>
-        <View style={{ flex: 1 }}>
-          <SearchBar value={searchQuery} onChangeText={setSearchQuery} placeholder="Search members…" />
-        </View>
-        <TouchableOpacity
+        <ContextualAnchor
           style={[styles.filterBtn, { backgroundColor: colors.surfaceContainerLow, borderRadius: radius.full, borderColor: colors.outlineVariant }]}
           accessibilityRole="button"
           accessibilityLabel={`Filter by role, currently ${filterRole === 'ALL' ? 'All Roles' : filterRole}`}
-          onPress={() => setShowFilterSheet(true)}
+          onPressAnchor={(rect) => setFilterAnchor(rect)}
           activeOpacity={0.7}
         >
           <Text style={[typography.bodySmBold, { color: filterRole === 'ALL' ? colors.onSurfaceVariant : colors.primary }]}>
             {filterRole === 'ALL' ? 'All Roles' : filterRole}
           </Text>
           <ChevronDown size={14} color={colors.onSurfaceVariant} />
-        </TouchableOpacity>
+        </ContextualAnchor>
+        <View style={{ flex: 1 }} />
+        <IconButton
+          icon={<Search size={16} color={colors.mutedForeground} />}
+          accessibilityLabel="Search members"
+          onPress={() => setSearchOpen(true)}
+        />
       </View>
+
+      {/* Search overlay */}
+      <SearchOverlay
+        visible={searchOpen}
+        onClose={closeSearch}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholder="Search by name or email…"
+        prompt="Search members by name or email"
+        resultCount={filteredMembers.length}
+      >
+        {filteredMembers.slice(0, 30).map((m: any) => (
+          <View key={m.id} style={[styles.resultRow, { borderBottomColor: colors.cardBorder }]}>
+            <Avatar name={m.name} email={m.email} size="xs" />
+            <View style={{ flex: 1 }}>
+              <Text numberOfLines={1} style={[typography.bodySmBold, { color: colors.foreground }]}>{m.name ?? 'Unnamed'}</Text>
+              <Text numberOfLines={1} style={[typography.bodySm, { color: colors.mutedForeground, marginTop: 2 }]}>{m.email ?? '—'}</Text>
+            </View>
+            <Badge kind="role" value={m.role ?? 'USER'} />
+          </View>
+        ))}
+      </SearchOverlay>
 
       {isLoading ? (
         <View style={[styles.listContent, { paddingHorizontal: pagePadding, paddingTop: spacing.md, gap: spacing.xs }]}>
@@ -242,7 +271,7 @@ export default function MembersScreen() {
             </View>
           ) : null
         }
-        ItemSeparatorComponent={() => <View style={{ height: spacing.xs }} />}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
       />
       )}
 
@@ -279,191 +308,97 @@ export default function MembersScreen() {
         </View>
       )}
 
-      {/* Role-change bottom sheet */}
-      <Modal
-        visible={showRoleSheet}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowRoleSheet(false)}
+      {/* Role-change ContextualPopover */}
+      <ContextualPopover
+        visible={!!roleAnchor && !!selectedMember}
+        onClose={() => setRoleAnchor(null)}
+        anchorRect={roleAnchor}
+        width={240}
       >
-        <Pressable style={styles.sheetOverlay} onPress={() => setShowRoleSheet(false)}>
-          <Pressable
-            style={[
-              styles.sheetContent,
-              {
-                backgroundColor: colors.card,
-                borderTopLeftRadius: radius.xl,
-                borderTopRightRadius: radius.xl,
-              },
-            ]}
-            onPress={() => {}}
-          >
-            <View style={[styles.sheetHandle, { backgroundColor: colors.cardBorder }]} />
-            <View style={[styles.sheetHeader, { paddingTop: spacing.lg }]}>
-              <Text style={[typography.sectionHeading, { color: colors.foreground }]}>
-                {selectedMember?.name ?? 'Change Role'}
-              </Text>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close" onPress={() => setShowRoleSheet(false)}>
-                <X size={22} color={colors.foreground} />
-              </TouchableOpacity>
-            </View>
+        <View style={{ padding: spacing.sm }}>
+          <Text style={[typography.labelBadge, { color: colors.mutedForeground, marginBottom: spacing.sm, paddingHorizontal: spacing.sm }]}>
+            Change Role
+          </Text>
+          {['USER', 'TESTER', 'ADMIN'].map((role) => {
+            const isCurrentRole = selectedMember?.role === role;
+            const isSelfAdminBlock =
+              role !== 'ADMIN' &&
+              selectedMember?.id === user?.id &&
+              user?.role === 'ADMIN';
 
-            <View style={[styles.sheetBody, { paddingBottom: spacing.lg, paddingTop: spacing.sm }]}>
-              <Text style={[typography.bodySm, { color: colors.mutedForeground, marginBottom: spacing.elementGap }]}>
-                Select a new role for this member
-              </Text>
-              {['USER', 'TESTER', 'ADMIN'].map((role) => {
-                const isCurrentRole = selectedMember?.role === role;
-                const isSelfAdminBlock =
-                  role !== 'ADMIN' &&
-                  selectedMember?.id === user?.id &&
-                  user?.role === 'ADMIN';
-                const isDisabled = isCurrentRole || isSelfAdminBlock;
-
-                return (
-                  <TouchableOpacity
-                    key={role}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Change to ${role}`}
-                    style={[
-                      styles.roleOption,
-                      {
-                        backgroundColor: isCurrentRole ? colors.primary + '10' : colors.surfaceContainerLow,
-                        borderRadius: radius.md,
-                        borderWidth: 1,
-                        borderColor: isCurrentRole ? colors.primary : colors.outlineVariant,
-                        marginBottom: spacing.xs,
-                        paddingHorizontal: spacing.cardPadding,
-                        opacity: isDisabled ? 0.5 : 1,
-                      },
-                    ]}
-                    onPress={() => handleRoleChange(role)}
-                    disabled={isDisabled}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.roleOptionLeft}>
-                      {role === 'ADMIN' ? (
-                        <Shield
-                          size={20}
-                          color={isCurrentRole ? colors.primary : colors.onSurfaceVariant}
-                        />
-                      ) : (
-                        <UserCheck
-                          size={20}
-                          color={isCurrentRole ? colors.primary : colors.onSurfaceVariant}
-                        />
-                      )}
-                      <Text
-                        style={[
-                          typography.bodySmBold,
-                          {
-                            color: isCurrentRole ? colors.primary : colors.foreground,
-                            marginLeft: spacing.md,
-                          },
-                        ]}
-                      >
-                        {role}
-                      </Text>
-                    </View>
-                    {isCurrentRole && (
-                      <View
-                        style={[
-                          styles.currentBadge,
-                          { backgroundColor: colors.primary, borderRadius: radius.full, paddingHorizontal: spacing.sm },
-                        ]}
-                      >
-                        <Text style={[typography.nanoCaps, { color: colors.onPrimary }]}>
-                          Current
-                        </Text>
-                      </View>
-                    )}
-                    {isSelfAdminBlock && (
-                      <Text style={[typography.micro, { color: colors.error }]}>
-                        Cannot demote self
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel="Cancel"
-              style={[
-                styles.cancelButton,
-                {
-                  backgroundColor: colors.muted,
-                  borderRadius: radius.md,
-                  margin: pagePadding,
-                },
-              ]}
-              onPress={() => setShowRoleSheet(false)}
-              activeOpacity={0.8}
-            >
-              <Text
+            return (
+              <TouchableOpacity
+                key={role}
+                accessibilityRole="button"
+                accessibilityLabel={`Set role to ${role}`}
                 style={[
-                  typography.sectionHeading,
-                  { color: colors.mutedForeground, textAlign: 'center' },
+                  styles.popoverItem,
+                  isCurrentRole && { backgroundColor: colors.surfaceContainerLow },
                 ]}
+                disabled={isCurrentRole || isSelfAdminBlock}
+                onPress={() => handleRoleChange(role)}
               >
-                Cancel
-              </Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
-
-      {/* Filter role selection sheet */}
-      <Modal visible={showFilterSheet} transparent animationType="slide" onRequestClose={() => setShowFilterSheet(false)}>
-        <Pressable style={styles.sheetOverlay} onPress={() => setShowFilterSheet(false)}>
-          <Pressable style={[styles.sheetContent, { backgroundColor: colors.card, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl }]}>
-            <View style={[styles.sheetHandle, { backgroundColor: colors.muted }]} />
-            <View style={[styles.sheetHeader, { paddingVertical: spacing.md }]}>
-              <Text style={[typography.sectionHeading, { color: colors.foreground }]}>Filter by Role</Text>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close" onPress={() => setShowFilterSheet(false)} hitSlop={8}>
-                <X size={18} color={colors.mutedForeground} />
+                <UserCheck size={16} color={isCurrentRole ? colors.primary : colors.foreground} />
+                <Text style={[typography.bodySmBold, { color: isCurrentRole ? colors.primary : colors.foreground, marginLeft: spacing.sm }]}>
+                  {role}
+                </Text>
+                {isCurrentRole && (
+                  <View style={[styles.currentBadge, { backgroundColor: colors.primary, marginLeft: 'auto', borderRadius: radius.full, paddingHorizontal: 6, paddingVertical: 2 }]}>
+                    <Text style={[typography.nanoCaps, { color: colors.onPrimary }]}>CURRENT</Text>
+                  </View>
+                )}
               </TouchableOpacity>
-            </View>
-            <View style={styles.sheetBody}>
-              {ROLE_OPTIONS.map((opt) => {
-                const selected = filterRole === opt;
-                return (
-                  <TouchableOpacity
-                    key={opt}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Filter by ${opt}`}
-                    style={[styles.roleOption, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.cardBorder }]}
-                    onPress={() => {
-                      setFilterRole(opt);
-                      setCurrentPage(0);
-                      setShowFilterSheet(false);
-                    }}
-                  >
-                    <View style={styles.roleOptionLeft}>
-                      <Shield size={18} color={selected ? colors.primary : colors.onSurfaceVariant} />
-                      <Text style={[typography.bodySmBold, { color: selected ? colors.primary : colors.foreground, marginLeft: spacing.md }]}>
-                        {opt === 'ALL' ? 'All Roles' : opt}
-                      </Text>
-                    </View>
-                    {selected && (
-                      <View style={[styles.currentBadge, { backgroundColor: colors.primary, borderRadius: radius.full, paddingHorizontal: spacing.sm }]}>
-                        <Text style={[typography.nanoCaps, { color: colors.onPrimary }]}>Active</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+            );
+          })}
+        </View>
+      </ContextualPopover>
+
+      {/* Filter role ContextualPopover */}
+      <ContextualPopover
+        visible={!!filterAnchor}
+        onClose={() => setFilterAnchor(null)}
+        anchorRect={filterAnchor}
+        width={200}
+      >
+        <View style={{ padding: spacing.sm }}>
+          <Text style={[typography.labelBadge, { color: colors.mutedForeground, marginBottom: spacing.sm, paddingHorizontal: spacing.sm }]}>
+            Filter Roles
+          </Text>
+          {ROLE_OPTIONS.map((opt) => {
+            const selected = filterRole === opt;
+            return (
+              <TouchableOpacity
+                key={opt}
+                accessibilityRole="button"
+                accessibilityLabel={`Filter by ${opt}`}
+                style={[styles.popoverItem, selected && { backgroundColor: colors.surfaceContainerLow }]}
+                onPress={() => {
+                  setFilterRole(opt);
+                  setCurrentPage(0);
+                  setFilterAnchor(null);
+                }}
+              >
+                <Shield size={16} color={selected ? colors.primary : colors.foreground} />
+                <Text style={[typography.bodySmBold, { color: selected ? colors.primary : colors.foreground, marginLeft: spacing.sm }]}>
+                  {opt === 'ALL' ? 'All Roles' : opt}
+                </Text>
+                {selected && (
+                  <View style={[styles.currentBadge, { backgroundColor: colors.primary, marginLeft: 'auto', borderRadius: radius.full, paddingHorizontal: 6, paddingVertical: 2 }]}>
+                    <Text style={[typography.nanoCaps, { color: colors.onPrimary }]}>ACTIVE</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </ContextualPopover>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   searchRow: { flexDirection: 'row', alignItems: 'center' },
+  resultRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth },
   chipRow: { flexDirection: 'row' },
   chip: {},
   filterBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, gap: 6 },
@@ -502,6 +437,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   roleOptionLeft: { flexDirection: 'row', alignItems: 'center' },
+  popoverItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 10, borderRadius: 8 },
   currentBadge: { paddingVertical: 2 },
   cancelButton: {
     paddingVertical: Platform.OS === 'ios' ? 14 : 12,

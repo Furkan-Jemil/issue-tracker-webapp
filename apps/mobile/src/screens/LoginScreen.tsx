@@ -6,25 +6,33 @@ import { Shield, AlertCircle } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
 import { Card, Input, Button } from '../components/ui';
+import { validateEmail, validatePassword, normalizeEmail } from '../utils/validators';
 
 export default function LoginScreen() {
   const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<any>();
   const { login } = useAppContext();
-  const [email, setEmail] = useState('admin@ethiotelecom.et');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
-    if (!email) { setError('Email is required.'); return; }
     setError('');
+    // Validate locally before hitting the network (like a normal login form).
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password);
+    setEmailError(emailErr ?? '');
+    setPasswordError(passwordErr ?? '');
+    if (emailErr || passwordErr) return;
+
     setLoading(true);
     try {
-      await login(email, password);
-      navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
-    } catch {
-      setError('Unable to sign in. Check your credentials.');
+      await login(normalizeEmail(email), password);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sign in failed');
     } finally {
       setLoading(false);
     }
@@ -32,7 +40,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={[styles.scroll, { padding: spacing.xl, gap: spacing.xl }]} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
             <View style={[styles.logo, { backgroundColor: colors.green }]}>
@@ -56,17 +64,20 @@ export default function LoginScreen() {
               <Input
                 label="Email address"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(t) => { setEmail(t); if (emailError) setEmailError(''); }}
                 placeholder="you@ethiotelecom.et"
                 autoCapitalize="none"
+                autoCorrect={false}
                 keyboardType="email-address"
+                error={emailError}
               />
               <Input
                 label="Password"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => { setPassword(t); if (passwordError) setPasswordError(''); }}
                 placeholder="Enter your password"
                 secureTextEntry
+                error={passwordError}
               />
               <Button title={loading ? 'Signing in…' : 'Sign In'} onPress={submit} loading={loading} fullWidth size="lg" />
             </View>

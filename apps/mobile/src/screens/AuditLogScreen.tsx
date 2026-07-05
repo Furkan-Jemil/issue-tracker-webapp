@@ -7,6 +7,7 @@ import {
   FlatList,
   StyleSheet,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import {
   Download,
@@ -17,15 +18,20 @@ import {
   AlertTriangle,
   Sparkles,
   X,
+  Search,
+  SlidersHorizontal,
+  Check,
 } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
-import { safeFetch } from '../utils/api';
-import { Screen, Card, SearchBar, AnimatedEntry, Skeleton } from '../components/ui';
+import { loadToken } from '../utils/secureStore';
+const API_BASE = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+import { Screen, Card, SearchOverlay, IconButton, AnimatedEntry, Skeleton, Button } from '../components/ui';
 import { getInitials, relativeTime } from '../utils/formatters';
 
 const FILTER_OPTIONS = [
-  'All', 'Created', 'Status', 'Comment', 'Priority', 'Assignee', 'Severity', 'Type',
+  'All', 'Created', 'Status', 'Priority', 'Assignee', 'Other',
 ] as const;
 
 function getEventBadge(colors: any, type: string) {
@@ -55,11 +61,19 @@ function getEventBadge(colors: any, type: string) {
 
 export default function AuditLogScreen() {
   const { colors, typography, spacing, radius, pagePadding } = useTheme();
+  const insets = useSafeAreaInsets();
   const { auditLogs, isLoading, refreshData, members } = useAppContext();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>('All');
   const [refreshing, setRefreshing] = useState(false);
+
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false);
+    setSearchQuery('');
+  }, []);
 
   const memberMap = useMemo(() => {
     const map: Record<string, any> = {};
@@ -81,18 +95,20 @@ export default function AuditLogScreen() {
     }
 
     if (filterType !== 'All') {
-      const typeMap: Record<string, string> = {
-        Created: 'CREATED',
-        Status: 'STATUS_CHANGED',
-        Comment: 'COMMENT_ADDED',
-        Priority: 'PRIORITY_CHANGED',
-        Assignee: 'ASSIGNEE_CHANGED',
-        Severity: 'SEVERITY_CHANGED',
-        Type: 'TYPE_CHANGED',
-      };
-      const match = typeMap[filterType];
-      if (match) {
-        list = list.filter((item) => item.eventType === match || item.type === match);
+      if (filterType === 'Other') {
+        const otherTypes = ['COMMENT_ADDED', 'SEVERITY_CHANGED', 'TYPE_CHANGED'];
+        list = list.filter((item) => otherTypes.includes(item.eventType ?? item.type));
+      } else {
+        const typeMap: Record<string, string> = {
+          Created: 'CREATED',
+          Status: 'STATUS_CHANGED',
+          Priority: 'PRIORITY_CHANGED',
+          Assignee: 'ASSIGNEE_CHANGED',
+        };
+        const match = typeMap[filterType];
+        if (match) {
+          list = list.filter((item) => item.eventType === match || item.type === match);
+        }
       }
     }
 
@@ -107,7 +123,11 @@ export default function AuditLogScreen() {
 
   const handleExport = useCallback(async () => {
     try {
-      await safeFetch('/api/audit-log/export');
+      const token = await loadToken();
+      const res = await fetch(`${API_BASE}/api/audit-log/export`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`Export failed (${res.status})`);
     } catch {
       Alert.alert('Error', 'Failed to export audit log. Please try again.');
     }
@@ -192,17 +212,23 @@ export default function AuditLogScreen() {
 
   return (
     <Screen title="Audit Log" subtitle="Track all changes and activities" scroll={false}>
-      {/* Search + export */}
+      {/* Filter / Search / Export toolbar */}
       <View
         style={[
           styles.searchRow,
           { paddingHorizontal: pagePadding, paddingTop: spacing.md, marginBottom: spacing.elementGap, gap: spacing.elementGap },
         ]}
       >
-        <SearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Search log entries…"
+        <IconButton
+          icon={<SlidersHorizontal size={16} color={filterType !== 'All' ? colors.primary : colors.mutedForeground} />}
+          accessibilityLabel="Filter log entries"
+          onPress={() => setFilterOpen(true)}
+        />
+        <View style={{ flex: 1 }} />
+        <IconButton
+          icon={<Search size={16} color={colors.mutedForeground} />}
+          accessibilityLabel="Search log entries"
+          onPress={() => setSearchOpen(true)}
         />
         <TouchableOpacity
           style={[
@@ -223,39 +249,74 @@ export default function AuditLogScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Filter chips */}
-      <View style={[styles.chipRow, { paddingHorizontal: pagePadding, gap: spacing.xs, marginBottom: spacing.elementGap }]}>
-        {FILTER_OPTIONS.map((opt) => (
-          <TouchableOpacity
-            key={opt}
-            style={[
-              styles.chip,
-              {
-                backgroundColor: filterType === opt ? colors.primary : colors.surfaceContainerLow,
-                borderRadius: radius.full,
-                paddingHorizontal: spacing.elementGap,
-                paddingVertical: spacing.xs,
-                borderWidth: 1,
-                borderColor: filterType === opt ? colors.primary : colors.outlineVariant,
-                marginBottom: spacing.xs,
-              },
-            ]}
-            onPress={() => setFilterType(opt)}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={`Filter by ${opt}`}
-          >
-            <Text
-              style={[
-                typography.bodySmBold,
-                { color: filterType === opt ? colors.onPrimary : colors.onSurfaceVariant },
-              ]}
-            >
-              {opt}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* Search overlay */}
+      <SearchOverlay
+        visible={searchOpen}
+        onClose={closeSearch}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholder="Search log entries…"
+        prompt="Search the audit log"
+        resultCount={filteredLogs.length}
+      >
+        {filteredLogs.slice(0, 40).map((item: any) => {
+          const event = getEventBadge(colors, item.eventType ?? item.type ?? '');
+          return (
+            <View key={item.id} style={[styles.resultRow, { borderBottomColor: colors.cardBorder }]}>
+              <View style={[styles.resultDot, { backgroundColor: event.color }]} />
+              <View style={{ flex: 1 }}>
+                <Text style={[typography.micro, { color: event.color, fontWeight: '700' }]}>{event.label}</Text>
+                <Text numberOfLines={2} style={[typography.bodySm, { color: colors.foreground, marginTop: 2 }]}>
+                  {item.description ?? item.message ?? ''}
+                </Text>
+              </View>
+            </View>
+          );
+        })}
+      </SearchOverlay>
+
+      {/* Filter modal */}
+      <Modal transparent visible={filterOpen} animationType="fade" onRequestClose={() => setFilterOpen(false)}>
+        <View style={[filterStyles.overlay, { paddingTop: insets.top + spacing.sm }]}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setFilterOpen(false)} accessibilityRole="button" accessibilityLabel="Close filters" />
+          <View style={[filterStyles.card, { backgroundColor: colors.card, borderRadius: radius.xl, marginHorizontal: spacing.lg }]}>
+            <Text style={[typography.cardTitle, { color: colors.foreground, marginBottom: spacing.md }]}>Filter by Event</Text>
+            <View style={{ gap: spacing.xs }}>
+              {FILTER_OPTIONS.map((opt) => (
+                <TouchableOpacity
+                  key={opt}
+                  style={[
+                    filterStyles.option,
+                    {
+                      backgroundColor: filterType === opt ? colors.primary + '15' : 'transparent',
+                      borderRadius: radius.md,
+                      paddingHorizontal: spacing.elementGap,
+                      paddingVertical: spacing.sm,
+                    },
+                  ]}
+                  onPress={() => {
+                    setFilterType(opt);
+                    setFilterOpen(false);
+                  }}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Filter by ${opt}`}
+                >
+                  <View style={[filterStyles.radio, {
+                    borderColor: filterType === opt ? colors.primary : colors.outlineVariant,
+                    backgroundColor: filterType === opt ? colors.primary : 'transparent',
+                  }]}>
+                    {filterType === opt && <Check size={12} color="#fff" />}
+                  </View>
+                  <Text style={[typography.bodySm, { color: filterType === opt ? colors.foreground : colors.onSurfaceVariant }]}>
+                    {opt}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {isLoading ? (
         <View style={[styles.listContent, { paddingHorizontal: pagePadding, paddingTop: spacing.xs, gap: spacing.xs }]}>
@@ -312,9 +373,9 @@ export default function AuditLogScreen() {
 
 const styles = StyleSheet.create({
   searchRow: { flexDirection: 'row', alignItems: 'center' },
+  resultRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 12, paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth },
+  resultDot: { width: 8, height: 8, borderRadius: 4, marginTop: 5 },
   exportBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap' },
-  chip: {},
   listContent: { flexGrow: 1 },
   logCard: {
     padding: 20,
@@ -331,4 +392,11 @@ const styles = StyleSheet.create({
   logContent: { flex: 1 },
   eventBadge: { flexDirection: 'row', alignItems: 'center' },
   empty: { alignItems: 'center', justifyContent: 'center', paddingVertical: 80 },
+});
+
+const filterStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.4)', paddingHorizontal: 16 },
+  card: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 20, marginTop: 40 },
+  option: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
 });

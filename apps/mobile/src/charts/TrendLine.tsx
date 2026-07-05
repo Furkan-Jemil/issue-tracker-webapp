@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, LayoutChangeEvent, Animated, TouchableOpacity } from 'react-native';
-import Svg, { Polyline, Line as SvgLine } from 'react-native-svg';
+import Svg, { Polyline, Line as SvgLine, Circle, G } from 'react-native-svg';
 import { useTheme } from '../theme/useTheme';
 
 export interface TrendPoint {
@@ -12,11 +12,12 @@ export interface TrendPoint {
 interface TrendLineProps {
   data: TrendPoint[];
   height?: number;
-  onPointPress?: (label: string) => void;
+  /** Fired when a series (via a plotted point or its legend entry) is tapped. */
+  onSeriesPress?: (series: 'open' | 'prog') => void;
 }
 
 /** Two-series line chart on react-native-svg, auto-fitting to width. */
-export default function TrendLine({ data, height = 140, onPointPress }: TrendLineProps) {
+export default function TrendLine({ data, height = 140, onSeriesPress }: TrendLineProps) {
   const { colors } = useTheme();
   const [w, setW] = React.useState(0);
   const onLayout = (e: LayoutChangeEvent) => setW(e.nativeEvent.layout.width);
@@ -39,14 +40,14 @@ export default function TrendLine({ data, height = 140, onPointPress }: TrendLin
   const max = Math.max(1, ...data.flatMap((d) => [d.open, d.prog]));
   const n = Math.max(1, data.length - 1);
 
+  const coords = (key: 'open' | 'prog') =>
+    data.map((d, i) => ({
+      x: (i / n) * (w || 1),
+      y: plotH - (d[key] / max) * plotH,
+    }));
+
   const toPoints = (key: 'open' | 'prog') =>
-    data
-      .map((d, i) => {
-        const x = (i / n) * (w || 1);
-        const y = plotH - (d[key] / max) * plotH;
-        return `${x},${y}`;
-      })
-      .join(' ');
+    coords(key).map((p) => `${p.x},${p.y}`).join(' ');
 
   return (
     <Animated.View onLayout={onLayout} style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
@@ -58,12 +59,21 @@ export default function TrendLine({ data, height = 140, onPointPress }: TrendLin
             ))}
             <Polyline points={toPoints('open')} fill="none" stroke={colors.chart2} strokeWidth={2} />
             <Polyline points={toPoints('prog')} fill="none" stroke={colors.chart3} strokeWidth={2} />
+            {/* Tappable point markers per series (visible dot + wider transparent hit target) */}
+            {(['open', 'prog'] as const).map((key) =>
+              coords(key).map((p, i) => (
+                <G key={`${key}-${i}`}>
+                  <Circle cx={p.x} cy={p.y} r={3} fill={key === 'open' ? colors.chart2 : colors.chart3} />
+                  <Circle cx={p.x} cy={p.y} r={14} fill={colors.chart2} fillOpacity={0} onPressIn={() => onSeriesPress?.(key)} />
+                </G>
+              )),
+            )}
           </Svg>
         )}
       </View>
       <View style={styles.legend}>
-        {[['Open', colors.chart2], ['In Progress', colors.chart3]].map(([l, c]) => (
-          <TouchableOpacity key={l} style={styles.legendItem} onPress={() => onPointPress?.(l)} disabled={!onPointPress}>
+        {([['Open', colors.chart2, 'open'], ['In Progress', colors.chart3, 'prog']] as const).map(([l, c, series]) => (
+          <TouchableOpacity key={l} style={styles.legendItem} onPress={() => onSeriesPress?.(series)} disabled={!onSeriesPress} accessibilityRole="button" accessibilityLabel={`View ${l} issues`}>
             <View style={[styles.swatch, { backgroundColor: c as string }]} />
             <Text style={[styles.legendText, { color: colors.foreground }]}>{l}</Text>
           </TouchableOpacity>

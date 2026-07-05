@@ -6,11 +6,11 @@ import { Shield, User, AtSign, AlertCircle } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
 import { Card, Input, Button, Select } from '../components/ui';
+import { validateEmail, validatePassword, normalizeEmail } from '../utils/validators';
 
 const ROLE_OPTIONS = [
   { value: 'USER', label: 'User' },
   { value: 'TESTER', label: 'Tester' },
-  { value: 'ADMIN', label: 'Admin' },
 ];
 
 export default function RegisterScreen() {
@@ -22,18 +22,27 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('USER');
   const [error, setError] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
-    if (!name) { setError('Full name is required.'); return; }
-    if (!email) { setError('Email is required.'); return; }
     setError('');
+    // Validate each field locally before hitting the network.
+    const nameErr = !name.trim() ? 'Full name is required.' : null;
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password, 8);
+    setNameError(nameErr ?? '');
+    setEmailError(emailErr ?? '');
+    setPasswordError(passwordErr ?? '');
+    if (nameErr || emailErr || passwordErr) return;
+
     setLoading(true);
     try {
-      await register(email, password, name, role);
-      navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
-    } catch {
-      setError('Unable to create account. Please try again.');
+      await register(normalizeEmail(email), password, name.trim(), role);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to create account. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -41,7 +50,7 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={[styles.scroll, { padding: spacing.xl, gap: spacing.xl }]} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
             <View style={[styles.logo, { backgroundColor: colors.green }]}>
@@ -65,25 +74,29 @@ export default function RegisterScreen() {
               <Input
                 label="Full Name"
                 value={name}
-                onChangeText={setName}
+                onChangeText={(t) => { setName(t); if (nameError) setNameError(''); }}
                 placeholder="Abebe Girma"
                 leftIcon={<User size={13} color={colors.mutedForeground} />}
+                error={nameError}
               />
               <Input
                 label="Email"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(t) => { setEmail(t); if (emailError) setEmailError(''); }}
                 placeholder="you@ethiotelecom.et"
                 autoCapitalize="none"
+                autoCorrect={false}
                 keyboardType="email-address"
                 leftIcon={<AtSign size={13} color={colors.mutedForeground} />}
+                error={emailError}
               />
               <Input
                 label="Password"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => { setPassword(t); if (passwordError) setPasswordError(''); }}
                 placeholder="Create a strong password"
                 secureTextEntry
+                error={passwordError}
               />
               <Select
                 label="Role"

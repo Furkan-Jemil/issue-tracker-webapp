@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { LogOut, Edit3, Save, Clock, Check } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
@@ -19,15 +19,12 @@ export default function ProfileScreen() {
       {
         text: 'Sign Out',
         style: 'destructive',
-        onPress: async () => {
-          try {
-            await logout();
-            let nav: any = navigation;
-            while (nav.getParent && nav.getParent()) nav = nav.getParent();
-            nav.reset({ index: 0, routes: [{ name: 'Auth' }] });
-          } catch {
-            Alert.alert('Error', 'Failed to sign out. Please try again.');
-          }
+         onPress: async () => {
+           try {
+             await logout();
+           } catch {
+             Alert.alert('Error', 'Failed to sign out. Please try again.');
+           }
         },
       },
     ]);

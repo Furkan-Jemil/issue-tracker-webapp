@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutRectangle } from 'react-native';
 import { ChevronDown, Check } from 'lucide-react-native';
 import { useTheme } from '../../theme/useTheme';
+import ContextualPopover, { ContextualAnchor } from './ContextualPopover';
 
 export interface SelectOption {
   value: string;
@@ -19,16 +20,17 @@ interface SelectProps {
 
 /** Native-friendly select: a pressable field that opens a bottom-sheet picker. */
 export default function Select({ label, value, options, onChange, placeholder = 'Select…', height = 36 }: SelectProps) {
-  const { colors, radius } = useTheme();
+  const { colors, radius, spacing } = useTheme();
   const [open, setOpen] = useState(false);
+  const [anchorRect, setAnchorRect] = useState<LayoutRectangle | null>(null);
   const current = options.find((o) => o.value === value);
 
   return (
     <View style={{ gap: 6 }}>
       {label && <Text style={[styles.label, { color: colors.foreground }]}>{label}</Text>}
-      <TouchableOpacity
+      <ContextualAnchor
         activeOpacity={0.7}
-        onPress={() => setOpen(true)}
+        onPressAnchor={(rect) => { setAnchorRect(rect); setOpen(true); }}
         style={[
           styles.field,
           { backgroundColor: colors.card, borderColor: colors.outline, borderRadius: radius.lg, height },
@@ -41,36 +43,34 @@ export default function Select({ label, value, options, onChange, placeholder = 
           {current?.label ?? placeholder}
         </Text>
         <ChevronDown size={14} color={colors.mutedForeground} />
-      </TouchableOpacity>
+      </ContextualAnchor>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
-          <Pressable
-            style={[styles.sheet, { backgroundColor: colors.card }]}
-            onPress={(e) => e.stopPropagation()}
-          >
-            {label && <Text style={[styles.sheetTitle, { color: colors.foreground }]}>{label}</Text>}
-            <ScrollView style={{ maxHeight: 320 }}>
-              {options.map((o) => {
-                const active = o.value === value;
-                return (
-                  <TouchableOpacity
-                    key={o.value}
-                    activeOpacity={0.7}
-                    onPress={() => { onChange(o.value); setOpen(false); }}
-                    style={styles.row}
-                  >
-                    <Text style={[styles.rowText, { color: active ? colors.greenFg : colors.foreground }]}>
-                      {o.label}
-                    </Text>
-                    {active && <Check size={15} color={colors.green} />}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <ContextualPopover
+        visible={open}
+        onClose={() => setOpen(false)}
+        anchorRect={anchorRect}
+        width={anchorRect ? anchorRect.width : 200}
+        offset={4}
+      >
+        <ScrollView style={{ maxHeight: 240 }} showsVerticalScrollIndicator={false}>
+          {options.map((o) => {
+            const active = o.value === value;
+            return (
+              <TouchableOpacity
+                key={o.value}
+                activeOpacity={0.7}
+                onPress={() => { onChange(o.value); setOpen(false); }}
+                style={[styles.row, { borderBottomColor: colors.cardBorder }]}
+              >
+                <Text style={[styles.rowText, { color: active ? colors.greenFg : colors.foreground }]}>
+                  {o.label}
+                </Text>
+                {active && <Check size={15} color={colors.green} />}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </ContextualPopover>
     </View>
   );
 }
@@ -85,15 +85,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   value: { flex: 1, fontFamily: 'Outfit_400Regular', fontSize: 14, marginRight: 8 },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, paddingBottom: 32 },
-  sheetTitle: { fontFamily: 'Outfit_700Bold', fontSize: 14, marginBottom: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
-    paddingHorizontal: 4,
+    paddingHorizontal: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   rowText: { fontFamily: 'Outfit_500Medium', fontSize: 14 },
 });

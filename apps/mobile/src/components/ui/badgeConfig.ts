@@ -1,4 +1,4 @@
-import { AlertCircle, Clock, CheckCircle2, XCircle, Bug, Sparkles, Wrench, ListChecks } from 'lucide-react-native';
+import { AlertCircle, Clock, CheckCircle2, XCircle, Bug, Sparkles, Wrench, ListChecks, Shield, FlaskConical, User } from 'lucide-react-native';
 import type { ThemeColors } from '../../theme/useTheme';
 
 export type BadgeKind = 'status' | 'priority' | 'severity' | 'type' | 'role';
@@ -52,10 +52,10 @@ export function getBadge(kind: BadgeKind, raw: string, c: ThemeColors): BadgeSty
       }
     case 'role':
       switch (value) {
-        case 'ADMIN': return { bg: c.green + '26', fg: c.greenFg, label: 'ADMIN' };
-        case 'TESTER': return { bg: c.priorityHighBg, fg: c.priorityHighText, label: 'TESTER' };
-        case 'USER': return { bg: c.statusInProgressBg, fg: c.statusInProgressText, label: 'USER' };
-        default: return { bg: c.priorityLowBg, fg: c.priorityLowText, label: value };
+        case 'ADMIN': return { bg: c.green + '26', fg: c.greenFg, label: 'Admin', Icon: Shield };
+        case 'TESTER': return { bg: c.priorityHighBg, fg: c.priorityHighText, label: 'Tester', Icon: FlaskConical };
+        case 'USER': return { bg: c.statusInProgressBg, fg: c.statusInProgressText, label: 'User', Icon: User };
+        default: return { bg: c.priorityLowBg, fg: c.priorityLowText, label: titleCase(value), Icon: User };
       }
     default:
       return { bg: c.muted, fg: c.mutedForeground, label: titleCase(value) };

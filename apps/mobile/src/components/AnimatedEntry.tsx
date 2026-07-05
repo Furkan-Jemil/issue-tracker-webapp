@@ -1,31 +1,29 @@
-import React, { useRef, useEffect } from 'react';
-import { Animated, ViewStyle } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { ViewStyle, Animated } from 'react-native';
 
 interface AnimatedEntryProps {
   children: React.ReactNode;
   index?: number;
   delay?: number;
-  style?: ViewStyle;
+  style?: ViewStyle | ViewStyle[];
 }
 
 export default function AnimatedEntry({ children, index = 0, delay = 50, style }: AnimatedEntryProps) {
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(24)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(opacity, {
+      Animated.timing(opacity, {
         toValue: 1,
-        tension: 100,
-        friction: 12,
-        delay: index * delay,
+        duration: 300,
+        delay: index * Math.min(delay, 50),
         useNativeDriver: true,
       }),
-      Animated.spring(translateY, {
+      Animated.timing(translateY, {
         toValue: 0,
-        tension: 100,
-        friction: 12,
-        delay: index * delay,
+        duration: 300,
+        delay: index * Math.min(delay, 50),
         useNativeDriver: true,
       }),
     ]).start();

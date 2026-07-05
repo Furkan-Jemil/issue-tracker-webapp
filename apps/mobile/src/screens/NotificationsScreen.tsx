@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Bell, CheckCheck, Trash2, X } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
@@ -14,12 +15,20 @@ interface Notif {
   code: string;
   read: boolean;
   created_at: string;
+  targetType?: 'issue' | 'none';
+  targetId?: string;
 }
 
 export default function NotificationsScreen() {
   const { colors, spacing, typography, pagePadding } = useTheme();
+  const navigation = useNavigation<any>();
   const { notifications, markNotificationsRead, refreshData, isLoading } = useAppContext();
-  const [items, setItems] = useState<Notif[]>(notifications as unknown as Notif[]);
+   const [items, setItems] = useState<Notif[]>(notifications as unknown as Notif[]);
+   
+   // Sync state with context when notifications change
+   React.useEffect(() => {
+     setItems(notifications as unknown as Notif[]);
+   }, [notifications]);
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
@@ -30,16 +39,31 @@ export default function NotificationsScreen() {
 
   const unread = items.filter((n) => !n.read).length;
 
-  const markAllRead = () => {
-    setItems((ns) => ns.map((n) => ({ ...n, read: true })));
-    markNotificationsRead();
-  };
+   const markAllRead = async () => {
+     setItems((ns) => ns.map((n) => ({ ...n, read: true, isRead: true })));
+     await markNotificationsRead();
+     await refreshData();
+   };
 
-  const markOneRead = (id: string) =>
-    setItems((ns) => ns.map((n) => (n.id === id ? { ...n, read: true } : n)));
+   const markOneRead = (id: string) =>
+     setItems((ns) => ns.map((n) => (n.id === id ? { ...n, read: true, isRead: true } : n)));
 
   const removeOne = (id: string) =>
     setItems((ns) => ns.filter((n) => n.id !== id));
+
+  /** Resolve an issue id to open: prefer explicit target fields, else parse an ET-#### code. */
+  const resolveIssueId = (n: Notif): string | null => {
+    if (n.targetType === 'issue' && n.targetId) return n.targetId;
+    if (n.targetType === 'none') return null;
+    const match = `${n.title} ${n.message}`.match(/ET-\d+/);
+    return match ? match[0] : null;
+  };
+
+  const handlePress = (n: Notif) => {
+    markOneRead(n.id);
+    const issueId = resolveIssueId(n);
+    if (issueId) navigation.navigate('TaskDetail', { issueId });
+  };
 
   const renderContent = () => {
     if (isLoading) {
@@ -67,21 +91,21 @@ export default function NotificationsScreen() {
         </AnimatedEntry>
       );
     }
-    return items.map((n) => (
+    return items.map((n) => {
+      const linkable = resolveIssueId(n) != null;
+      return (
       <Card
         key={n.id}
         padding={spacing.cardPadding}
-        style={
-          !n.read
-            ? { borderLeftWidth: 2, borderLeftColor: colors.green, backgroundColor: colors.green + '10' }
-            : undefined
-        }
+        onPress={linkable ? () => handlePress(n) : undefined}
+        accessibilityRole={linkable ? 'button' : undefined}
+        accessibilityLabel={linkable ? `Open ${n.title}` : undefined}
       >
         <View style={[styles.cardRow, { gap: spacing.md }]}>
           <View
             style={[
               styles.dot,
-              { backgroundColor: n.read ? colors.mutedForeground : colors.green },
+              { backgroundColor: n.read ? 'transparent' : colors.green },
             ]}
           />
           <View style={styles.body}>
@@ -115,7 +139,8 @@ export default function NotificationsScreen() {
           </View>
         </View>
       </Card>
-    ));
+      );
+    });
   };
 
   return (

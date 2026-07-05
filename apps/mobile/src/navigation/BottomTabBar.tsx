@@ -5,17 +5,17 @@ import {
   LayoutDashboard, ListChecks, Bell, Users, Plus, Activity, Settings, Shield, Moon, Sun, LogOut,
 } from 'lucide-react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
 import Avatar from '../components/ui/Avatar';
 
-// Tab route name → icon + phone label
-const TABS: Record<string, { Icon: React.ElementType; label: string }> = {
-  Dashboard: { Icon: LayoutDashboard, label: 'Home' },
-  TasksList: { Icon: ListChecks, label: 'Issues' },
-  Members: { Icon: Users, label: 'Members' },
-  AuditLog: { Icon: Activity, label: 'Logs' },
-  Settings: { Icon: Settings, label: 'Profile' },
+const TABS: Record<string, { Icon: React.ElementType; i18nKey: string }> = {
+  Dashboard: { Icon: LayoutDashboard, i18nKey: 'dashboard' },
+  TasksList: { Icon: ListChecks, i18nKey: 'issues' },
+  Members: { Icon: Users, i18nKey: 'members' },
+  AuditLog: { Icon: Activity, i18nKey: 'logs' },
+  Settings: { Icon: Settings, i18nKey: 'settings' },
 };
 
 export default function BottomTabBar(props: BottomTabBarProps) {
@@ -31,13 +31,15 @@ function Sidebar({ state, navigation }: BottomTabBarProps) {
   const activeRoute = state.routes[state.index]?.name;
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
 
+  const { t } = useTranslation();
+
   const items = [
-    { key: 'Dashboard', label: 'Dashboard', Icon: LayoutDashboard, badge: 0 },
-    { key: 'TasksList', label: 'Issues', Icon: ListChecks, badge: 0 },
-    { key: 'Notifications', label: 'Notifications', Icon: Bell, badge: unread },
-    ...(isAdmin ? [{ key: 'Members', label: 'Members', Icon: Users, badge: 0 }] : []),
-    ...(isAdmin ? [] : [{ key: 'AuditLog', label: 'Audit Log', Icon: Activity, badge: 0 }]),
-    { key: 'Settings', label: 'Settings', Icon: Settings, badge: 0 },
+    { key: 'Dashboard', label: t('dashboard', 'Dashboard'), Icon: LayoutDashboard, badge: 0 },
+    { key: 'TasksList', label: t('issues', 'Issues'), Icon: ListChecks, badge: 0 },
+    { key: 'Notifications', label: t('notifications', 'Notifications'), Icon: Bell, badge: unread },
+    ...(isAdmin ? [{ key: 'Members', label: t('members', 'Members'), Icon: Users, badge: 0 }] : []),
+    ...(isAdmin ? [] : [{ key: 'AuditLog', label: t('auditLog', 'Audit Log'), Icon: Activity, badge: 0 }]),
+    { key: 'Settings', label: t('settings', 'Settings'), Icon: Settings, badge: 0 },
   ];
 
   return (
@@ -121,6 +123,7 @@ function FloatingBar({ state, navigation }: BottomTabBarProps) {
   const { colors } = useTheme();
   const { user } = useAppContext();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
 
   const order = isAdmin
@@ -141,28 +144,33 @@ function FloatingBar({ state, navigation }: BottomTabBarProps) {
                 accessibilityLabel="Create new issue"
                 style={styles.fabSlot}
               >
-                <View style={[styles.fab, { backgroundColor: colors.green }]}>
-                  <Plus size={22} color="#fff" />
+                <View style={[styles.fab, { backgroundColor: colors.green, borderColor: colors.card }]}>
+                  <Plus size={26} color="#fff" strokeWidth={2.5} />
                 </View>
               </TouchableOpacity>
             );
           }
           const idx = state.routes.findIndex((r) => r.name === name);
-          const focused = state.index === idx;
+          const active = state.index === idx;
           const meta = TABS[name];
-          const color = focused ? colors.greenFg : colors.mutedForeground;
+          
           return (
             <TouchableOpacity
               key={name}
               activeOpacity={0.7}
               onPress={() => navigation.navigate(name as never)}
               accessibilityRole="button"
-              accessibilityLabel={`Navigate to ${meta.label}`}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityLabel={t(`navigateTo_${meta.i18nKey}`, `Navigate to ${t(meta.i18nKey, meta.i18nKey)}`)}
               style={styles.tab}
             >
-              <meta.Icon size={20} color={color} style={focused ? styles.tabActive : undefined} />
-              <Text style={[styles.tabLabel, { color }]}>{meta.label}</Text>
+              <meta.Icon
+                size={20}
+                strokeWidth={active ? 2.5 : 2}
+                color={active ? colors.greenFg : colors.mutedForeground}
+              />
+              <Text style={[styles.tabLabel, { color: active ? colors.greenFg : colors.mutedForeground, opacity: active ? 1 : 0.8 }]}>
+                {t(meta.i18nKey, meta.i18nKey)}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -210,10 +218,11 @@ const styles = StyleSheet.create({
   tabBadgeText: { color: '#fff', fontFamily: 'Outfit_700Bold', fontSize: 7 },
   fabSlot: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   fab: {
-    width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: -16,
+    width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', marginTop: -30,
+    borderWidth: 4,
     ...Platform.select({
-      ios: { shadowColor: '#80ca28', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10 },
-      android: { elevation: 6 },
+      ios: { shadowColor: '#80ca28', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.45, shadowRadius: 12 },
+      android: { elevation: 10 },
       default: {},
     }),
   },

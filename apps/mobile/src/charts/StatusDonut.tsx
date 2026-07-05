@@ -45,12 +45,13 @@ export default function StatusDonut({ data, size = 150, strokeWidth = 22, onSlic
           {/* track */}
           <Circle cx={cx} cy={cy} r={r} stroke={colors.muted} strokeWidth={strokeWidth} fill="none" />
           <G rotation={-90} origin={`${cx}, ${cy}`}>
+            {/* Visible arcs */}
             {data.map((d, i) => {
               const frac = d.value / total;
               const dash = frac * circ;
               const seg = (
                 <Circle
-                  key={i}
+                  key={`seg-${i}`}
                   cx={cx}
                   cy={cy}
                   r={r}
@@ -60,12 +61,37 @@ export default function StatusDonut({ data, size = 150, strokeWidth = 22, onSlic
                   fill="none"
                   strokeDasharray={`${dash} ${circ - dash}`}
                   strokeDashoffset={-offsetAcc}
-                  onPress={() => onSlicePress?.(d.label)}
                 />
               );
               offsetAcc += dash;
               return seg;
             })}
+            {/* Wider transparent hit arcs — reliable touch target over each slice */}
+            {(() => {
+              let hitAcc = 0;
+              return data.map((d, i) => {
+                const frac = d.value / total;
+                const dash = frac * circ;
+                const hit = dash > 0 ? (
+                  <Circle
+                    key={`hit-${i}`}
+                    cx={cx}
+                    cy={cy}
+                    r={r}
+                    stroke={d.color}
+                    strokeOpacity={0}
+                    strokeWidth={strokeWidth + 20}
+                    strokeLinecap="butt"
+                    fill="none"
+                    strokeDasharray={`${dash} ${circ - dash}`}
+                    strokeDashoffset={-hitAcc}
+                    onPressIn={() => onSlicePress?.(d.label)}
+                  />
+                ) : null;
+                hitAcc += dash;
+                return hit;
+              });
+            })()}
           </G>
         </Svg>
         <View style={styles.center} pointerEvents="none">

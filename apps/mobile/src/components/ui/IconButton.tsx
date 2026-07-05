@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, View, Text, StyleSheet, Platform } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../theme/useTheme';
 
 interface IconButtonProps {
@@ -9,17 +10,22 @@ interface IconButtonProps {
   active?: boolean;
   /** Small count badge in the corner. */
   badge?: number;
+  /** Badge background color (defaults to the error color). */
+  badgeColor?: string;
   size?: number;
   accessibilityLabel?: string;
 }
 
 /** Square card button used across toolbars (filter, view toggle, theme). */
-export default function IconButton({ icon, onPress, active, badge, size = 36, accessibilityLabel }: IconButtonProps) {
+export default function IconButton({ icon, onPress, active, badge, badgeColor, size = 36, accessibilityLabel }: IconButtonProps) {
   const { colors, radius } = useTheme();
   return (
     <TouchableOpacity
       activeOpacity={0.7}
-      onPress={onPress}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        onPress?.();
+      }}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       hitSlop={{ top: Math.max(0, (44 - size) / 2), bottom: Math.max(0, (44 - size) / 2), left: Math.max(0, (44 - size) / 2), right: Math.max(0, (44 - size) / 2) }}
@@ -35,7 +41,7 @@ export default function IconButton({ icon, onPress, active, badge, size = 36, ac
     >
       {icon}
       {badge != null && badge > 0 && (
-        <View style={[styles.badge, { backgroundColor: colors.error }]}>
+        <View style={[styles.badge, { backgroundColor: badgeColor ?? colors.error }]}>
           <Text style={styles.badgeText}>{badge}</Text>
         </View>
       )}

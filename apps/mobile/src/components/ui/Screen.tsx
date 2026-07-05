@@ -22,13 +22,15 @@ interface ScreenProps {
   children: React.ReactNode;
   /** Extra bottom padding beyond the floating-bar clearance. */
   contentStyle?: object;
+  /** Initial scroll offset (e.g. for Pull-to-Search). */
+  contentOffset?: { x: number; y: number };
 }
 
 /** Bottom clearance so content scrolls clear of the phone floating tab bar. */
 export const FLOATING_BAR_CLEARANCE = 96;
 
 export default function Screen({
-  title, subtitle, header, onBack, headerRight, scroll = true, refreshControl, children, contentStyle,
+  title, subtitle, header, onBack, headerRight, scroll = true, refreshControl, children, contentStyle, contentOffset,
 }: ScreenProps) {
   const { colors, isTablet } = useTheme();
   const insets = useSafeAreaInsets();
@@ -42,12 +44,13 @@ export default function Screen({
   const body = scroll ? (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 52 : 0}
     >
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={[{ paddingBottom: bottomPad }, contentStyle]}
+        contentOffset={contentOffset}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         refreshControl={refreshControl}
@@ -79,7 +82,7 @@ export default function Screen({
           {headerRight ?? (
             <View style={styles.headerRight}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('Notifications')}
+                onPress={() => navigation.navigate('Tabs', { screen: 'Notifications' })}
                 style={[styles.iconBtn, { backgroundColor: colors.muted }]}
                 accessibilityRole="button"
                 accessibilityLabel={`Notifications${unread > 0 ? `, ${unread} unread` : ''}`}
@@ -91,7 +94,7 @@ export default function Screen({
                   </View>
                 )}
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('Settings')} accessibilityRole="button" accessibilityLabel="Settings">
+              <TouchableOpacity onPress={() => navigation.navigate('Tabs', { screen: 'Settings' })} accessibilityRole="button" accessibilityLabel="Settings">
                 <Avatar size="sm" name={user?.name} email={user?.email} />
               </TouchableOpacity>
             </View>

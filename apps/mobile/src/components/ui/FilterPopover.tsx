@@ -72,13 +72,15 @@ export default function FilterPopover({
     setTempStatus('all');
     setTempPriority('all');
     setTempSeverity('all');
+    onApply('all', 'all', 'all');
+    onClose();
   };
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close filters" />
-        <View style={[styles.modalCard, { backgroundColor: colors.card, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, paddingBottom: Math.max(spacing.lg, insets.bottom + spacing.sm) }]}>
+        <View style={[styles.modalCard, { backgroundColor: colors.card, borderRadius: radius.xl }]}>
           <View style={[styles.filterHeader, { marginBottom: spacing.md }]}>
             <Text style={[typography.cardTitle, { color: colors.foreground }]}>Filters</Text>
             {activeCount > 0 && (
@@ -108,13 +110,18 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.4)',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
+    paddingTop: 80,
+    paddingHorizontal: 16,
+    alignItems: 'flex-end',
   },
   modalCard: {
+    width: 300,
     paddingHorizontal: 24,
     paddingTop: 24,
+    paddingBottom: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 20,

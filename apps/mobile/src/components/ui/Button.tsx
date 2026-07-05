@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, Animated, ViewStyle } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../theme/useTheme';
 
 type Variant = 'default' | 'outline' | 'ghost' | 'destructive';
@@ -49,8 +50,13 @@ export default function Button({
         activeOpacity={0.85}
         accessibilityRole="button"
         accessibilityLabel={title}
-        onPressIn={() => Animated.spring(scaleAnim, { toValue: 0.96, tension: 150, friction: 8, useNativeDriver: true }).start()}
-        onPressOut={() => Animated.spring(scaleAnim, { toValue: 1, tension: 150, friction: 8, useNativeDriver: true }).start()}
+        onPressIn={() => {
+          Animated.spring(scaleAnim, { toValue: 0.96, tension: 150, friction: 8, useNativeDriver: true }).start();
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        }}
+        onPressOut={() => {
+          Animated.spring(scaleAnim, { toValue: 1, tension: 150, friction: 8, useNativeDriver: true }).start();
+        }}
         style={[
           styles.base,
           {

@@ -1,13 +1,32 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Link, Paperclip } from 'lucide-react-native';
+import { Link, Paperclip, X } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
 import { useResponsive } from '../responsive/useResponsive';
 import Grid from '../responsive/Grid';
 import { Screen, Card, Input, Textarea, Select, Button } from '../components/ui';
 import type { SelectOption } from '../components/ui';
+import { useToast } from '../components/Toast';
+import { loadToken } from '../utils/secureStore';
+
+// File picker imports
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+// Dynamic import — won't crash Metro if expo-file-system isn't installed yet
+let FileSystem: { readAsStringAsync: (uri: string, opts?: any) => Promise<string>; cacheDirectory: string; EncodingType: { Base64: string } } | null = null;
+try {
+  FileSystem = require('expo-file-system');
+} catch {} // not installed — upload will show a helpful message
+
+type UploadedFile = {
+  url: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  type: 'screenshot' | 'attachment';
+};
 
 const TYPE_OPTIONS: SelectOption[] = [
   { value: 'BUG', label: 'Bug' },
@@ -29,7 +48,8 @@ export default function CreateTaskScreen() {
   const { isTablet } = useResponsive();
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { members, createIssue } = useAppContext();
+  const { members, createIssue, updateIssue } = useAppContext();
+  const { showToast } = useToast();
 
   const editing = (route.params as any)?.issue;
   const [title, setTitle] = useState(editing?.title ?? '');
@@ -38,8 +58,31 @@ export default function CreateTaskScreen() {
   const [priority, setPriority] = useState(editing?.priority ?? 'MEDIUM');
   const [severity, setSeverity] = useState(editing?.severity ?? 'MINOR');
   const [assignee, setAssignee] = useState(editing?.assignee ?? '');
-  const [url, setUrl] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
+   const [url, setUrl] = useState(editing?.url ?? '');
+   const [errors, setErrors] = useState<Record<string, string>>({});
+   const [submitting, setSubmitting] = useState(false);
+   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>(() => {
+     // Pre-load existing screenshots and attachments when editing
+     if (editing) {
+       const screenshots = (editing.screenshots || []).map((s: any) => ({
+         url: s.url,
+         filename: s.filename,
+         mimeType: s.mimeType,
+         sizeBytes: s.sizeBytes,
+         type: 'screenshot' as const
+       }));
+       const attachments = (editing.attachments || []).map((a: any) => ({
+         url: a.url,
+         filename: a.filename,
+         mimeType: a.mimeType,
+         sizeBytes: a.sizeBytes,
+         type: 'attachment' as const
+       }));
+       return [...screenshots, ...attachments];
+     }
+     return [];
+   });
+   const [uploading, setUploading] = useState(false);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -54,7 +97,173 @@ export default function CreateTaskScreen() {
     ...members.map((m) => ({ value: String(m.name ?? ''), label: String(m.name ?? 'Unknown') })),
   ];
 
-  const goBack = () => navigation.goBack();
+   const goBack = () => navigation.goBack();
+
+   const API_BASE = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+
+   const handleUploadFiles = async () => {
+     try {
+       setUploading(true);
+       
+       // Request permissions
+       const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+       const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+
+       if (mediaStatus !== 'granted' && cameraStatus !== 'granted') {
+         Alert.alert('Permission required', 'Please allow access to photos and camera to upload files');
+         return;
+       }
+
+       // Show options for image or document
+       Alert.alert(
+         'Add Files',
+         'Choose file type:',
+         [
+           { text: 'Cancel', style: 'cancel' },
+           { text: 'Take Photo', onPress: takePhoto },
+           { text: 'Choose from Gallery', onPress: pickImage },
+           { text: 'Choose Document', onPress: pickDocument },
+         ]
+       );
+     } catch (error) {
+       console.error('File upload error:', error);
+       Alert.alert('Error', 'Failed to upload files');
+     } finally {
+       setUploading(false);
+     }
+   };
+
+    const takePhoto = async () => {
+      try {
+        const result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ['images'],
+          allowsMultipleSelection: true,
+          quality: 0.8,
+        });
+
+        if (!result.canceled && result.assets.length > 0) {
+          await uploadFilesToServer(result.assets);
+        }
+      } catch (error) {
+        console.error('Camera error:', error);
+        Alert.alert('Error', 'Failed to take photo');
+      }
+    };
+
+    const pickImage = async () => {
+      try {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsMultipleSelection: true,
+          quality: 0.8,
+        });
+
+        if (!result.canceled && result.assets.length > 0) {
+          await uploadFilesToServer(result.assets);
+        }
+      } catch (error) {
+        console.error('Image picker error:', error);
+        Alert.alert('Error', 'Failed to pick images');
+      }
+    };
+
+    const pickDocument = async () => {
+      try {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: ['application/pdf', 'text/*', 'image/*'],
+          multiple: true,
+        });
+
+        if (!result.canceled && result.assets.length > 0) {
+          await uploadFilesToServer(result.assets);
+        }
+      } catch (error) {
+        console.error('Document picker error:', error);
+        Alert.alert('Error', 'Failed to pick documents');
+      }
+    };
+
+    const removeUploadedFile = (index: number) => {
+      setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const uploadFilesToServer = async (assets: any[]) => {
+      try {
+        const token = await loadToken();
+        if (!token) throw new Error('Not authenticated');
+
+        if (!FileSystem) {
+          Alert.alert(
+            'Missing Package',
+            'File upload requires expo-file-system.\n\nRun:\ncd apps/mobile && npx expo install expo-file-system\n\nThen restart the app.',
+          );
+          return;
+        }
+
+        // Read each file as base64 using expo-file-system (handles content:// URIs)
+        // then send as JSON — avoids React Native's broken FormData entirely.
+        const payloadFiles: { name: string; type: string; content: string; sizeBytes: number; kind: string }[] = [];
+
+        for (const asset of assets) {
+          if (!asset.uri) continue;
+          const fileType = asset.type || asset.mimeType || 'application/octet-stream';
+          const fileName = asset.name || asset.fileName || `file_${Date.now()}`;
+
+          let base64: string;
+          try {
+            base64 = await FileSystem.readAsStringAsync(asset.uri, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+          } catch {
+            continue;
+          }
+
+          const sizeBytes = asset.fileSize || asset.size || Math.ceil(base64.length * 0.75);
+          const kind = fileType.startsWith('image/') ? 'screenshot' : 'attachment';
+
+          payloadFiles.push({ name: fileName, type: fileType, content: base64, sizeBytes, kind });
+        }
+
+        if (payloadFiles.length === 0) {
+          showToast({ message: 'No readable files found', type: 'error' });
+          return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/upload/base64`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ files: payloadFiles }),
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || `Upload failed (${response.status})`);
+        }
+
+        const result = await response.json();
+
+        const newFiles: UploadedFile[] = [
+          ...(result.screenshots || []).map((f: any) => ({ ...f, type: 'screenshot' as const })),
+          ...(result.attachments || []).map((f: any) => ({ ...f, type: 'attachment' as const })),
+        ];
+
+        setUploadedFiles(prev => [...prev, ...newFiles]);
+
+        if (newFiles.length > 0) {
+          showToast({ message: `${newFiles.length} file(s) uploaded`, type: 'success' });
+        }
+      } catch (error) {
+        console.error('Upload failed:', error);
+        showToast({
+          message: error instanceof Error ? error.message : 'Upload failed',
+          type: 'error',
+        });
+        throw error;
+      }
+    };
 
   return (
     <Screen
@@ -107,35 +316,94 @@ export default function CreateTaskScreen() {
           keyboardType="url"
         />
 
-        <View style={{ gap: spacing.xs }}>
-          <Text style={[typography.labelBadge, { color: colors.foreground }]}>Screenshots & Files</Text>
-          <Card padding={0}>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel="Add file attachments"
-              style={[styles.upload, { borderColor: colors.outline, paddingHorizontal: spacing.lg, gap: spacing.xs }]}
-            >
-              <Paperclip size={22} color={colors.mutedForeground} />
-              <Text style={[typography.bodySmBold, { color: colors.foreground }]}>
-                Tap to add files
-              </Text>
-              <Text style={[typography.micro, { color: colors.mutedForeground }]}>
-                PNG, JPG, PDF, TXT up to 10 MB
-              </Text>
-            </TouchableOpacity>
-          </Card>
-        </View>
+         <View style={{ gap: spacing.xs }}>
+           <Text style={[typography.labelBadge, { color: colors.foreground }]}>Screenshots & Files</Text>
+           <Card padding={0}>
+             <TouchableOpacity
+               activeOpacity={0.7}
+               accessibilityRole="button"
+               accessibilityLabel="Add file attachments"
+               style={[styles.upload, { borderColor: colors.outline, paddingHorizontal: spacing.lg, gap: spacing.xs }]}
+               onPress={handleUploadFiles}
+               disabled={uploading}
+             >
+               <Paperclip size={22} color={colors.mutedForeground} />
+               <Text style={[typography.bodySmBold, { color: colors.foreground }]}>
+                 {uploading ? 'Uploading...' : 'Tap to add files'}
+               </Text>
+               <Text style={[typography.micro, { color: colors.mutedForeground }]}>
+                 PNG, JPG, PDF, TXT up to 10 MB
+               </Text>
+             </TouchableOpacity>
+             
+             {/* Show uploaded files */}
+             {uploadedFiles.length > 0 && (
+               <View style={{ padding: spacing.md, paddingTop: 0, gap: spacing.sm }}>
+                 {uploadedFiles.map((file, index) => (
+                   <View key={`${file.url}-${index}`} style={[styles.uploadedFile, { backgroundColor: colors.muted, borderRadius: 8, padding: spacing.sm }]}>
+                     <View style={{ flex: 1 }}>
+                       <Text style={[typography.bodySm, { color: colors.foreground }]} numberOfLines={1}>
+                         {file.filename}
+                       </Text>
+                       <Text style={[typography.micro, { color: colors.mutedForeground }]}>
+                         {(file.sizeBytes / 1024).toFixed(1)} KB
+                       </Text>
+                     </View>
+                     <TouchableOpacity 
+                       onPress={() => removeUploadedFile(index)}
+                       style={[styles.removeFileBtn, { backgroundColor: colors.error, borderRadius: 4, padding: 4 }]}
+                     >
+                       <X size={14} color="#fff" />
+                     </TouchableOpacity>
+                   </View>
+                 ))}
+               </View>
+             )}
+           </Card>
+         </View>
 
         <View style={[styles.footer, { gap: spacing.md }]}>
             <Button title="Cancel" variant="outline" onPress={goBack} style={{ flex: 1 }} />
-            <Button title={editing ? 'Save' : 'Create Task'} variant="default" onPress={async () => {
-              if (!validate()) return;
-              if (editing) {
+            <Button title={editing ? 'Save' : 'Create Task'} variant="default" disabled={submitting} onPress={async () => {
+              if (!validate() || submitting) return;
+              setSubmitting(true);
+              try {
+                 if (editing) {
+                   // updateIssue maps the assignee name -> assigneeId internally.
+                   await updateIssue(editing.id, { title, description, type, priority, severity, assignee });
+                 } else {
+                   const assigneeId = members.find((m) => String(m.name) === assignee)?.id;
+                   const payload: Record<string, any> = { title, description, type, priority, severity };
+                   if (assigneeId) payload.assigneeId = String(assigneeId);
+                   if (url.trim()) payload.url = url.trim();
+                   
+                   // Add uploaded files
+                   const screenshots = uploadedFiles.filter(f => f.type === 'screenshot');
+                   const attachments = uploadedFiles.filter(f => f.type === 'attachment');
+                   if (screenshots.length > 0) {
+                     payload.screenshots = screenshots.map(f => ({
+                       url: f.url,
+                       filename: f.filename,
+                       mimeType: f.mimeType,
+                       sizeBytes: f.sizeBytes
+                     }));
+                   }
+                   if (attachments.length > 0) {
+                     payload.attachments = attachments.map(f => ({
+                       url: f.url,
+                       filename: f.filename,
+                       mimeType: f.mimeType,
+                       sizeBytes: f.sizeBytes
+                     }));
+                   }
+                   
+                   await createIssue(payload);
+                 }
                 goBack();
-              } else {
-                await createIssue({ title, description, type, priority, severity, assignee: assignee || '' });
-                goBack();
+              } catch (err) {
+                showToast({ message: err instanceof Error ? err.message : 'Failed to save issue', type: 'error' });
+              } finally {
+                setSubmitting(false);
               }
             }} style={{ flex: 1 }} />
         </View>
@@ -156,4 +424,15 @@ const styles = StyleSheet.create({
   uploadTitle: { marginTop: 2 },
   uploadSub: {},
   footer: { flexDirection: 'row', paddingTop: 4 },
+  uploadedFile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  removeFileBtn: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

@@ -1,8 +1,8 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControlProps } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControlProps, LayoutRectangle } from 'react-native';
 import { MoreVertical } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
-import { Badge, Avatar } from './ui';
+import { Badge, Avatar, ContextualAnchor } from './ui';
 import { relativeTime } from '../utils/formatters';
 
 interface TaskItem {
@@ -19,7 +19,7 @@ interface TaskItem {
 interface TaskTableViewProps {
   data: TaskItem[];
   onPress: (item: TaskItem) => void;
-  onMenu: (item: TaskItem) => void;
+  onMenu: (item: TaskItem, rect: LayoutRectangle) => void;
   refreshControl?: React.ReactElement<RefreshControlProps>;
 }
 
@@ -114,9 +114,9 @@ export default function TaskTableView({ data, onPress, onMenu, refreshControl }:
                   {dataCell(badges.priority?.(item.priority) ?? null, COL_W)}
                   {dataCell(badges.status?.(item.status) ?? null, COL_W)}
                   {dataCell(
-                    <TouchableOpacity onPress={() => onMenu(item)} hitSlop={6}>
+                    <ContextualAnchor onPressAnchor={(rect) => onMenu(item, rect)} hitSlop={6}>
                       <MoreVertical size={12} color={colors.mutedForeground} />
-                    </TouchableOpacity>, 40)}
+                    </ContextualAnchor>, 40)}
                 </TouchableOpacity>
               ))}
             </ScrollView>
