@@ -2,14 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "npm install --legacy-peer-deps",
-  "buildCommand": "npx prisma generate --schema=packages/database/prisma/schema.prisma",
-  "outputDirectory": "public",
-  "functions": {
-    "api/hello.func/index.js": {
-      "maxDuration": 30
-    },
-    "api/[...route].func/index.js": {
-      "maxDuration": 30
-    }
-  }
+  "buildCommand": "npx prisma generate --schema=packages/database/prisma/schema.prisma && npx tsc apps/web/server/app.ts --outDir apps/web/server --module commonjs --target es2022 --esModuleInterop --skipLibCheck --moduleResolution node",
+  "outputDirectory": "public"
 }
