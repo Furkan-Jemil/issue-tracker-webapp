@@ -1,69 +1,25 @@
-FROM node:22-bookworm-slim AS base
+FROM node:22-bookworm-slim
 
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
 
-FROM base AS deps
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+
+# Copy all workspace package.json files so npm ci can resolve workspaces
 COPY package.json package-lock.json ./
-RUN /bin/sh -lc '\
-	npm config set fetch-retries 5 && \
-	npm config set fetch-retry-mintimeout 20000 && \
-	npm config set fetch-retry-maxtimeout 120000 && \
-	npm config set fetch-timeout 120000 && \
-	i=1; \
-	while [ "${i}" -le 5 ]; do \
-		npm ci --ignore-scripts --no-audit --no-fund --prefer-offline --legacy-peer-deps && break || true; \
-		echo "npm ci attempt ${i} failed, retrying..."; \
-		i=$((i+1)); \
-		sleep 10; \
-	done; \
-	[ "${i}" -le 5 ]'
+COPY apps/web/package.json apps/web/package.json
+COPY packages/database/package.json packages/database/package.json
+COPY packages/database/prisma/schema.prisma packages/database/prisma/schema.prisma
+COPY packages/shared/package.json packages/shared/package.json
 
-FROM base AS builder
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
-ENV DATABASE_URL="postgresql://127.0.0.1:5432/placeholder"
-COPY --from=deps /app/node_modules ./node_modules
+RUN npm ci --ignore-scripts --legacy-peer-deps
+
+# Copy the full monorepo (excludes node_modules/.next/.git via .dockerignore)
 COPY . .
-RUN echo 'DATABASE_URL="postgresql://127.0.0.1:5432/placeholder"' > .env
-RUN mkdir -p public
-RUN /bin/sh -lc '\
-	i=1; \
-	while [ "${i}" -le 5 ]; do \
-		node_modules/.bin/prisma generate --schema=packages/database/prisma/schema.prisma && break || true; \
-		echo "prisma generate attempt ${i} failed, retrying..."; \
-		i=$((i+1)); \
-		sleep 10; \
-	done; \
-	[ "${i}" -le 5 ]'
-RUN npm run build
 
-FROM base AS runner
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-WORKDIR /app
+# Generate Prisma client
+RUN node_modules/.bin/prisma generate --schema=packages/database/prisma/schema.prisma
 
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/package-lock.json ./package-lock.json
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/packages/database/prisma ./prisma
-COPY --from=builder /app/packages/database/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/next.config.ts ./next.config.ts
-COPY --from=builder /app/postcss.config.js ./postcss.config.js
-COPY --from=builder /app/tailwind.config.js ./tailwind.config.js
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/server ./server
-COPY --from=builder /app/scripts ./scripts
-COPY --from=builder /app/proxy.ts ./proxy.ts
-COPY docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x ./docker-entrypoint.sh
-
-EXPOSE 3000
-RUN mkdir -p /app/public/uploads && chmod 755 /app/public/uploads
+EXPOSE 8080
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
