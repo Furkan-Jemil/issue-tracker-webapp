@@ -9,7 +9,7 @@ const defaultTrustedOrigins = [
   "http://127.0.0.1:3000",
   "http://localhost:3100",
   "http://127.0.0.1:3100",
-  "https://issue-tracker-webapp-production.up.railway.app",
+  ...(process.env.BETTER_AUTH_URL ? [process.env.BETTER_AUTH_URL] : []),
 ];
 
 const trustedOrigins = (
