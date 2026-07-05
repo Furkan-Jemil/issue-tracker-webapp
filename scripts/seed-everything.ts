@@ -61,7 +61,7 @@ async function main() {
     { email: "tester2@ethiotelecom.test", name: "Tester Two", role: "TESTER", password: "Tester@2026" },
     { email: "tester3@ethiotelecom.test", name: "Tester Three", role: "TESTER", password: "Tester@2026" },
     // Regular Users (4)
-    { email: "user1@ethiotelecom.test", name: "User One", role: "USER", password: "User@2026" },
+    { email: "fuje5454@gmail.com", name: "Fuje User", role: "USER", password: "fuje5454" },
     { email: "user2@ethiotelecom.test", name: "User Two", role: "USER", password: "User@2026" },
     { email: "user3@ethiotelecom.test", name: "User Three", role: "USER", password: "User@2026" },
     { email: "user4@ethiotelecom.test", name: "User Four", role: "USER", password: "User@2026" },
@@ -183,7 +183,7 @@ async function main() {
     {
       title: "Upgrade billing database indices for performance",
       description: "Billing monthly query timeouts. Require composite indices on user account active states.",
-      creatorEmail: "user1@ethiotelecom.test",
+      creatorEmail: "fuje5454@gmail.com",
       type: "IMPROVEMENT",
       priority: "MEDIUM",
       severity: "MAJOR",
