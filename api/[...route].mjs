@@ -8,7 +8,7 @@
 export default async function handler(req, res) {
   try {
     const { handle } = await import('hono/vercel')
-    const { default: app } = await import('../apps/web/server/app.js')
+    const { default: app } = await import('../apps/web/server/app.mjs')
     return await handle(app)(req, res)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
