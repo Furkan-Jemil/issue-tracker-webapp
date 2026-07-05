@@ -23,4 +23,10 @@ if [ "$#" -gt 0 ]; then
 	exec "$@"
 fi
 
-exec npm run start
+# This service runs the standalone Hono API server (tsx server/index.ts),
+# NOT the Next.js web app. The mobile app depends on Hono-only routes
+# (/api/issues-mobile, /api/users, /api/audit-log, /api/dashboard) and the
+# Hono Bearer-token auth handler. Hono binds $PORT on 0.0.0.0 (Railway-ready).
+# To serve the Next.js web app instead, set the Railway start command to
+# `npm run start` (it overrides via the "$@" passthrough above).
+exec npm run server:start

@@ -1,7 +1,10 @@
 import { Context } from 'hono'
 
 function getAllowedOrigins(): string[] {
-  const origins = new Set<string>(['http://localhost:3000'])
+  const origins = new Set<string>([
+    'http://localhost:3000',
+    'https://issue-tracker-webapp-production.up.railway.app',
+  ])
 
   if (process.env.ALLOWED_ORIGINS) {
     process.env.ALLOWED_ORIGINS.split(',')

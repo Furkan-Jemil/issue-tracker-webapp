@@ -25,7 +25,9 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ibnu_jemil.issuetrackermobile",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,6 +36,11 @@
       "expo-font",
       "expo-status-bar",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "05c03d3d-4b29-46c5-9c60-d1df15ddebc9"
+      }
+    }
   }
 }
