@@ -18,7 +18,11 @@ const app = new Hono()
       const query = searchParams.get('q')?.trim() || ''
       const range = parseDashboardRange(searchParams.get('range'))
 
-      const baseWhere: Prisma.IssueWhereInput = { ...(isAdmin ? {} : { createdBy: session.user.id }) }
+      // Non-admins: scope to issues they created OR are assigned to — matches
+      // the mobile issues list visibility rule.
+      const baseWhere: Prisma.IssueWhereInput = {
+        ...(isAdmin ? {} : { OR: [{ createdBy: session.user.id }, { assigneeId: session.user.id }] }),
+      }
       if (status) baseWhere.status = status
       if (priority) baseWhere.priority = priority
       if (severity) baseWhere.severity = severity

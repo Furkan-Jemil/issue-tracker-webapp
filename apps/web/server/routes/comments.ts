@@ -48,9 +48,9 @@ const app = new Hono()
         // Read validated data from Hono context
         const { issueId, content } = c.req.valid('json')
 
-        const issueForAccess = await prisma.issue.findUnique({ where: { id: issueId }, select: { id: true, title: true, createdBy: true } })
+        const issueForAccess = await prisma.issue.findUnique({ where: { id: issueId }, select: { id: true, title: true, createdBy: true, assigneeId: true } })
         if (!issueForAccess) return c.json({ error: 'Issue not found' }, { status: 404 })
-        if (session.user.role !== 'ADMIN' && issueForAccess.createdBy !== session.user.id) return c.json({ error: 'Forbidden' }, { status: 403 })
+        if (session.user.role !== 'ADMIN' && issueForAccess.createdBy !== session.user.id && issueForAccess.assigneeId !== session.user.id) return c.json({ error: 'Forbidden' }, { status: 403 })
 
         const comment = await prisma.$transaction(async (tx) => {
           const createdComment = await tx.comment.create({ data: { issueId, userId: session.user.id, content }, include: { user: { select: { name: true } } } })

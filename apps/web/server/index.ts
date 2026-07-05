@@ -17,6 +17,9 @@ import commentsApp from './routes/comments'
 import dashboardApp from './routes/dashboard'
 import notificationsApp from './routes/notifications'
 import uploadApp from './routes/upload'
+import issuesApp from './routes/issues'
+import usersApp from './routes/users'
+import auditLogApp from './routes/audit-log'
 
 const app = new Hono()
 
@@ -46,9 +49,13 @@ const apiRoutes = app
   .route('/api/dashboard', dashboardApp)
   .route('/api/notifications', notificationsApp)
   .route('/api/upload', uploadApp)
+  .route('/api/issues-mobile', issuesApp)
+  .route('/api/users', usersApp)
+  .route('/api/audit-log', auditLogApp)
 
 const port = Number(process.env.PORT || 4000)
-const server = serve({ fetch: app.fetch, port })
+const host = process.env.HOST || '0.0.0.0'
+const server = serve({ fetch: app.fetch, port, hostname: host })
 
 export type AppType = typeof apiRoutes
 export { server }

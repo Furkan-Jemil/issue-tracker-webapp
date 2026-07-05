@@ -30,7 +30,27 @@ export async function getServerSession(headers: Headers): Promise<ServerSession 
     console.warn('Better Auth session lookup failed:', err)
   }
 
-  // 2. Fallback: Manually resolve Hono custom credentials session token (without signature dots)
+  // 2. Try Bearer token (used by mobile app)
+  const authHeader = headers.get('authorization') || headers.get('Authorization') || ''
+  if (authHeader.startsWith('Bearer ')) {
+    const token = authHeader.slice(7)
+    const dbSession = await prisma.session.findFirst({
+      where: {
+        token,
+        expiresAt: { gte: new Date() },
+      },
+      select: {
+        user: {
+          select: { id: true, name: true, email: true, role: true },
+        },
+      },
+    })
+    if (dbSession?.user) {
+      return { user: dbSession.user }
+    }
+  }
+
+  // 3. Fallback: Manually resolve from cookie
   const cookieHeader = headers.get('cookie') || ''
   const cookies = cookieHeader.split(';').map((s) => s.trim())
   const tokenCookie = cookies.find((v) => v.startsWith('better-auth.session_token='))

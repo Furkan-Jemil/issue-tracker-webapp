@@ -57,7 +57,25 @@ export async function authHandler(c: Context): Promise<Response> {
         storedPassword = acct?.password ?? null
       }
 
-      if (!storedPassword || !(await bcrypt.compare(password, storedPassword))) {
+      // Verify the password using the SAME scheme it was hashed with.
+      // Better Auth's signUpEmail stores a scrypt hash; older/seeded accounts
+      // may use bcrypt ($2...). Pick the verifier by hash format so both work.
+      let passwordOk = false
+      if (storedPassword) {
+        if (storedPassword.startsWith('$2')) {
+          passwordOk = await bcrypt.compare(password, storedPassword)
+        } else {
+          try {
+            const ctx = await (auth as any).$context
+            passwordOk = await ctx.password.verify({ password, hash: storedPassword })
+          } catch (err) {
+            console.warn('scrypt password verify failed:', err)
+            passwordOk = false
+          }
+        }
+      }
+
+      if (!passwordOk) {
         return new Response(JSON.stringify({ error: 'Invalid email or password' }), {
           status: 401,
           headers: { 'content-type': 'application/json' },
@@ -113,14 +131,21 @@ export async function authHandler(c: Context): Promise<Response> {
       return new Response(JSON.stringify(res), { status: 200, headers: { 'content-type': 'application/json' } })
     }
 
-    // GET /api/auth/get-session -> return the current user from the session cookie.
+    // GET /api/auth/get-session -> return the current user from session cookie or Bearer token.
     if (method === 'GET' && normalizedPath === '/api/auth/get-session') {
       const cookieHeader = c.req.header('cookie') || ''
       const cookies = cookieHeader.split(';').map((s) => s.trim())
       const tokenCookie = cookies.find((v) => v.startsWith('better-auth.session_token='))
-      if (!tokenCookie) return new Response(JSON.stringify(null), { status: 200, headers: { 'content-type': 'application/json' } })
+      let token = tokenCookie ? tokenCookie.split('=')[1] : null
 
-      const token = tokenCookie.split('=')[1]
+      // Fallback: Bearer token (used by mobile)
+      if (!token) {
+        const authHeader = c.req.header('authorization') || c.req.header('Authorization') || ''
+        if (authHeader.startsWith('Bearer ')) token = authHeader.slice(7)
+      }
+
+      if (!token) return new Response(JSON.stringify(null), { status: 200, headers: { 'content-type': 'application/json' } })
+
       const session = await prisma.session.findUnique({ where: { token }, select: { userId: true, expiresAt: true } })
       if (!session) return new Response(JSON.stringify(null), { status: 200, headers: { 'content-type': 'application/json' } })
       if (session.expiresAt.getTime() < Date.now()) return new Response(JSON.stringify(null), { status: 200, headers: { 'content-type': 'application/json' } })
@@ -136,9 +161,16 @@ export async function authHandler(c: Context): Promise<Response> {
       const cookies = cookieHeader.split(';').map((s) => s.trim())
       const tokenCookie = cookies.find((v) => v.startsWith('better-auth.session_token='))
 
-      if (tokenCookie) {
-        const token = tokenCookie.split('=')[1]
-        await prisma.session.deleteMany({ where: { token } })
+      // Collect the session token from either the cookie (web) or the
+      // Authorization: Bearer header (mobile) so logout deletes the DB session
+      // in both clients.
+      const tokensToDelete: string[] = []
+      if (tokenCookie) tokensToDelete.push(tokenCookie.split('=')[1])
+      const authHeader = c.req.header('authorization') || c.req.header('Authorization') || ''
+      if (authHeader.startsWith('Bearer ')) tokensToDelete.push(authHeader.slice(7))
+
+      if (tokensToDelete.length > 0) {
+        await prisma.session.deleteMany({ where: { token: { in: tokensToDelete } } })
       }
 
       const expiresCookie = [

@@ -50,6 +50,41 @@ const app = new Hono()
       return c.json({ error: 'Internal server error' }, { status: 500 })
     }
   })
+  .patch('/users/:id/role', async (c) => {
+    try {
+      const session = (c as any).session || await getServerSession(c.req.raw.headers)
+      if (!session?.user || session.user.role !== 'ADMIN') {
+        return c.json({ error: 'Forbidden' }, { status: 403 })
+      }
+
+      const userId = c.req.param('id')
+      const body = await c.req.json().catch(() => null)
+      if (!body || typeof body.role !== 'string') {
+        return c.json({ error: 'Invalid input' }, { status: 400 })
+      }
+
+      const parsedRole = parseEnumValue(body.role, Object.values(Role))
+      if (!parsedRole) return c.json({ error: 'Invalid role' }, { status: 400 })
+
+      const target = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, role: true } })
+      if (!target) return c.json({ error: 'User not found' }, { status: 404 })
+
+      if (userId === session.user.id && parsedRole !== Role.ADMIN) {
+        return c.json({ error: 'Cannot remove your own admin role' }, { status: 400 })
+      }
+
+      if (target.role === Role.ADMIN && parsedRole !== Role.ADMIN) {
+        const adminCount = await prisma.user.count({ where: { role: Role.ADMIN } })
+        if (adminCount <= 1) return c.json({ error: 'At least one admin must remain' }, { status: 400 })
+      }
+
+      await prisma.user.update({ where: { id: userId }, data: { role: parsedRole } })
+      return c.json({ success: true })
+    } catch (error) {
+      console.error('Role update failed', error)
+      return c.json({ error: 'Internal server error' }, { status: 500 })
+    }
+  })
   .post('/users/bulk-role', async (c) => {
     try {
       const session = (c as any).session || await getServerSession(c.req.raw.headers)

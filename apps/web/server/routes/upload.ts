@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { z } from 'zod'
 import { randomUUID } from 'crypto'
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -269,6 +270,63 @@ const app = new Hono()
     } catch (error) {
       console.error('Upload handler failed', error)
       return new Response(JSON.stringify({ error: 'Upload failed' }), { status: 500, headers: { 'content-type': 'application/json' } })
+    }
+  })
+
+  // POST /upload-base64 — accepts base64-encoded files as JSON
+  // Used by the mobile app to avoid React Native 0.86 FormData issues.
+  .post('/base64', async (c) => {
+    try {
+      const session = await getServerSession(c.req.raw.headers)
+      if (!session?.user) {
+        return c.json({ error: 'Unauthorized' }, 401)
+      }
+
+      const body = await c.req.json()
+      const files: { name: string; type: string; content: string; sizeBytes: number; kind: string }[] = body?.files ?? []
+
+      if (!Array.isArray(files) || files.length === 0) {
+        return c.json({ error: 'No files provided' }, 400)
+      }
+
+      const screenshots: { url: string; filename: string; mimeType: string; sizeBytes: number }[] = []
+      const attachments: { url: string; filename: string; mimeType: string; sizeBytes: number }[] = []
+
+      for (const file of files) {
+        if (!file.content || !file.name || !file.type) continue
+
+        // Determine which pool it belongs to
+        const isImage = file.type.startsWith('image/')
+        const maxCount = isImage ? MAX_FILE_COUNT : MAX_ATTACHMENT_FILE_COUNT
+        const maxSize = isImage ? MAX_FILE_SIZE : MAX_ATTACHMENT_FILE_SIZE
+        const targetPool = isImage ? screenshots : attachments
+
+        if (targetPool.length >= maxCount) continue
+        if (file.sizeBytes > maxSize) continue
+
+        const allowedTypes = isImage ? ALLOWED_SCREENSHOT_MIME_TYPES : ALLOWED_ATTACHMENT_MIME_TYPES
+        if (!allowedTypes.includes(file.type as any)) continue
+
+        // Base64 → Buffer
+        const raw = file.content.replace(/^data:.+;base64,/, '')
+        const buffer = Buffer.from(raw, 'base64')
+
+        const ext = extFromName(file.name) || (isImage ? 'png' : 'bin')
+        const storedFilename = `${randomUUID()}.${ext}`
+        const { url } = await persistUploadedFile({
+          buffer,
+          mimeType: file.type,
+          storedFilename,
+          kind: isImage ? 'screenshot' : 'attachment',
+        })
+
+        targetPool.push({ url, filename: file.name, mimeType: file.type, sizeBytes: buffer.length })
+      }
+
+      return c.json({ screenshots, attachments })
+    } catch (error) {
+      console.error('Base64 upload handler failed', error)
+      return c.json({ error: 'Upload failed' }, 500)
     }
   })
 
