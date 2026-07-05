@@ -30,7 +30,7 @@ RUN mkdir -p public
 RUN /bin/sh -lc '\
 	i=1; \
 	while [ "${i}" -le 5 ]; do \
-		npx prisma generate && break || true; \
+		npx prisma generate --schema=packages/database/prisma/schema.prisma && break || true; \
 		echo "prisma generate attempt ${i} failed, retrying..."; \
 		i=$((i+1)); \
 		sleep 10; \
@@ -50,8 +50,8 @@ COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/packages/database/prisma ./prisma
+COPY --from=builder /app/packages/database/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/next.config.ts ./next.config.ts
 COPY --from=builder /app/postcss.config.js ./postcss.config.js
 COPY --from=builder /app/tailwind.config.js ./tailwind.config.js
