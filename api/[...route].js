@@ -1,12 +1,27 @@
 // Vercel serverless entrypoint for the Hono API
-// Uses CommonJS (no type annotations) so Node can run it directly.
-// Dynamically imports the Hono app to surface init errors as JSON.
+// Uses tsx to run TypeScript directly, avoiding transpilation issues.
+
+const { createServer } = require('node:http');
+const { once } = require('node:events');
+
+// Lazy-load tsx and the app to surface init errors as JSON
+let handlerPromise = null;
+
+async function loadHandler() {
+  if (!handlerPromise) {
+    handlerPromise = (async () => {
+      const { handle } = require('hono/vercel');
+      const { default: app } = await import('../apps/web/server/app.ts');
+      return handle(app);
+    })();
+  }
+  return handlerPromise;
+}
 
 module.exports = async function handler(req, res) {
   try {
-    const { handle } = require('hono/vercel');
-    const { default: app } = require('../apps/web/server/app');
-    return await handle(app)(req, res);
+    const h = await loadHandler();
+    return await h(req, res);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const stack = err instanceof Error && err.stack ? err.stack.split('\n').slice(0, 15) : [];
