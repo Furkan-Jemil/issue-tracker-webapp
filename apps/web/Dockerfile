@@ -30,7 +30,7 @@ RUN mkdir -p public
 RUN /bin/sh -lc '\
 	i=1; \
 	while [ "${i}" -le 5 ]; do \
-		npx prisma generate --schema=packages/database/prisma/schema.prisma && break || true; \
+		node_modules/.bin/prisma generate --schema=packages/database/prisma/schema.prisma && break || true; \
 		echo "prisma generate attempt ${i} failed, retrying..."; \
 		i=$((i+1)); \
 		sleep 10; \
