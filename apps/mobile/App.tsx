@@ -6,7 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Outfit_700Bold, Outfit_600SemiBold, Outfit_500Medium, Outfit_400Regular } from '@expo-google-fonts/outfit';
 import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono';
-import { AppProvider } from './src/context/AppContext';
+import { AppProvider, useAppContext } from './src/context/AppContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { ToastProvider } from './src/components/Toast';
 import LoginScreen from './src/screens/LoginScreen';
@@ -45,6 +45,7 @@ function MainNavigator() {
 
 function NavShell() {
   const { colors, isDark } = useTheme();
+  const { token } = useAppContext();
   return (
     <NavigationContainer
       theme={{
@@ -67,8 +68,11 @@ function NavShell() {
     >
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        <RootStack.Screen name="Auth" component={AuthStack} />
-        <RootStack.Screen name="Main" component={MainNavigator} />
+        {!token ? (
+          <RootStack.Screen name="Auth" component={AuthStack} />
+        ) : (
+          <RootStack.Screen name="Main" component={MainNavigator} />
+        )}
       </RootStack.Navigator>
     </NavigationContainer>
   );

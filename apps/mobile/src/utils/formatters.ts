@@ -1,3 +1,10 @@
+/** Shorten a UUID to its last 5 characters for display. */
+export function shortId(id: string): string {
+  if (!id || id.length < 5) return id ?? '';
+  const cleaned = id.replace(/-/g, '');
+  return cleaned.slice(-5).toUpperCase();
+}
+
 export function getInitials(name?: string | null, email?: string | null): string {
   if (name && name.trim().length > 0) {
     const parts = name.trim().split(/\s+/);
@@ -15,6 +22,10 @@ export function getInitials(name?: string | null, email?: string | null): string
 export function relativeTime(date: string | Date): string {
   const now = Date.now();
   const then = typeof date === 'string' ? new Date(date).getTime() : date.getTime();
+  
+  // Guard against invalid dates (NaN)
+  if (isNaN(then)) return 'Invalid date';
+  
   const diffMs = now - then;
 
   if (diffMs < 0) {

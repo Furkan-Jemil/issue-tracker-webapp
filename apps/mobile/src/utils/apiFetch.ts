@@ -4,12 +4,9 @@
  * - Uses EXPO_PUBLIC_API_URL env var (set in apps/mobile/.env)
  * - Attaches Bearer token from secure storage on every request
  * - Throws on non-2xx with the server's error message
- * - Falls back to mock data when EXPO_PUBLIC_USE_MOCK=true (dev convenience)
  */
 import { loadToken, deleteToken } from './secureStore';
-import { mockApiFetch } from './mockData';
 
-const USE_MOCK = process.env.EXPO_PUBLIC_USE_MOCK === 'true';
 const API_BASE = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/$/, '');
 
 // Navigation ref — injected by App.tsx to force logout on 401 without circular deps
@@ -20,10 +17,6 @@ export function setUnauthorizedHandler(fn: LogoutFn) {
 }
 
 export async function apiFetch(path: string, options: RequestInit = {}): Promise<unknown> {
-  if (USE_MOCK) {
-    return mockApiFetch(path, options);
-  }
-
   if (!API_BASE) {
     throw new Error(
       'EXPO_PUBLIC_API_URL is not set. Create apps/mobile/.env with:\n' +
@@ -32,11 +25,15 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   }
 
   const token = await loadToken();
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
+   const headers: Record<string, string> = {
+     ...(options.headers as Record<string, string>),
+     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+   };
+  
+  // Don't set Content-Type header for FormData - let the browser set it with the boundary
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const url = `${API_BASE}${path}`;
   let response: Response;
