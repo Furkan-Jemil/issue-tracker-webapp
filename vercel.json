@@ -1,10 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
+  "installCommand": "npm install --legacy-peer-deps",
   "buildCommand": "npx prisma generate --schema=packages/database/prisma/schema.prisma",
   "outputDirectory": "public",
   "functions": {
-    "api/[...route].mjs": {
+    "api/hello.func/index.js": {
+      "maxDuration": 30
+    },
+    "api/[...route].func/index.js": {
       "maxDuration": 30
     }
   }
