@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { auth } from "@/lib/auth";
 import { applyRateLimit } from "@/lib/rateLimit";
 import { toNextJsHandler } from "better-auth/next-js";

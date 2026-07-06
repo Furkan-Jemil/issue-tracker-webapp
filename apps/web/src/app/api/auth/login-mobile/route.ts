@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { createMockSessionJWT } from "@/lib/auth/mock-session";
 import type { Role } from "@prisma/client";

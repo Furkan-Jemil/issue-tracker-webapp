@@ -3,7 +3,18 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**"]
+      "outputs": [".next/**", "dist/**"],
+      "env": [
+        "DATABASE_URL",
+        "AUTH_SECRET",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "BETTER_AUTH_TRUSTED_ORIGINS",
+        "NEXTAUTH_URL",
+        "NEXTAUTH_SECRET",
+        "NODE_ENV",
+        "BLOB_READ_WRITE_TOKEN"
+      ]
     },
     "dev": {
       "cache": false,
