@@ -1,7 +1,3 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
-  "rootDirectory": "apps/web",
-  "installCommand": "cd ../.. && npm install --legacy-peer-deps",
-  "buildCommand": "cd ../.. && npx prisma generate --schema=packages/database/prisma/schema.prisma && cd apps/web && npx next build"
+  "$schema": "https://openapi.vercel.sh/vercel.json"
 }
