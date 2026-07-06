@@ -19,7 +19,8 @@ export function getInitials(name?: string | null, email?: string | null): string
   return '?';
 }
 
-export function relativeTime(date: string | Date): string {
+export function relativeTime(date: string | Date | null | undefined): string {
+  if (date === null || date === undefined || date === '') return 'just now';
   const now = Date.now();
   const then = typeof date === 'string' ? new Date(date).getTime() : date.getTime();
   

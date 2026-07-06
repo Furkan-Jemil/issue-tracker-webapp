@@ -78,7 +78,7 @@ export default function TaskDetailScreen() {
   const route = useRoute();
   const { issueId } = route.params as { issueId: string };
 
-  const { issues, members, isLoading } = useAppContext();
+  const { issues, members, isLoading, user } = useAppContext();
   const issueList = issues as unknown as Issue[];
   const memberList = members as unknown as Member[];
   const issue = issueList.find((i) => i.id === issueId);
@@ -252,24 +252,28 @@ export default function TaskDetailScreen() {
 
           {/* Composer */}
           <Card padding={spacing.md}>
-            <View style={[styles.composerRow, { gap: spacing.md }]}>
-              <Avatar initials="YOU" size="sm" />
-              <View style={{ flex: 1, gap: spacing.sm }}>
-                <Textarea
-                  value={comment}
-                  onChangeText={setComment}
-                  placeholder="Add a comment…"
-                  rows={2}
-                />
-                <View style={{ alignSelf: 'flex-end' }}>
-                  <Button
-                    title="Post comment"
-                    variant="default"
-                    size="sm"
-                    icon={<Send size={12} color="#fff" />}
-                    onPress={postComment}
+            <View style={{ gap: spacing.sm }}>
+              <View style={[styles.composerRow, { gap: spacing.sm }]}>
+                <View style={styles.composerAvatarWrap}>
+                  <Avatar initials={getInitials(user?.name, user?.email)} size="sm" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Textarea
+                    value={comment}
+                    onChangeText={setComment}
+                    placeholder="Add a comment…"
+                    rows={2}
                   />
                 </View>
+              </View>
+              <View style={{ alignSelf: 'flex-end' }}>
+                <Button
+                  title="Post comment"
+                  variant="default"
+                  size="sm"
+                  icon={<Send size={12} color="#fff" />}
+                  onPress={postComment}
+                />
               </View>
             </View>
           </Card>
@@ -366,7 +370,8 @@ const styles = StyleSheet.create({
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
   headerActions: { flexDirection: 'row', alignItems: 'center' },
   commentRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  composerRow: { flexDirection: 'row', alignItems: 'center' },
+  composerRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  composerAvatarWrap: { paddingTop: 10, alignItems: 'center', justifyContent: 'center' },
   commentMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   time: { fontFamily: 'Outfit_400Regular', fontSize: 10 },
   divider: { borderTopWidth: StyleSheet.hairlineWidth },
