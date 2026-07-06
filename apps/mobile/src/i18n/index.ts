@@ -5,9 +5,10 @@ import * as Localization from 'expo-localization';
 const resources = {
   en: {
     translation: {
-      dashboard: "Dashboard",
+      dashboard: "Home",
       issues: "Issues",
       members: "Members",
+      logs: "Audit Logs",
       settings: "Settings",
       welcome: "Welcome back",
       search: "Search...",
@@ -26,6 +27,7 @@ const resources = {
       dashboard: "ዳሽቦርድ",
       issues: "ጉዳዮች",
       members: "አባላት",
+      logs: "የኦዲት ምዝግብ",
       settings: "ቅንብሮች",
       welcome: "እንኳን ደህና መጡ",
       search: "ፈልግ...",

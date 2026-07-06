@@ -10,12 +10,12 @@ import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
 import Avatar from '../components/ui/Avatar';
 
-const TABS: Record<string, { Icon: React.ElementType; i18nKey: string }> = {
-  Dashboard: { Icon: LayoutDashboard, i18nKey: 'dashboard' },
-  TasksList: { Icon: ListChecks, i18nKey: 'issues' },
-  Members: { Icon: Users, i18nKey: 'members' },
-  AuditLog: { Icon: Activity, i18nKey: 'logs' },
-  Settings: { Icon: Settings, i18nKey: 'settings' },
+const TABS: Record<string, { Icon: React.ElementType; i18nKey: string; label: string }> = {
+  Dashboard: { Icon: LayoutDashboard, i18nKey: 'dashboard', label: 'Home' },
+  TasksList: { Icon: ListChecks, i18nKey: 'issues', label: 'Issues' },
+  Members: { Icon: Users, i18nKey: 'members', label: 'Members' },
+  AuditLog: { Icon: Activity, i18nKey: 'logs', label: 'Audit Logs' },
+  Settings: { Icon: Settings, i18nKey: 'settings', label: 'Settings' },
 };
 
 export default function BottomTabBar(props: BottomTabBarProps) {
@@ -144,7 +144,7 @@ function FloatingBar({ state, navigation }: BottomTabBarProps) {
                 accessibilityLabel="Create new issue"
                 style={styles.fabSlot}
               >
-                <View style={[styles.fab, { backgroundColor: colors.green, borderColor: colors.card }]}>
+                <View style={[styles.fab, { backgroundColor: colors.green }]}>
                   <Plus size={26} color="#fff" strokeWidth={2.5} />
                 </View>
               </TouchableOpacity>
@@ -169,7 +169,7 @@ function FloatingBar({ state, navigation }: BottomTabBarProps) {
                 color={active ? colors.greenFg : colors.mutedForeground}
               />
               <Text style={[styles.tabLabel, { color: active ? colors.greenFg : colors.mutedForeground, opacity: active ? 1 : 0.8 }]}>
-                {t(meta.i18nKey, meta.i18nKey)}
+                {t(meta.i18nKey, meta.label)}
               </Text>
             </TouchableOpacity>
           );
@@ -212,17 +212,16 @@ const styles = StyleSheet.create({
     }),
   },
   tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2, paddingVertical: 6 },
-  tabLabel: { fontFamily: 'Outfit_600SemiBold', fontSize: 9 },
+  tabLabel: { fontFamily: 'Outfit_600SemiBold', fontSize: 11 },
   tabActive: { transform: [{ scale: 1.15 }] },
   tabBadge: { position: 'absolute', top: -5, right: -7, minWidth: 14, height: 14, borderRadius: 7, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   tabBadgeText: { color: '#fff', fontFamily: 'Outfit_700Bold', fontSize: 7 },
   fabSlot: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   fab: {
     width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', marginTop: -30,
-    borderWidth: 4,
     ...Platform.select({
-      ios: { shadowColor: '#80ca28', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.45, shadowRadius: 12 },
-      android: { elevation: 10 },
+      ios: { shadowColor: '#4a8a00', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.55, shadowRadius: 16 },
+      android: { elevation: 14 },
       default: {},
     }),
   },

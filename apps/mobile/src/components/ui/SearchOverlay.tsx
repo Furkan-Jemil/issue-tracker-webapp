@@ -67,7 +67,7 @@ export default function SearchOverlay({
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close search" />
 
         {/* Search input bar */}
-        <View style={[styles.bar, { backgroundColor: colors.card + 'CC', borderRadius: radius.lg, marginHorizontal: spacing.lg }]}>
+        <View style={[styles.bar, { backgroundColor: colors.card, borderRadius: radius.lg, marginHorizontal: spacing.lg }]}>
           <TouchableOpacity onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close search">
             <ArrowLeft size={20} color={colors.foreground} />
           </TouchableOpacity>
@@ -90,7 +90,7 @@ export default function SearchOverlay({
         </View>
 
         {/* Body: empty prompt → keep-typing hint → results */}
-        <View style={[styles.panel, { backgroundColor: colors.card + 'CC', borderRadius: radius.xl, marginHorizontal: spacing.lg, marginTop: spacing.sm }]}>
+        <View style={[styles.panel, { backgroundColor: colors.card, borderRadius: radius.xl, marginHorizontal: spacing.lg, marginTop: spacing.sm }]}>
           {!meetsMin ? (
             <View style={styles.hint}>
               <Search size={30} color={colors.mutedForeground + '55'} />

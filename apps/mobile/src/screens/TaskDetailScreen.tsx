@@ -79,9 +79,24 @@ export default function TaskDetailScreen() {
   const { issueId } = route.params as { issueId: string };
 
   const { issues, members, isLoading, user } = useAppContext();
+  const { deleteIssue, updateIssue, auditLogs, addComment } = useAppContext();
+  const { showToast } = useToast();
+
   const issueList = issues as unknown as Issue[];
   const memberList = members as unknown as Member[];
   const issue = issueList.find((i) => i.id === issueId);
+
+  const [status, setStatus] = useState(issue?.status ?? '');
+  const [priority, setPriority] = useState(issue?.priority ?? '');
+  const [severity, setSeverity] = useState(issue?.severity ?? '');
+  const [assignee, setAssignee] = useState(issue?.assignee ?? '');
+  const [comment, setComment] = useState('');
+  const [comments, setComments] = useState<Comment[]>(issue?.comments ?? []);
+  const [saving, setSaving] = useState<Record<string, boolean>>({});
+
+  const issueLogs = (auditLogs as any[]).filter(
+    (l: any) => (l.issueId ?? l.issue?.id) === issue?.id
+  ).sort((a: any, b: any) => new Date(b.created_at ?? b.createdAt).getTime() - new Date(a.created_at ?? a.createdAt).getTime());
 
   if (isLoading) {
     return (
@@ -114,20 +129,6 @@ export default function TaskDetailScreen() {
 
   const assigneeOptions = memberList.map((m) => ({ value: m.name, label: m.name }));
 
-  const { deleteIssue, updateIssue, auditLogs, addComment } = useAppContext();
-  const { showToast } = useToast();
-
-  const [status, setStatus] = useState(issue.status);
-  const [priority, setPriority] = useState(issue.priority);
-  const [severity, setSeverity] = useState(issue.severity);
-  const [assignee, setAssignee] = useState(issue.assignee ?? '');
-  const [comment, setComment] = useState('');
-  const [comments, setComments] = useState<Comment[]>(issue.comments ?? []);
-  const [saving, setSaving] = useState<Record<string, boolean>>({});
-
-  const issueLogs = (auditLogs as any[]).filter(
-    (l: any) => (l.issueId ?? l.issue?.id) === issue.id
-  ).sort((a: any, b: any) => new Date(b.created_at ?? b.createdAt).getTime() - new Date(a.created_at ?? a.createdAt).getTime());
 
   const onFieldChange = (field: string, value: string, setter: (v: string) => void, previous: string) => {
     setter(value);
@@ -254,9 +255,7 @@ export default function TaskDetailScreen() {
           <Card padding={spacing.md}>
             <View style={{ gap: spacing.sm }}>
               <View style={[styles.composerRow, { gap: spacing.sm }]}>
-                <View style={styles.composerAvatarWrap}>
-                  <Avatar initials={getInitials(user?.name, user?.email)} size="sm" />
-                </View>
+                <Avatar initials={getInitials(user?.name, user?.email)} size="sm" />
                 <View style={{ flex: 1 }}>
                   <Textarea
                     value={comment}
@@ -370,8 +369,8 @@ const styles = StyleSheet.create({
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
   headerActions: { flexDirection: 'row', alignItems: 'center' },
   commentRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  composerRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  composerAvatarWrap: { paddingTop: 10, alignItems: 'center', justifyContent: 'center' },
+  composerRow: { flexDirection: 'row', alignItems: 'center' },
+  composerAvatarWrap: { alignSelf: 'center' },
   commentMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   time: { fontFamily: 'Outfit_400Regular', fontSize: 10 },
   divider: { borderTopWidth: StyleSheet.hairlineWidth },
