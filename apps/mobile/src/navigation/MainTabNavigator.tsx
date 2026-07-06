@@ -27,8 +27,9 @@ export default function MainTabNavigator() {
     );
   }
 
-   // Always start with Issues tab as requested
-   const initialRouteName = 'TasksList';
+  // Admins land on the Dashboard after login; everyone else lands on Issues.
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
+  const initialRouteName = isAdmin ? 'Dashboard' : 'TasksList';
 
   return (
     <Tab.Navigator

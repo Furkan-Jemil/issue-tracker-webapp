@@ -207,15 +207,10 @@ export default function DashboardScreen() {
           subtitle={fetchError}
           onRetry={() => void refreshData()}
         />
-      ) : issues.length === 0 ? (
-        <View style={{ paddingHorizontal: pagePadding, paddingTop: spacing.xl * 3, gap: spacing.md, alignItems: 'center' }}>
-          <BarChart3 size={56} color={colors.mutedForeground + '33'} />
-          <Text style={[typography.cardTitle, { color: colors.mutedForeground }]}>No data available</Text>
-          <Text style={[typography.bodySm, { color: colors.mutedForeground, textAlign: 'center' }]}>
-            Create your first issue to see analytics here.
-          </Text>
-        </View>
       ) : (
+        // Note: we intentionally do NOT early-return on `issues.length === 0`.
+        // The summary stat cards should always render (showing zeros), while the
+        // charts below hide themselves when their data is empty.
         <>
       {/* ── Performance Snapshot ── */}
       <View style={{ paddingHorizontal: pagePadding, paddingTop: spacing.xl, gap: spacing.md }}>
@@ -312,10 +307,12 @@ export default function DashboardScreen() {
             <View style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.lg }}>
               <BarChart3 size={40} color={colors.mutedForeground + '33'} />
               <Text style={[typography.detailValue, { color: colors.mutedForeground }]}>
-                No issues match these filters
+                {issues.length === 0 ? 'No issues found' : 'No issues match these filters'}
               </Text>
               <Text style={[typography.bodySm, { color: colors.mutedForeground, textAlign: 'center' }]}>
-                {activeFilterCount > 0
+                {issues.length === 0
+                  ? 'Create your first issue to see analytics here.'
+                  : activeFilterCount > 0
                   ? 'Adjust or clear the filters to see analytics.'
                   : 'No issues fall within the selected time range.'}
               </Text>

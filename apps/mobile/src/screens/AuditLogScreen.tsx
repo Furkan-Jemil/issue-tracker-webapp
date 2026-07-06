@@ -23,6 +23,7 @@ import {
   Check,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
 import { loadToken } from '../utils/secureStore';
@@ -62,6 +63,7 @@ function getEventBadge(colors: any, type: string) {
 export default function AuditLogScreen() {
   const { colors, typography, spacing, radius, pagePadding } = useTheme();
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
   const { auditLogs, isLoading, refreshData, members } = useAppContext();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -147,7 +149,11 @@ export default function AuditLogScreen() {
     const initials = getInitials(member?.name, member?.email);
 
     return (
-      <View
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => navigation.navigate('AuditDetail', { entry: item })}
+        accessibilityRole="button"
+        accessibilityLabel={`Open audit entry: ${event.label}`}
         style={[
           styles.logCard,
           {
@@ -206,7 +212,7 @@ export default function AuditLogScreen() {
             </Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -262,7 +268,14 @@ export default function AuditLogScreen() {
         {filteredLogs.slice(0, 40).map((item: any) => {
           const event = getEventBadge(colors, item.eventType ?? item.type ?? '');
           return (
-            <View key={item.id} style={[styles.resultRow, { borderBottomColor: colors.cardBorder }]}>
+            <TouchableOpacity
+              key={item.id}
+              activeOpacity={0.7}
+              onPress={() => { closeSearch(); navigation.navigate('AuditDetail', { entry: item }); }}
+              accessibilityRole="button"
+              accessibilityLabel={`Open audit entry: ${event.label}`}
+              style={[styles.resultRow, { borderBottomColor: colors.cardBorder }]}
+            >
               <View style={[styles.resultDot, { backgroundColor: event.color }]} />
               <View style={{ flex: 1 }}>
                 <Text style={[typography.micro, { color: event.color, fontWeight: '700' }]}>{event.label}</Text>
@@ -270,7 +283,7 @@ export default function AuditLogScreen() {
                   {item.description ?? item.message ?? ''}
                 </Text>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </SearchOverlay>

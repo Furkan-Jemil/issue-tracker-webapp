@@ -12,6 +12,7 @@ import { ToastProvider } from './src/components/Toast';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import TaskDetailScreen from './src/screens/TaskDetailScreen';
+import AuditDetailScreen from './src/screens/AuditDetailScreen';
 import CreateTaskScreen from './src/screens/CreateTaskScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import AdminSettingsScreen from './src/screens/AdminSettingsScreen';
@@ -36,6 +37,7 @@ function MainNavigator() {
     <MainStack.Navigator screenOptions={{ headerShown: false }}>
       <MainStack.Screen name="Tabs" component={MainTabNavigator} />
       <MainStack.Screen name="TaskDetail" component={TaskDetailScreen} />
+      <MainStack.Screen name="AuditDetail" component={AuditDetailScreen} />
       <MainStack.Screen name="CreateTask" component={CreateTaskScreen} />
       <MainStack.Screen name="Profile" component={ProfileScreen} />
       <MainStack.Screen name="AdminSettings" component={AdminSettingsScreen} />

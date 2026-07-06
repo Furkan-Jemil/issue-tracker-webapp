@@ -252,7 +252,7 @@ export default function TaskDetailScreen() {
 
           {/* Composer */}
           <Card padding={spacing.md}>
-            <View style={[styles.commentRow, { gap: spacing.md }]}>
+            <View style={[styles.composerRow, { gap: spacing.md }]}>
               <Avatar initials="YOU" size="sm" />
               <View style={{ flex: 1, gap: spacing.sm }}>
                 <Textarea
@@ -366,6 +366,7 @@ const styles = StyleSheet.create({
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
   headerActions: { flexDirection: 'row', alignItems: 'center' },
   commentRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  composerRow: { flexDirection: 'row', alignItems: 'center' },
   commentMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   time: { fontFamily: 'Outfit_400Regular', fontSize: 10 },
   divider: { borderTopWidth: StyleSheet.hairlineWidth },

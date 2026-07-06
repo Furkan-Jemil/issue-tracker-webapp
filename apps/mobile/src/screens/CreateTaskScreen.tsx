@@ -14,11 +14,25 @@ import { loadToken } from '../utils/secureStore';
 // File picker imports
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-// Dynamic import — won't crash Metro if expo-file-system isn't installed yet
+// Dynamic import — won't crash Metro if expo-file-system isn't installed yet.
+// expo-file-system@54+ moved the classic file API (readAsStringAsync /
+// EncodingType) to the `expo-file-system/legacy` subpath; the package root now
+// exposes the new File/Directory API without those functions. Prefer legacy so
+// base64 reads keep working, and fall back to the root for older SDKs.
 let FileSystem: { readAsStringAsync: (uri: string, opts?: any) => Promise<string>; cacheDirectory: string; EncodingType: { Base64: string } } | null = null;
 try {
-  FileSystem = require('expo-file-system');
-} catch {} // not installed — upload will show a helpful message
+  FileSystem = require('expo-file-system/legacy');
+} catch {
+  try {
+    FileSystem = require('expo-file-system');
+  } catch {} // not installed — upload will show a helpful message
+}
+// Guard against a root import that lacks the legacy read function.
+if (FileSystem && typeof FileSystem.readAsStringAsync !== 'function') {
+  try {
+    FileSystem = require('expo-file-system/legacy');
+  } catch {}
+}
 
 type UploadedFile = {
   url: string;
@@ -139,6 +153,7 @@ export default function CreateTaskScreen() {
           mediaTypes: ['images'],
           allowsMultipleSelection: true,
           quality: 0.8,
+          base64: true,
         });
 
         if (!result.canceled && result.assets.length > 0) {
@@ -156,6 +171,7 @@ export default function CreateTaskScreen() {
           mediaTypes: ['images'],
           allowsMultipleSelection: true,
           quality: 0.8,
+          base64: true,
         });
 
         if (!result.canceled && result.assets.length > 0) {
@@ -192,31 +208,31 @@ export default function CreateTaskScreen() {
         const token = await loadToken();
         if (!token) throw new Error('Not authenticated');
 
-        if (!FileSystem) {
-          Alert.alert(
-            'Missing Package',
-            'File upload requires expo-file-system.\n\nRun:\ncd apps/mobile && npx expo install expo-file-system\n\nThen restart the app.',
-          );
-          return;
-        }
-
-        // Read each file as base64 using expo-file-system (handles content:// URIs)
-        // then send as JSON — avoids React Native's broken FormData entirely.
+        // Read each file as base64, then send as JSON — avoids React Native's
+        // broken FormData entirely. Images from ImagePicker already carry a
+        // `base64` field (we request base64:true); otherwise fall back to
+        // expo-file-system/legacy which handles content:// and file:// URIs.
         const payloadFiles: { name: string; type: string; content: string; sizeBytes: number; kind: string }[] = [];
 
         for (const asset of assets) {
-          if (!asset.uri) continue;
+          if (!asset.uri && !asset.base64) continue;
           const fileType = asset.type || asset.mimeType || 'application/octet-stream';
           const fileName = asset.name || asset.fileName || `file_${Date.now()}`;
 
-          let base64: string;
-          try {
-            base64 = await FileSystem.readAsStringAsync(asset.uri, {
-              encoding: FileSystem.EncodingType.Base64,
-            });
-          } catch {
-            continue;
+          let base64: string | undefined = asset.base64 || undefined;
+          if (!base64) {
+            if (!FileSystem || typeof FileSystem.readAsStringAsync !== 'function') {
+              continue;
+            }
+            try {
+              base64 = await FileSystem.readAsStringAsync(asset.uri, {
+                encoding: FileSystem.EncodingType.Base64,
+              });
+            } catch {
+              continue;
+            }
           }
+          if (!base64) continue;
 
           const sizeBytes = asset.fileSize || asset.size || Math.ceil(base64.length * 0.75);
           const kind = fileType.startsWith('image/') ? 'screenshot' : 'attachment';
