@@ -1,14 +1,11 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowRight,
-  LogIn,
-  Sparkles,
-  Zap,
-  Eye,
-  Terminal,
-} from "lucide-react";
+import { ArrowRight, LogIn } from "lucide-react";
+import { randomUUID } from "crypto";
+import bcrypt from "bcryptjs";
+import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import {
   Card,
   CardContent,
@@ -22,29 +19,6 @@ import { AuthShell } from "@/app/(auth)/components/auth-shell";
 import { PendingSubmitButton } from "@/app/(auth)/components/pending-submit-button";
 import { getPostLoginPath } from "@/lib/auth/post-login-redirect";
 import { getAppSession } from "@/lib/auth/session";
-import {
-  COOKIE_NAME,
-  MAX_AGE_SECONDS,
-  createMockSessionJWT,
-} from "@/lib/auth/mock-session";
-import type { Role } from "@prisma/client";
-
-const MOCK_USERS: Record<
-  string,
-  { password: string; name: string; role: Role }
-> = {
-  "admin@ethiotelecom.et": {
-    password: "admin",
-    name: "Admin",
-    role: "ADMIN",
-  },
-  "user@ethiotelecom.et": { password: "user", name: "User", role: "USER" },
-  "tester@ethiotelecom.et": {
-    password: "tester",
-    name: "Tester",
-    role: "TESTER",
-  },
-};
 
 async function signInWithPassword(formData: FormData) {
   "use server";
@@ -58,28 +32,60 @@ async function signInWithPassword(formData: FormData) {
     redirect("/login?error=invalid-credentials");
   }
 
-  const mock = MOCK_USERS[email];
-  if (!mock || mock.password !== password) {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, email: true, name: true, role: true, password: true },
+  });
+
+  let storedPassword: string | null = user?.password ?? null;
+  if (!storedPassword && user?.id) {
+    const acct = await prisma.account.findFirst({
+      where: { userId: user.id, providerId: { in: ["credential", "email"] } },
+      select: { password: true },
+    });
+    storedPassword = acct?.password ?? null;
+  }
+
+  if (!user || !storedPassword) {
     redirect("/login?error=invalid-credentials");
   }
 
-  const token = await createMockSessionJWT({
-    id: email,
-    name: mock.name,
-    email,
-    role: mock.role,
+  let passwordOk = false;
+  if (storedPassword.startsWith("$2")) {
+    passwordOk = await bcrypt.compare(password, storedPassword);
+  } else {
+    try {
+      const ctx = await (auth as any).$context;
+      passwordOk = await ctx.password.verify({
+        password,
+        hash: storedPassword,
+      });
+    } catch (err) {
+      console.warn("scrypt password verify failed:", err);
+      passwordOk = false;
+    }
+  }
+
+  if (!passwordOk) {
+    redirect("/login?error=invalid-credentials");
+  }
+
+  const sessionToken = randomUUID().replace(/-/g, "");
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await prisma.session.create({
+    data: { userId: user.id, token: sessionToken, expiresAt },
   });
 
   const cs = await cookies();
-  cs.set(COOKIE_NAME, token, {
+  cs.set("better-auth.session_token", sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: MAX_AGE_SECONDS,
+    maxAge: 7 * 24 * 60 * 60,
   });
 
-  redirect(getPostLoginPath(mock.role));
+  redirect(getPostLoginPath(user.role));
 }
 
 export default async function LoginPage({
@@ -108,63 +114,10 @@ export default async function LoginPage({
             Sign in
           </CardTitle>
           <CardDescription className="text-sm md:text-base">
-            Continue with your account.
+            Enter your email and password to access your workspace.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-5">
-          <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
-            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-            <p>
-              <strong>Demo Mode</strong> &mdash; no database required. Use any
-              credential below to sign in instantly.
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
-            <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <Terminal className="h-3.5 w-3.5" aria-hidden />
-              Quick login
-            </div>
-            <div className="flex flex-col gap-1.5">
-              {(
-                Object.entries(MOCK_USERS) as [
-                  string,
-                  { password: string; name: string; role: Role },
-                ][]
-              ).map(([email, cred]) => (
-                <form key={email} action={signInWithPassword} className="contents">
-                  <input type="hidden" name="email" value={email} />
-                  <input type="hidden" name="password" value={cred.password} />
-                  <button
-                    type="submit"
-                    className="flex items-center gap-2 rounded-md border border-border/50 bg-background/60 px-3 py-1.5 text-left text-xs transition-colors hover:bg-accent hover:text-accent-foreground">
-                    <Zap className="h-3 w-3 shrink-0 text-primary" aria-hidden />
-                    <span className="font-medium text-foreground">{cred.name}</span>
-                    <span className="text-muted-foreground">{email}</span>
-                    <span className="ml-auto shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
-                      {cred.role}
-                    </span>
-                  </button>
-                </form>
-              ))}
-            </div>
-            <div className="mt-1.5 flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Eye className="h-3 w-3" aria-hidden />
-              Passwords match the username (e.g. &quot;admin&quot;)
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border/50" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
-                Or sign in manually
-              </span>
-            </div>
-          </div>
-
           <form action={signInWithPassword} className="space-y-4">
             {registered && (
               <div

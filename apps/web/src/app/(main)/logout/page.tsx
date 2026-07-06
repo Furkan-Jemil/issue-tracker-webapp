@@ -9,13 +9,22 @@ import {
 } from "@/components/ui/card";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { COOKIE_NAME } from "@/lib/auth/mock-session";
+import prisma from "@/lib/prisma";
 
 async function signOut() {
   "use server";
 
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, "", {
+  const token = cookieStore.get("better-auth.session_token")?.value;
+  if (token) {
+    try {
+      await prisma.session.deleteMany({ where: { token } });
+    } catch (err) {
+      console.error("Error deleting session from DB:", err);
+    }
+  }
+
+  cookieStore.set("better-auth.session_token", "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

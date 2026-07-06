@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { COOKIE_NAME } from "@/lib/auth/mock-session";
 
 const PUBLIC_PATHS = new Set([
   "/login",
@@ -20,7 +19,6 @@ function isPublic(pathname: string): boolean {
 
 function hasSession(request: NextRequest): boolean {
   return (
-    request.cookies.has(COOKIE_NAME) ||
     request.cookies.has("better-auth.session_token") ||
     request.cookies.has("__session") ||
     request.cookies.has("app-session")

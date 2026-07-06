@@ -1,29 +1,13 @@
 export const dynamic = "force-dynamic";
-import { NextResponse } from "next/server";
-import { createMockSessionJWT } from "@/lib/auth/mock-session";
-import type { Role } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "crypto";
+import bcrypt from "bcryptjs";
+import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
-const MOCK_USERS: Record<
-  string,
-  { password: string; name: string; role: Role }
-> = {
-  "admin@ethiotelecom.et": {
-    password: "admin",
-    name: "Admin",
-    role: "ADMIN",
-  },
-  "user@ethiotelecom.et": { password: "user", name: "User", role: "USER" },
-  "tester@ethiotelecom.et": {
-    password: "tester",
-    name: "Tester",
-    role: "TESTER",
-  },
-};
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
-
+    const { email, password } = await request.json().catch(() => ({}));
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email and password are required" },
@@ -32,29 +16,63 @@ export async function POST(request: Request) {
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    const mock = MOCK_USERS[normalizedEmail];
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true, email: true, name: true, role: true, password: true },
+    });
 
-    if (!mock || mock.password !== password) {
+    let storedPassword: string | null = user?.password ?? null;
+    if (!storedPassword && user?.id) {
+      const acct = await prisma.account.findFirst({
+        where: { userId: user.id, providerId: { in: ["credential", "email"] } },
+        select: { password: true },
+      });
+      storedPassword = acct?.password ?? null;
+    }
+
+    if (!user || !storedPassword) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    const token = await createMockSessionJWT({
-      id: normalizedEmail,
-      name: mock.name,
-      email: normalizedEmail,
-      role: mock.role,
+    let passwordOk = false;
+    if (storedPassword.startsWith("$2")) {
+      passwordOk = await bcrypt.compare(password, storedPassword);
+    } else {
+      try {
+        const ctx = await (auth as any).$context;
+        passwordOk = await ctx.password.verify({
+          password,
+          hash: storedPassword,
+        });
+      } catch (err) {
+        console.warn("scrypt password verify failed:", err);
+        passwordOk = false;
+      }
+    }
+
+    if (!passwordOk) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    const sessionToken = randomUUID().replace(/-/g, "");
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await prisma.session.create({
+      data: { userId: user.id, token: sessionToken, expiresAt },
     });
 
     return NextResponse.json({
-      token,
+      token: sessionToken,
       user: {
-        id: normalizedEmail,
-        email: normalizedEmail,
-        name: mock.name,
-        role: mock.role,
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
       },
     });
   } catch (err: any) {
