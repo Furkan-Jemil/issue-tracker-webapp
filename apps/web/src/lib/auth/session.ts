@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import prisma from "@/lib/prisma";
 import type { Role } from "@prisma/client";
@@ -41,9 +41,29 @@ export async function createSessionJWT(
  * with a fallback to database lookup for legacy/raw session tokens.
  * Wrapped in `cache()` so layout + page in the same RSC request only call this once.
  */
-export const getAppSession = cache(async (): Promise<AppSession | null> => {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("better-auth.session_token")?.value;
+export const getAppSession = cache(async (reqHeaders?: Headers): Promise<AppSession | null> => {
+  let token: string | undefined;
+
+  if (reqHeaders) {
+    const authHeader = reqHeaders.get("authorization") || "";
+    if (authHeader.startsWith("Bearer ")) token = authHeader.slice(7);
+  }
+
+  if (!token) {
+    try {
+      const cookieStore = await cookies();
+      token = cookieStore.get("better-auth.session_token")?.value;
+    } catch {}
+  }
+
+  if (!token) {
+    try {
+      const headerStore = await headers();
+      const authHeader = headerStore.get("authorization") || "";
+      if (authHeader.startsWith("Bearer ")) token = authHeader.slice(7);
+    } catch {}
+  }
+
   if (!token) return null;
 
   // 1. Fast path: try verifying as a signed JWT session (instant UX, 0ms latency)
