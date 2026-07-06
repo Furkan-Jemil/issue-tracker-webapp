@@ -112,7 +112,7 @@ export default function NotificationsScreen() {
             <Text style={[typography.bodySmBold, { color: colors.foreground }]}>{n.title}</Text>
             <Text style={[typography.bodySm, { color: colors.foreground }]}>{n.message}</Text>
             <Text style={[typography.cardDesc, { color: colors.mutedForeground }]} numberOfLines={1}>
-              {n.code} · {relativeTime(n.created_at)}
+              {n.code} · {relativeTime((n as any).created_at ?? (n as any).createdAt)}
             </Text>
           </View>
           <View style={[styles.actions, { gap: spacing.xs }]}>

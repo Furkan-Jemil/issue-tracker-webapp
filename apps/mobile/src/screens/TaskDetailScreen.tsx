@@ -221,7 +221,7 @@ export default function TaskDetailScreen() {
                   <View style={[styles.timelineDot, { backgroundColor: colors.mutedForeground }]} />
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={[typography.bodySm, { color: colors.foreground, fontSize: 12 }]}>{log.description}</Text>
-                    <Text style={[styles.time, { color: colors.mutedForeground }]}>{relativeTime(log.created_at)}</Text>
+                    <Text style={[styles.time, { color: colors.mutedForeground }]}>{relativeTime(log.created_at ?? (log as any).createdAt)}</Text>
                   </View>
                 </View>
               ))}
@@ -242,7 +242,7 @@ export default function TaskDetailScreen() {
                     <View style={styles.commentMeta}>
                       <Text style={[typography.labelBadge, { color: colors.foreground }]}>{c.author}</Text>
                       <Text style={[styles.time, { color: colors.mutedForeground }]}>
-                        {relativeTime(c.created_at)}
+                        {relativeTime(c.created_at ?? (c as any).createdAt)}
                       </Text>
                     </View>
                     <Text style={[typography.bodySm, { color: colors.foreground }]}>{c.body}</Text>
@@ -254,8 +254,12 @@ export default function TaskDetailScreen() {
           {/* Composer */}
           <Card padding={spacing.md}>
             <View style={{ gap: spacing.sm }}>
+              {/* Row: user initials avatar aligned with textarea input */}
               <View style={[styles.composerRow, { gap: spacing.sm }]}>
-                <Avatar initials={getInitials(user?.name, user?.email)} size="sm" />
+                {/* paddingTop: 10 centers the 28px avatar beside the textarea's top padding */}
+                <View style={{ paddingTop: 10, alignSelf: 'flex-start' }}>
+                  <Avatar initials={getInitials(user?.name, user?.email)} size="sm" />
+                </View>
                 <View style={{ flex: 1 }}>
                   <Textarea
                     value={comment}
@@ -314,7 +318,7 @@ export default function TaskDetailScreen() {
 
           <View style={[styles.divider, { borderTopColor: colors.cardBorder, paddingTop: spacing.md, gap: spacing.sm }]}>
             <MetaRow label="Reporter" value={issue.reporter} colors={colors} />
-            <MetaRow label="Created" value={relativeTime(issue.created_at)} colors={colors} />
+            <MetaRow label="Created" value={relativeTime(issue.created_at ?? (issue as any).createdAt)} colors={colors} />
             {issue.category ? (
               <MetaRow label="Category" value={issue.category} colors={colors} />
             ) : null}

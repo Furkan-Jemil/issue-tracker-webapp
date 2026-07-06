@@ -209,7 +209,7 @@ export default function TasksListScreen() {
           </TouchableOpacity>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.iconGap }}>
             <Text style={[typography.cardDesc, { color: colors.mutedForeground }]}>
-              {relativeTime(issue.created_at)}
+              {relativeTime(issue.created_at ?? (issue as any).createdAt)}
             </Text>
             <ContextualAnchor accessibilityRole="button" accessibilityLabel={`More actions for ${issue.title}`} onPressAnchor={(rect) => openMenu(issue, rect)} hitSlop={8} style={styles.menuBtn}>
               <MoreVertical size={14} color={colors.mutedForeground} />
