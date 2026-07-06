@@ -5,7 +5,6 @@ import {
   ArrowRight,
   LogIn,
   Sparkles,
-  Zap,
   Eye,
   Terminal,
 } from "lucide-react";
@@ -24,8 +23,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/app/(auth)/components/auth-shell";
 import { PendingSubmitButton } from "@/app/(auth)/components/pending-submit-button";
+import { QuickLoginButton } from "@/app/(auth)/components/quick-login-button";
 import { getPostLoginPath } from "@/lib/auth/post-login-redirect";
-import { getAppSession } from "@/lib/auth/session";
+import { getAppSession, createSessionJWT } from "@/lib/auth/session";
 import type { Role } from "@prisma/client";
 
 const QUICK_USERS: Record<
@@ -101,8 +101,18 @@ async function signInWithPassword(formData: FormData) {
     data: { userId: user.id, token: sessionToken, expiresAt },
   });
 
+  const signedToken = await createSessionJWT(
+    {
+      id: user.id,
+      name: user.name || user.email,
+      email: user.email,
+      role: user.role,
+    },
+    sessionToken
+  );
+
   const cs = await cookies();
-  cs.set("better-auth.session_token", sessionToken, {
+  cs.set("better-auth.session_token", signedToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -165,16 +175,7 @@ export default async function LoginPage({
                 <form key={email} action={signInWithPassword} className="contents">
                   <input type="hidden" name="email" value={email} />
                   <input type="hidden" name="password" value={cred.password} />
-                  <button
-                    type="submit"
-                    className="flex items-center gap-2 rounded-md border border-border/50 bg-background/60 px-3 py-1.5 text-left text-xs transition-colors hover:bg-accent hover:text-accent-foreground">
-                    <Zap className="h-3 w-3 shrink-0 text-primary" aria-hidden />
-                    <span className="font-medium text-foreground">{cred.name}</span>
-                    <span className="text-muted-foreground">{email}</span>
-                    <span className="ml-auto shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
-                      {cred.role}
-                    </span>
-                  </button>
+                  <QuickLoginButton name={cred.name} email={email} role={cred.role} />
                 </form>
               ))}
             </div>
