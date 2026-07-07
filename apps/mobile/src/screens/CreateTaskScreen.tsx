@@ -226,8 +226,33 @@ export default function CreateTaskScreen() {
 
         for (const asset of assets) {
           if (!asset.uri && !asset.base64) continue;
-          const fileType = asset.type || asset.mimeType || 'application/octet-stream';
-          const fileName = asset.name || asset.fileName || `file_${Date.now()}`;
+          const fileName = asset.name || asset.fileName || `file_${Date.now()}.jpg`;
+
+          // asset.type in expo-image-picker is "image" or "video", NOT a MIME type!
+          // We must check asset.mimeType first, or derive from asset.type / filename extension.
+          let fileType = asset.mimeType;
+          if (!fileType || !fileType.includes('/')) {
+            if (asset.type === 'image' || fileName.match(/\.(png|jpg|jpeg|gif|webp)$/i)) {
+              if (fileName.toLowerCase().endsWith('.png')) fileType = 'image/png';
+              else if (fileName.toLowerCase().endsWith('.gif')) fileType = 'image/gif';
+              else if (fileName.toLowerCase().endsWith('.webp')) fileType = 'image/webp';
+              else fileType = 'image/jpeg';
+            } else if (asset.type === 'video' || fileName.match(/\.(mp4|mov|avi)$/i)) {
+              fileType = 'video/mp4';
+            } else if (fileName.toLowerCase().endsWith('.pdf')) {
+              fileType = 'application/pdf';
+            } else if (fileName.toLowerCase().endsWith('.txt')) {
+              fileType = 'text/plain';
+            } else if (fileName.toLowerCase().endsWith('.csv')) {
+              fileType = 'text/csv';
+            } else if (fileName.toLowerCase().endsWith('.zip')) {
+              fileType = 'application/zip';
+            } else if (fileName.toLowerCase().endsWith('.json')) {
+              fileType = 'application/json';
+            } else {
+              fileType = asset.type && asset.type.includes('/') ? asset.type : 'application/octet-stream';
+            }
+          }
 
           let base64: string | undefined = asset.base64 || undefined;
           if (!base64) {
@@ -266,7 +291,12 @@ export default function CreateTaskScreen() {
 
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error || `Upload failed (${response.status})`);
+          const rejectionReasons = [
+            ...(errData.rejected || []).map((r: any) => `${r.filename}: ${r.reason}`),
+            ...(errData.attachmentsRejected || []).map((r: any) => `${r.filename}: ${r.reason}`)
+          ].join('; ');
+          const errorMsg = rejectionReasons ? `${errData.error || 'Upload failed'} (${rejectionReasons})` : (errData.error || `Upload failed (${response.status})`);
+          throw new Error(errorMsg);
         }
 
         const result = await response.json();

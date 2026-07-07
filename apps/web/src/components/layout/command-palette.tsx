@@ -60,7 +60,7 @@ const PALETTE_ITEMS: PaletteItem[] = [
   },
 ];
 
-export function CommandPalette({ compact }: { compact?: boolean }) {
+export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -108,23 +108,15 @@ export function CommandPalette({ compact }: { compact?: boolean }) {
         type="button"
         variant="outline"
         size="sm"
-        className={cn(
-          "group h-11 gap-2 rounded-full border-border/70 bg-gradient-to-r from-background to-muted/40 px-2.5 text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:from-background hover:to-background hover:shadow-md md:h-9",
-          compact ? "w-9 h-9 p-0 justify-center rounded-lg bg-transparent border-transparent shadow-none" : "w-full"
-        )}
-        onClick={() => setOpen(true)}
-        aria-label="Command palette">
-        <span className={cn("inline-flex items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors group-hover:text-foreground", compact ? "h-9 w-9 border-0 bg-transparent" : "h-6 w-6")}>
-          <Command className={cn(compact ? "h-4 w-4" : "h-3.5 w-3.5")} aria-hidden="true" />
+        className="group h-11 gap-2 rounded-full border-border/70 bg-gradient-to-r from-background to-muted/40 px-2.5 text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:from-background hover:to-background hover:shadow-md md:h-9"
+        onClick={() => setOpen(true)}>
+        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors group-hover:text-foreground">
+          <Command className="h-3.5 w-3.5" aria-hidden="true" />
         </span>
-        {!compact && (
-          <>
-            <span className="hidden md:inline">Commands</span>
-            <span className="rounded-full border border-border/70 bg-muted/35 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              Ctrl K
-            </span>
-          </>
-        )}
+        <span className="hidden md:inline">Commands</span>
+        <span className="rounded-full border border-border/70 bg-muted/35 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          Ctrl K
+        </span>
       </Button>
 
       {open ? (

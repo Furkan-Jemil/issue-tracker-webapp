@@ -1,19 +1,13 @@
 import "../styles/tailwind.css";
-import { Outfit, JetBrains_Mono } from "next/font/google";
+import { Manrope } from "next/font/google";
 import { cookies } from "next/headers";
 import { getAppSession } from "@/lib/auth/session";
 import { AppShell, type AppNavItem } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 
-const fontSans = Outfit({
+const fontSans = Manrope({
   subsets: ["latin"],
   variable: "--font-sans",
-  display: "swap",
-});
-
-const fontMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
   display: "swap",
 });
 
@@ -24,16 +18,9 @@ function buildNavItems(role: string | undefined): AppNavItem[] {
   }
   items.push({ href: "/tasks", label: "Tasks", icon: "issues", section: "primary" });
   if (role === "ADMIN") {
-    // Admin: Members page in primary nav; Audit Log in admin section
     items.push(
-      { href: "/members", label: "Members", icon: "admin", section: "primary" },
+      { href: "/members", label: "Members", icon: "admin", section: "admin" },
       { href: "/admin/audit-log", label: "Audit Log", icon: "audit", section: "admin" },
-    );
-  } else if (role) {
-    // Non-admin: Activity Log and Profile at the bottom
-    items.push(
-      { href: "/notifications", label: "Activity Log", icon: "notifications", section: "primary" },
-      { href: "/profile", label: "Profile", icon: "profile", section: "primary" },
     );
   }
   return items;
@@ -57,7 +44,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fontSans.variable} ${fontMono.variable}${initialTheme === "dark" ? " dark" : ""}`}
+      className={`${fontSans.variable}${initialTheme === "dark" ? " dark" : ""}`}
       suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />

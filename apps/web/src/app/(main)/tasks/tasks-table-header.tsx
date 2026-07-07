@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/layout/search-input";
@@ -13,8 +12,8 @@ type ReporterOption = {
   role: string;
 };
 
-// Note: view prop kept for backwards compat but no longer used for toggling
 export function IssuesToolbar({
+  view,
   isAdmin,
   hasActiveFilters,
   activeFilterCount,
@@ -27,9 +26,10 @@ export function IssuesToolbar({
   reporter,
   assignee,
   reporters,
+  onSubmitHref,
   onResetHref,
 }: {
-  view?: "compact" | "details" | "board";
+  view: "compact" | "details" | "board";
   isAdmin: boolean;
   hasActiveFilters: boolean;
   activeFilterCount: number;
@@ -42,16 +42,18 @@ export function IssuesToolbar({
   reporter: string;
   assignee: string;
   reporters: ReporterOption[];
+  onSubmitHref: string;
   onResetHref: string;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
       <SearchInput
-        placeholder="Search issues…"
-        className="h-9 w-full max-w-[220px]"
+        placeholder="Search issues (type at least 2 letters)"
+        className="w-full max-w-sm"
       />
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 md:justify-self-end">
         <IssuesFilterPopover
+          view={view}
           isAdmin={isAdmin}
           hasActiveFilters={hasActiveFilters}
           activeFilterCount={activeFilterCount}
@@ -64,14 +66,11 @@ export function IssuesToolbar({
           reporter={reporter}
           assignee={assignee}
           reporters={reporters}
+          onSubmitHref={onSubmitHref}
           onResetHref={onResetHref}
         />
-        <Button asChild size="sm" className="h-9 gap-1.5 rounded-lg px-3 text-xs font-semibold">
-          <Link href="/tasks/new">
-            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="hidden sm:inline">Create Issue</span>
-            <span className="sm:hidden">New</span>
-          </Link>
+        <Button asChild size="sm">
+          <Link href="/tasks/new">Create Issue</Link>
         </Button>
       </div>
     </div>

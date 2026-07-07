@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 
+import { AppShellControls } from "@/components/layout/app-shell-controls";
 import { ICON_STROKE, ICON_STYLE } from "@/lib/uiTokens";
 import { cn } from "@/lib/utils";
 
@@ -72,7 +73,7 @@ export function PageHeader({
             </div>
           ) : null}
           <div className="space-y-1">
-            <h1 className="page-title">{title}</h1>
+            <h1 className="page-title text-lg md:text-xl font-semibold leading-tight">{title}</h1>
             {description ? (
               <p className="page-subtitle max-w-2xl text-sm text-muted-foreground/95">
                 {description}
@@ -82,6 +83,7 @@ export function PageHeader({
         </div>
         <div className="flex flex-wrap items-center gap-2 md:justify-end">
           {actions}
+          <AppShellControls className="pointer-events-auto relative" />
         </div>
       </div>
     </header>

@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { IssueSemanticBadge } from "@/app/(main)/tasks/task-semantic-badge";
 import { changeIssueStatusQuick } from "@/app/(main)/tasks/tasks-action-menu";
 import { StatusQuickActions } from "@/app/(main)/tasks/tasks-table-row-actions";
-import { cn, formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type BoardStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
@@ -54,7 +54,11 @@ function statusLabel(status: BoardStatus) {
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
-
+function formatDate(d: string): string {
+  const date = new Date(d);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()}, ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
+}
 
 function buildColumns(issues: BoardIssue[]) {
   return {
@@ -302,22 +306,7 @@ export function IssuesBoard({
           const canDrop = canManageStatus && Boolean(draggingId);
 
           return (
-            <section key={status} className={cn(
-              "relative rounded-xl border border-border/70 bg-muted/20 p-2.5 pt-3 overflow-hidden",
-              status === "OPEN" && "border-t-red-500/50",
-              status === "IN_PROGRESS" && "border-t-blue-500/50",
-              status === "RESOLVED" && "border-t-green-500/50",
-              status === "CLOSED" && "border-t-slate-500/50"
-            )}>
-              {/* Visual anchor bar at the top */}
-              <div className={cn(
-                "absolute inset-x-0 top-0 h-1",
-                status === "OPEN" && "bg-red-500/80",
-                status === "IN_PROGRESS" && "bg-blue-500/80",
-                status === "RESOLVED" && "bg-green-500/80",
-                status === "CLOSED" && "bg-slate-400/80"
-              )} />
-
+            <section key={status} className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div>
                   <h2 className="text-[13px] font-semibold text-foreground">{statusLabel(status)}</h2>

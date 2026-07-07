@@ -24,16 +24,11 @@
     --border: 214 18% 83%;
     --input: 214 18% 83%;
     --ring: 87 67% 47%;
-    --chart-1: 214 74% 72%;
-    --chart-2: 216 83% 56%;
-    --chart-3: 225 73% 48%;
+    --chart-1: 87 67% 47%;
+    --chart-2: 42 90% 55%;
+    --chart-3: 142 52% 45%;
     --chart-4: 351 77% 59%;
-    --chart-5: 230 68% 36%;
-    /* Semantic chart aliases — blue family matching screenshot */
-    --color-open:          214 74% 72%;
-    --color-in-progress:   216 83% 56%;
-    --color-resolved:      225 73% 48%;
-    --color-closed:        230 68% 36%;
+    --chart-5: 261 63% 57%;
     --color-et-green-light: #80ca28;
     --radius: 0.625rem;
     --density-scale: 1;
@@ -74,15 +69,11 @@
     --border: 219 14% 25%;
     --input: 219 14% 25%;
     --ring: 87 67% 47%;
-    --chart-1: 214 70% 62%;
-    --chart-2: 216 78% 52%;
-    --chart-3: 225 68% 46%;
+    --chart-1: 87 67% 47%;
+    --chart-2: 42 95% 62%;
+    --chart-3: 142 48% 53%;
     --chart-4: 352 82% 64%;
-    --chart-5: 230 60% 32%;
-    --color-open:          214 70% 62%;
-    --color-in-progress:   216 78% 52%;
-    --color-resolved:      225 68% 46%;
-    --color-closed:        230 60% 32%;
+    --chart-5: 261 70% 66%;
   }
 }
 
@@ -254,11 +245,6 @@
     animation: fadeLift 140ms ease-out;
     transform-origin: top right;
   }
-  /* Filter popup drop-down feel */
-  .filter-popup {
-    animation: filterDrop 160ms cubic-bezier(0.16, 1, 0.3, 1);
-    transform-origin: top center;
-  }
 }
 
 @keyframes fadeIn {
@@ -290,16 +276,5 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes filterDrop {
-  from {
-    opacity: 0;
-    transform: scaleY(0.92) translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: scaleY(1) translateY(0);
   }
 }

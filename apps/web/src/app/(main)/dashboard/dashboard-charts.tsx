@@ -1,12 +1,9 @@
 "use client";
 
-import { DashboardSkeleton } from "./dashboard-skeleton";
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useAutoSearch } from "@/lib/useAutoSearch";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -99,13 +96,13 @@ type BucketSummary = {
 };
 
 const SHADCN_CHART_COLORS = {
-  total: "hsl(var(--color-in-progress))",
-  open: "hsl(var(--color-open))",
-  inProgress: "hsl(var(--color-in-progress))",
-  resolved: "hsl(var(--color-resolved))",
-  closed: "hsl(var(--color-closed))",
-  openSoft: "hsl(var(--color-open) / 0.22)",
-  inProgressSoft: "hsl(var(--color-in-progress) / 0.2)",
+  total: "hsl(210 66% 70%)",
+  open: "hsl(214 74% 62%)",
+  inProgress: "hsl(216 83% 56%)",
+  resolved: "hsl(225 73% 48%)",
+  closed: "hsl(230 68% 42%)",
+  openSoft: "hsl(214 74% 62% / 0.22)",
+  inProgressSoft: "hsl(216 83% 56% / 0.2)",
 } as const;
 
 function getThemeColor(variableName: string, alpha?: number) {
@@ -215,7 +212,20 @@ export default function DashboardCharts() {
     };
   }, [filtersOpen]);
 
-  useAutoSearch(searchInput, setSearchQuery, 2, 320);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const trimmed = searchInput.trim();
+      if (trimmed.length === 0) {
+        setSearchQuery("");
+        return;
+      }
+      if (trimmed.length >= 2) {
+        setSearchQuery(trimmed);
+      }
+    }, 320);
+
+    return () => window.clearTimeout(timer);
+  }, [searchInput]);
 
   function openFiltersPanel() {
     setField("status", statusFilter);
@@ -474,7 +484,13 @@ export default function DashboardCharts() {
   const hasRecentIssues = (data?.recentIssues?.length ?? 0) > 0;
 
   if (loading) {
-    return <DashboardSkeleton />;
+    return (
+      <Card>
+        <CardContent className="p-4 text-sm text-muted-foreground">
+          Loading charts...
+        </CardContent>
+      </Card>
+    );
   }
 
   if (error) {
@@ -497,7 +513,6 @@ export default function DashboardCharts() {
     );
   }
 
-
   return (
     <div className="space-y-3">
       <section className="space-y-2">
@@ -519,58 +534,52 @@ export default function DashboardCharts() {
               value: data.totalIssues,
               icon: Ticket,
               tone: "text-primary",
-              strip: "bg-primary",
             },
             {
-              href: "/tasks?status=OPEN",
+              href: "/tasks/filter?status=OPEN",
               label: "Open",
               value: data.open,
               icon: CircleDot,
-              tone: "text-amber-500 dark:text-amber-400",
-              strip: "bg-amber-400",
+              tone: "text-[hsl(var(--chart-1))]",
             },
             {
-              href: "/tasks?status=IN_PROGRESS",
+              href: "/tasks/filter?status=IN_PROGRESS",
               label: "In progress",
               value: data.inProgress,
               icon: LoaderCircle,
-              tone: "text-blue-500 dark:text-blue-400",
-              strip: "bg-blue-500",
+              tone: "text-[hsl(var(--chart-2))]",
             },
             {
-              href: "/tasks?status=RESOLVED",
+              href: "/tasks/filter?status=RESOLVED",
               label: "Resolved",
               value: data.resolved,
               icon: BadgeCheck,
-              tone: "text-emerald-600 dark:text-emerald-400",
-              strip: "bg-emerald-500",
+              tone: "text-[hsl(var(--chart-3))]",
             },
             {
-              href: "/tasks?status=CLOSED",
+              href: "/tasks/filter?status=CLOSED",
               label: "Closed",
               value: data.closed,
               icon: CheckCircle2,
-              tone: "text-slate-500 dark:text-slate-400",
-              strip: "bg-slate-400",
+              tone: "text-[hsl(var(--chart-5))]",
             },
-          ].map(({ href, label, value, icon: Icon, tone, strip }) => (
+          ].map(({ href, label, value, icon: Icon, tone }) => (
             <Link key={label} href={href}>
-              <Card className="group relative h-full cursor-pointer overflow-hidden bg-white shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-ring/50 dark:bg-card">
-                {/* Left-border color strip */}
-                <div className={`absolute left-0 top-0 h-full w-[3px] ${strip}`} aria-hidden="true" />
-                <CardContent className="flex items-center justify-between gap-2.5 pl-4 pr-2.5 py-2.5">
+              <Card className="group h-full cursor-pointer bg-white shadow-sm transition-colors duration-150 hover:bg-accent/20 focus-within:ring-2 focus-within:ring-ring/50 dark:bg-card">
+                <CardContent className="flex items-center justify-between gap-2.5 p-2.5">
                   <div>
                     <p className="text-[12px] font-medium text-muted-foreground">
                       {label}
                     </p>
-                    <p className={`text-xl font-semibold leading-tight ${tone}`}>
+                    <p
+                      className={`text-xl font-semibold leading-tight ${tone}`}>
                       {value}
                     </p>
                     <p className="mt-0.5 text-[11px] text-muted-foreground transition-colors group-hover:text-foreground">
-                      View issues →
+                      Open list
                     </p>
                   </div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground/80 transition-colors group-hover:bg-muted">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground/80">
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </div>
                 </CardContent>
@@ -578,7 +587,6 @@ export default function DashboardCharts() {
             </Link>
           ))}
         </div>
-
       </section>
 
       <section className="space-y-2">
@@ -702,6 +710,15 @@ export default function DashboardCharts() {
                   </Card>
                 ) : null}
               </div>
+              <Select
+                value={timeRange}
+                onValueChange={setTimeRange}
+                className="h-8 w-[124px] text-xs">
+                <option value="7d">7 days</option>
+                <option value="30d">30 days</option>
+                <option value="90d">90 days</option>
+                <option value="365d">1 year</option>
+              </Select>
             </div>
             </div>
           </div>
@@ -771,7 +788,9 @@ export default function DashboardCharts() {
                   />
               </div>
               <div className="border-t border-border/60 pt-2 text-center">
-
+                <p className="text-sm font-medium text-foreground">
+                  Trending up by 5.2% this month
+                </p>
                 <p className="text-xs text-muted-foreground">
                   Showing total status distribution for the selected range.
                 </p>
@@ -863,7 +882,9 @@ export default function DashboardCharts() {
                   />
               </div>
               <div className="pt-2 text-center">
-
+                <p className="text-sm font-medium text-foreground">
+                  Trending up by 5.2% this month
+                </p>
                 <p className="text-xs text-muted-foreground">
                   Showing grouped issue throughput for the last 6 intervals.
                 </p>
