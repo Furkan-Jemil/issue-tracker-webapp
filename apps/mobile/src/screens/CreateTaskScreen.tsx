@@ -115,75 +115,80 @@ export default function CreateTaskScreen() {
 
    const API_BASE = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/$/, '');
 
-   const handleUploadFiles = async () => {
-     try {
-       setUploading(true);
-       
-       // Request permissions
-       const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-       const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-
-       if (mediaStatus !== 'granted' && cameraStatus !== 'granted') {
-         Alert.alert('Permission required', 'Please allow access to photos and camera to upload files');
-         return;
-       }
-
-       // Show options for image or document
-       Alert.alert(
-         'Add Files',
-         'Choose file type:',
-         [
-           { text: 'Cancel', style: 'cancel' },
-           { text: 'Take Photo', onPress: takePhoto },
-           { text: 'Choose from Gallery', onPress: pickImage },
-           { text: 'Choose Document', onPress: pickDocument },
-         ]
-       );
-     } catch (error) {
-       console.error('File upload error:', error);
-       Alert.alert('Error', 'Failed to upload files');
-     } finally {
-       setUploading(false);
-     }
-   };
+    const handleUploadFiles = () => {
+      // Show options for image or document, using setTimeout to let the native Android dialog close cleanly first
+      Alert.alert(
+        'Add Files',
+        'Choose file type:',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Take Photo', onPress: () => setTimeout(takePhoto, 150) },
+          { text: 'Choose from Gallery', onPress: () => setTimeout(pickImage, 150) },
+          { text: 'Choose Document', onPress: () => setTimeout(pickDocument, 150) },
+        ]
+      );
+    };
 
     const takePhoto = async () => {
+      let assets: any[] | null = null;
       try {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission required', 'Please allow camera access to take photos.');
+          return;
+        }
+
         const result = await ImagePicker.launchCameraAsync({
           mediaTypes: ['images'],
           allowsMultipleSelection: true,
           quality: 0.8,
-          base64: true,
         });
 
         if (!result.canceled && result.assets.length > 0) {
-          await uploadFilesToServer(result.assets);
+          assets = result.assets;
         }
       } catch (error) {
         console.error('Camera error:', error);
-        Alert.alert('Error', 'Failed to take photo');
+        Alert.alert('Error', 'Failed to open camera or take photo.');
+        return;
+      }
+
+      if (assets) {
+        await uploadFilesToServer(assets);
       }
     };
 
     const pickImage = async () => {
+      let assets: any[] | null = null;
       try {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission required', 'Please allow photo library access to choose images.');
+          return;
+        }
+
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ['images'],
           allowsMultipleSelection: true,
           quality: 0.8,
-          base64: true,
         });
 
         if (!result.canceled && result.assets.length > 0) {
-          await uploadFilesToServer(result.assets);
+          assets = result.assets;
         }
       } catch (error) {
         console.error('Image picker error:', error);
-        Alert.alert('Error', 'Failed to pick images');
+        Alert.alert('Error', 'Failed to open image gallery or pick images.');
+        return;
+      }
+
+      if (assets) {
+        await uploadFilesToServer(assets);
       }
     };
 
     const pickDocument = async () => {
+      let assets: any[] | null = null;
       try {
         const result = await DocumentPicker.getDocumentAsync({
           type: ['application/pdf', 'text/*', 'image/*'],
@@ -191,11 +196,16 @@ export default function CreateTaskScreen() {
         });
 
         if (!result.canceled && result.assets.length > 0) {
-          await uploadFilesToServer(result.assets);
+          assets = result.assets;
         }
       } catch (error) {
         console.error('Document picker error:', error);
-        Alert.alert('Error', 'Failed to pick documents');
+        Alert.alert('Error', 'Failed to open document picker.');
+        return;
+      }
+
+      if (assets) {
+        await uploadFilesToServer(assets);
       }
     };
 
@@ -205,13 +215,13 @@ export default function CreateTaskScreen() {
 
     const uploadFilesToServer = async (assets: any[]) => {
       try {
+        setUploading(true);
         const token = await loadToken();
         if (!token) throw new Error('Not authenticated');
 
         // Read each file as base64, then send as JSON — avoids React Native's
-        // broken FormData entirely. Images from ImagePicker already carry a
-        // `base64` field (we request base64:true); otherwise fall back to
-        // expo-file-system/legacy which handles content:// and file:// URIs.
+        // broken FormData entirely. If `base64` is not already attached,
+        // fall back to expo-file-system/legacy which handles content:// and file:// URIs safely.
         const payloadFiles: { name: string; type: string; content: string; sizeBytes: number; kind: string }[] = [];
 
         for (const asset of assets) {
@@ -277,7 +287,8 @@ export default function CreateTaskScreen() {
           message: error instanceof Error ? error.message : 'Upload failed',
           type: 'error',
         });
-        throw error;
+      } finally {
+        setUploading(false);
       }
     };
 
