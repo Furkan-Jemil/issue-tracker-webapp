@@ -45,13 +45,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4.5,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   text: {
-    fontFamily: 'Outfit_700Bold',
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 12,
     lineHeight: 16,
+    letterSpacing: 0.2,
   },
 });

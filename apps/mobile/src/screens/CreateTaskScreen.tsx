@@ -77,23 +77,25 @@ export default function CreateTaskScreen() {
    const [submitting, setSubmitting] = useState(false);
    const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>(() => {
      // Pre-load existing screenshots and attachments when editing
-     if (editing) {
-       const screenshots = (editing.screenshots || []).map((s: any) => ({
-         url: s.url,
-         filename: s.filename,
-         mimeType: s.mimeType,
-         sizeBytes: s.sizeBytes,
-         type: 'screenshot' as const
-       }));
-       const attachments = (editing.attachments || []).map((a: any) => ({
-         url: a.url,
-         filename: a.filename,
-         mimeType: a.mimeType,
-         sizeBytes: a.sizeBytes,
-         type: 'attachment' as const
-       }));
-       return [...screenshots, ...attachments];
-     }
+      if (editing) {
+        const screenshots = (editing.screenshots || []).map((s: any) => ({
+          id: s.id,
+          url: s.url,
+          filename: s.filename,
+          mimeType: s.mimeType,
+          sizeBytes: s.sizeBytes,
+          type: 'screenshot' as const
+        }));
+        const attachments = (editing.attachments || []).map((a: any) => ({
+          id: a.id,
+          url: a.url,
+          filename: a.filename,
+          mimeType: a.mimeType,
+          sizeBytes: a.sizeBytes,
+          type: 'attachment' as const
+        }));
+        return [...screenshots, ...attachments];
+      }
      return [];
    });
    const [uploading, setUploading] = useState(false);
@@ -425,10 +427,28 @@ export default function CreateTaskScreen() {
               if (!validate() || submitting) return;
               setSubmitting(true);
               try {
-                 if (editing) {
-                   // updateIssue maps the assignee name -> assigneeId internally.
-                   await updateIssue(editing.id, { title, description, type, priority, severity, assignee });
-                 } else {
+                  if (editing) {
+                    const updatePayload: Record<string, any> = { title, description, type, priority, severity, assignee };
+                    const newScreenshots = uploadedFiles.filter(f => f.type === 'screenshot' && !(f as any).id);
+                    const newAttachments = uploadedFiles.filter(f => f.type === 'attachment' && !(f as any).id);
+                    if (newScreenshots.length > 0) {
+                      updatePayload.screenshots = newScreenshots.map(f => ({
+                        url: f.url,
+                        filename: f.filename,
+                        mimeType: f.mimeType,
+                        sizeBytes: f.sizeBytes
+                      }));
+                    }
+                    if (newAttachments.length > 0) {
+                      updatePayload.attachments = newAttachments.map(f => ({
+                        url: f.url,
+                        filename: f.filename,
+                        mimeType: f.mimeType,
+                        sizeBytes: f.sizeBytes
+                      }));
+                    }
+                    await updateIssue(editing.id, updatePayload);
+                  } else {
                    const assigneeId = members.find((m) => String(m.name) === assignee)?.id;
                    const payload: Record<string, any> = { title, description, type, priority, severity };
                    if (assigneeId) payload.assigneeId = String(assigneeId);

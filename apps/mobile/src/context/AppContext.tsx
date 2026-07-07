@@ -64,12 +64,12 @@ interface AppContextValue {
   markNotificationsRead: () => Promise<void>;
   deleteIssue: (id: string) => Promise<void>;
   updateProfile: (data: { name?: string }) => Promise<void>;
-  updateIssue: (id: string, data: Record<string, string>) => Promise<void>;
+  updateIssue: (id: string, data: Record<string, any>) => Promise<void>;
   addComment: (
     issueId: string,
     body: string,
   ) => Promise<{ id: string; author: string; body: string; created_at: string }>;
-  createIssue: (data: Record<string, string>) => Promise<any>;
+  createIssue: (data: Record<string, any>) => Promise<any>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -240,6 +240,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       created_at: apiIssue.createdAt ?? apiIssue.created_at,
       reporter: apiIssue.creator?.name ?? apiIssue.reporter ?? '',
       assignee: apiIssue.assignee?.name ?? apiIssue.assignee ?? null,
+      screenshots: Array.isArray(apiIssue.screenshots) ? apiIssue.screenshots : [],
+      attachments: Array.isArray(apiIssue.attachments) ? apiIssue.attachments : [],
       comments: (apiIssue.comments ?? []).map((c: any) => ({
         ...c,
         id: c.id,
@@ -472,7 +474,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
      }
    }, [issues, logout]);
 
-  const updateIssue = useCallback(async (id: string, data: Record<string, string>) => {
+  const updateIssue = useCallback(async (id: string, data: Record<string, any>) => {
     let previousIssues = issues;
     if (isMounted.current) {
       setIssues((prev) => prev.map((i) => (i.id === id ? { ...i, ...data } as any : i)));
@@ -553,7 +555,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
      };
    }, [logout]);
 
-  const createIssue = useCallback(async (data: Record<string, string>) => {
+  const createIssue = useCallback(async (data: Record<string, any>) => {
     const token = await loadToken();
     const res = await fetch(`${API_BASE}/api/issues-mobile`, {
       method: 'POST',

@@ -75,13 +75,12 @@ export default function EmptyState({
 
   return (
     <View style={styles.container}>
-      <View style={[styles.iconWrapper, { backgroundColor: colors.muted }]}>
+      <View style={[styles.iconWrapper, { backgroundColor: variant === 'error' ? colors.errorContainer : colors.primaryContainer, borderColor: colors.outlineVariant, borderWidth: 1 }]}>
         {icon ?? def.icon(iconColor)}
       </View>
       <Text
         style={[
-          typography.sectionHeading,
-          { color: colors.foreground, textAlign: 'center' },
+          { fontFamily: 'Outfit_700Bold', fontSize: 18, lineHeight: 24, color: colors.foreground, textAlign: 'center' },
         ]}
       >
         {title ?? def.title}

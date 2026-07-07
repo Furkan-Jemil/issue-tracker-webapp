@@ -18,14 +18,14 @@ interface ButtonProps {
   style?: ViewStyle;
 }
 
-const HEIGHTS: Record<Size, number> = { sm: 32, md: 36, lg: 40 };
-const PAD: Record<Size, number> = { sm: 12, md: 16, lg: 20 };
-const FONT: Record<Size, number> = { sm: 12, md: 14, lg: 14 };
+const HEIGHTS: Record<Size, number> = { sm: 40, md: 44, lg: 48 };
+const PAD: Record<Size, number> = { sm: 14, md: 18, lg: 22 };
+const FONT: Record<Size, number> = { sm: 14, md: 15, lg: 16 };
 
 export default function Button({
   title, onPress, variant = 'default', size = 'md', loading, disabled, icon, fullWidth, style,
 }: ButtonProps) {
-  const { colors, radius } = useTheme();
+  const { colors } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const bg = {
@@ -47,7 +47,7 @@ export default function Button({
       <TouchableOpacity
         onPress={onPress}
         disabled={disabled || loading}
-        activeOpacity={0.85}
+        activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={title}
         onPressIn={() => {
@@ -65,7 +65,7 @@ export default function Button({
             borderWidth: variant === 'outline' ? 1 : 0,
             height: HEIGHTS[size],
             paddingHorizontal: PAD[size],
-            borderRadius: radius.lg,
+            borderRadius: 10,
             opacity: disabled ? 0.5 : 1,
             width: fullWidth ? '100%' : undefined,
           },

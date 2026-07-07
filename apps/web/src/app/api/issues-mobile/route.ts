@@ -35,9 +35,22 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Retrieve all issues ordered by newest first
+    // Retrieve all issues ordered by newest first with full relations
     const issues = await prisma.issue.findMany({
       orderBy: { createdAt: "desc" },
+      include: {
+        creator: { select: { name: true, email: true } },
+        assignee: { select: { name: true, email: true } },
+        screenshots: { orderBy: { createdAt: "desc" } },
+        attachments: {
+          orderBy: { createdAt: "desc" },
+          include: { uploader: { select: { name: true, email: true } } },
+        },
+        comments: {
+          orderBy: { createdAt: "asc" },
+          include: { user: { select: { name: true } } },
+        },
+      },
     });
 
     return NextResponse.json(issues);
@@ -68,6 +81,9 @@ export async function POST(request: Request) {
       );
     }
 
+    const rawScreenshots = Array.isArray(body.screenshots) ? body.screenshots : [];
+    const rawAttachments = Array.isArray(body.attachments) ? body.attachments : [];
+
     const issue = await prisma.issue.create({
       data: {
         title: result.data.title,
@@ -76,6 +92,42 @@ export async function POST(request: Request) {
         priority: result.data.priority as any,
         severity: result.data.severity as any,
         createdBy: user.id,
+        screenshots: {
+          create: rawScreenshots
+            .filter((f: any) => Boolean(f?.url))
+            .map((f: any, idx: number) => ({
+              url: String(f.url),
+              filename: String(f.filename || "screenshot.png"),
+              mimeType: String(f.mimeType || "image/png"),
+              sizeBytes: Number(f.sizeBytes || 0),
+              order: idx,
+            })),
+        },
+        attachments: {
+          create: rawAttachments
+            .filter((f: any) => Boolean(f?.url))
+            .map((f: any, idx: number) => ({
+              url: String(f.url),
+              filename: String(f.filename || "attachment.pdf"),
+              mimeType: String(f.mimeType || "application/octet-stream"),
+              sizeBytes: Number(f.sizeBytes || 0),
+              uploaderId: user.id,
+              order: idx,
+            })),
+        },
+      },
+      include: {
+        creator: { select: { name: true, email: true } },
+        assignee: { select: { name: true, email: true } },
+        screenshots: { orderBy: { createdAt: "desc" } },
+        attachments: {
+          orderBy: { createdAt: "desc" },
+          include: { uploader: { select: { name: true, email: true } } },
+        },
+        comments: {
+          orderBy: { createdAt: "asc" },
+          include: { user: { select: { name: true } } },
+        },
       },
     });
 

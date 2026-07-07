@@ -27,7 +27,7 @@ interface ScreenProps {
 }
 
 /** Bottom clearance so content scrolls clear of the phone floating tab bar. */
-export const FLOATING_BAR_CLEARANCE = 96;
+export const FLOATING_BAR_CLEARANCE = 100;
 
 export default function Screen({
   title, subtitle, header, onBack, headerRight, scroll = true, refreshControl, children, contentStyle, contentOffset,

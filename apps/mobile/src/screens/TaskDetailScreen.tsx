@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, Image, TouchableOpacity, Linking } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Edit3, Trash2, Send } from 'lucide-react-native';
+import { Edit3, Trash2, Send, Paperclip, ExternalLink, Download } from 'lucide-react-native';
 import { useTheme } from '../theme/useTheme';
 import { useAppContext } from '../context/AppContext';
 import {
@@ -35,6 +35,14 @@ interface Comment {
   created_at: string;
 }
 
+interface FileAttachment {
+  id: string;
+  filename: string;
+  url: string;
+  mimeType?: string;
+  sizeBytes?: number;
+}
+
 interface Issue {
   id: string;
   title: string;
@@ -48,6 +56,8 @@ interface Issue {
   created_at: string;
   category?: string;
   comments: Comment[];
+  screenshots?: FileAttachment[];
+  attachments?: FileAttachment[];
 }
 
 interface Member {
@@ -209,6 +219,78 @@ export default function TaskDetailScreen() {
           <Text style={[typography.bodySm, { color: colors.foreground }]}>{issue.description}</Text>
         </Card>
       </View>
+
+      {/* Evidence & Attachments */}
+      {((issue.screenshots && issue.screenshots.length > 0) || (issue.attachments && issue.attachments.length > 0)) && (
+        <View style={{ gap: spacing.sm }}>
+          <SecLabel>Evidence & Attachments ({(issue.screenshots?.length || 0) + (issue.attachments?.length || 0)})</SecLabel>
+          <Card padding={spacing.cardPadding}>
+            <View style={{ gap: spacing.md }}>
+              {/* Screenshots Grid */}
+              {issue.screenshots && issue.screenshots.length > 0 && (
+                <View style={{ gap: spacing.xs }}>
+                  <Text style={[typography.micro, { color: colors.mutedForeground, textTransform: 'uppercase', letterSpacing: 0.5 }]}>Screenshots</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+                    {issue.screenshots.map((item, index) => (
+                      <TouchableOpacity
+                        key={item.id || `screenshot-${index}`}
+                        activeOpacity={0.8}
+                        onPress={() => item.url ? Linking.openURL(item.url).catch(() => {}) : null}
+                        style={[styles.evidenceThumb, { borderColor: colors.outline, backgroundColor: colors.muted }]}
+                      >
+                        {item.url ? (
+                          <Image source={{ uri: item.url }} style={styles.thumbImg} resizeMode="cover" />
+                        ) : (
+                          <View style={styles.thumbPlaceholder}>
+                            <Paperclip size={18} color={colors.mutedForeground} />
+                          </View>
+                        )}
+                        <View style={styles.thumbOverlay}>
+                          <ExternalLink size={12} color="#fff" />
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Document Attachments */}
+              {issue.attachments && issue.attachments.length > 0 && (
+                <View style={{ gap: spacing.xs }}>
+                  <Text style={[typography.micro, { color: colors.mutedForeground, textTransform: 'uppercase', letterSpacing: 0.5 }]}>Documents & Files</Text>
+                  <View style={{ gap: spacing.sm }}>
+                    {issue.attachments.map((item, index) => (
+                      <TouchableOpacity
+                        key={item.id || `doc-${index}`}
+                        activeOpacity={0.7}
+                        onPress={() => item.url ? Linking.openURL(item.url).catch(() => {}) : null}
+                        style={[styles.attachmentRow, { backgroundColor: colors.muted, borderColor: colors.outline, padding: spacing.sm, borderRadius: 8 }]}
+                      >
+                        <View style={[styles.attachmentIconWrap, { backgroundColor: colors.background }]}>
+                          <Paperclip size={14} color={colors.foreground} />
+                        </View>
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Text style={[typography.bodySm, { color: colors.foreground }]} numberOfLines={1}>
+                            {item.filename || 'Untitled attachment'}
+                          </Text>
+                          {item.sizeBytes ? (
+                            <Text style={[typography.micro, { color: colors.mutedForeground }]}>
+                              {(item.sizeBytes / 1024).toFixed(1)} KB
+                            </Text>
+                          ) : null}
+                        </View>
+                        <View style={[styles.downloadBtn, { backgroundColor: colors.background }]}>
+                          <Download size={14} color={colors.foreground} />
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </View>
+          </Card>
+        </View>
+      )}
 
       {/* Activity Timeline */}
       {issueLogs.length > 0 && (
@@ -381,4 +463,11 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   timelineItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   timelineDot: { width: 6, height: 6, borderRadius: 3, marginTop: 5 },
+  evidenceThumb: { width: 80, height: 80, borderRadius: 8, borderWidth: 1, overflow: 'hidden', position: 'relative' },
+  thumbImg: { width: '100%', height: '100%' },
+  thumbPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  thumbOverlay: { position: 'absolute', right: 4, bottom: 4, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 10, padding: 3 },
+  attachmentRow: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1 },
+  attachmentIconWrap: { width: 28, height: 28, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  downloadBtn: { width: 28, height: 28, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
 });

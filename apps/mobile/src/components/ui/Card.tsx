@@ -21,10 +21,11 @@ export default function Card({ children, padding, style, onPress, accessibilityR
         styles.card,
         {
           backgroundColor: colors.card,
-          borderRadius: radius.xl,
+          borderRadius: 14,
           padding: padding,
-          borderColor: colors.cardBorder,
-          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: isDark ? colors.border : colors.outlineVariant,
+          borderWidth: 1,
+          ...(isDark ? { shadowOpacity: 0, elevation: 0 } : {}),
         },
         style,
       ]}
@@ -36,11 +37,11 @@ export default function Card({ children, padding, style, onPress, accessibilityR
   if (onPress) {
     return (
       <TouchableOpacity
-        activeOpacity={0.95}
+        activeOpacity={0.9}
         onPress={onPress}
         accessibilityRole={accessibilityRole}
         accessibilityLabel={accessibilityLabel}
-        onPressIn={() => Animated.spring(scale, { toValue: 0.97, tension: 150, friction: 8, useNativeDriver: true }).start()}
+        onPressIn={() => Animated.spring(scale, { toValue: 0.98, tension: 150, friction: 8, useNativeDriver: true }).start()}
         onPressOut={() => Animated.spring(scale, { toValue: 1, tension: 150, friction: 8, useNativeDriver: true }).start()}
       >
         <Animated.View style={{ transform: [{ scale }] }}>
@@ -59,10 +60,10 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: '#0f172a',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.07,
-        shadowRadius: 4,
+        shadowOpacity: 0.04,
+        shadowRadius: 3,
       },
-      android: { elevation: 2 },
+      android: { elevation: 1 },
       default: {},
     }),
   },

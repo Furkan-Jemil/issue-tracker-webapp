@@ -63,6 +63,36 @@ export async function PATCH(
       if (field in body) updateData[field] = body[field];
     }
 
+    const rawScreenshots = Array.isArray(body.screenshots) ? body.screenshots : null;
+    const rawAttachments = Array.isArray(body.attachments) ? body.attachments : null;
+    if (rawScreenshots && rawScreenshots.length > 0) {
+      updateData.screenshots = {
+        create: rawScreenshots
+          .filter((f: any) => Boolean(f?.url))
+          .map((f: any, idx: number) => ({
+            url: String(f.url),
+            filename: String(f.filename || "screenshot.png"),
+            mimeType: String(f.mimeType || "image/png"),
+            sizeBytes: Number(f.sizeBytes || 0),
+            order: idx,
+          })),
+      };
+    }
+    if (rawAttachments && rawAttachments.length > 0) {
+      updateData.attachments = {
+        create: rawAttachments
+          .filter((f: any) => Boolean(f?.url))
+          .map((f: any, idx: number) => ({
+            url: String(f.url),
+            filename: String(f.filename || "attachment.pdf"),
+            mimeType: String(f.mimeType || "application/octet-stream"),
+            sizeBytes: Number(f.sizeBytes || 0),
+            uploaderId: user.id,
+            order: idx,
+          })),
+      };
+    }
+
     if (Object.keys(updateData).length === 0)
       return NextResponse.json(
         { error: "No valid fields to update" },
@@ -87,8 +117,13 @@ export async function PATCH(
       where: { id },
       data: updateData,
       include: {
-        creator: { select: { name: true } },
-        assignee: { select: { name: true } },
+        creator: { select: { name: true, email: true } },
+        assignee: { select: { name: true, email: true } },
+        screenshots: { orderBy: { createdAt: "desc" } },
+        attachments: {
+          orderBy: { createdAt: "desc" },
+          include: { uploader: { select: { name: true, email: true } } },
+        },
         comments: {
           include: { user: { select: { name: true } } },
           orderBy: { createdAt: "asc" },
