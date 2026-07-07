@@ -256,7 +256,7 @@ export default function NotificationsPage() {
                 <TableCell>
                   <Link
                     href={n.issue ? `/tasks/${n.issue.id}` : "#"}
-                    className="break-words text-primary hover:underline">
+                    className="break-words text-gray-950 dark:text-gray-100 hover:text-primary hover:underline">
                     {n.message}
                   </Link>
                 </TableCell>

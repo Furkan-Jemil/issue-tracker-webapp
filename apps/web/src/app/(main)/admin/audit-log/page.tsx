@@ -144,7 +144,7 @@ export default async function AdminAuditLogPage({
                     </TableCell>
                     <TableCell className="break-words">
                       <Link
-                        className="text-primary hover:underline"
+                        className="text-gray-950 dark:text-gray-100 hover:text-primary hover:underline"
                         href={log.issue ? `/tasks/${log.issue.id}` : "/tasks"}>
                         {log.issue?.title || "View issue"}
                       </Link>

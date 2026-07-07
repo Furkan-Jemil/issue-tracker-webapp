@@ -242,7 +242,7 @@ export default function AdminUsersPage() {
                   <TableCell>
                     <Link
                       href={`/members/${user.id}`}
-                      className="font-medium text-primary hover:underline">
+                      className="font-medium text-gray-950 dark:text-gray-100 hover:text-primary hover:underline">
                       {user.name || "Unnamed user"}
                     </Link>
                     <p className="mt-1 text-[11px] text-muted-foreground lg:hidden">
