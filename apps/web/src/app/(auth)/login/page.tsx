@@ -8,15 +8,17 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, LogIn, ShieldCheck } from "lucide-react";
+import { randomUUID } from "crypto";
+import bcrypt from "bcryptjs";
 import { AuthShell } from "@/app/(auth)/components/auth-shell";
 import { PendingSubmitButton } from "@/app/(auth)/components/pending-submit-button";
 import { applyAuthResponseCookies } from "@/lib/auth/apply-response-cookies";
 import { getPostLoginPath } from "@/lib/auth/post-login-redirect";
-import { getAppSession } from "@/lib/auth/session";
+import { getAppSession, createSessionJWT } from "@/lib/auth/session";
 import prisma from "@/lib/prisma";
 
 async function signInWithPassword(formData: FormData) {
@@ -31,36 +33,69 @@ async function signInWithPassword(formData: FormData) {
     redirect("/login?error=invalid-credentials");
   }
 
-  let response: Response;
-  try {
-    response = await auth.api.signInEmail({
-      body: {
-        email,
-        password,
-        rememberMe: true,
-      },
-      headers: await headers(),
-      asResponse: true,
-    });
-  } catch (err) {
-    console.error("signInEmail error:", err);
-    redirect("/login?error=invalid-credentials");
-  }
-
-  if (!response.ok) {
-    console.error("signInEmail response not OK:", response.status, await response.text());
-    redirect("/login?error=invalid-credentials");
-  }
-
-  await applyAuthResponseCookies(response);
-
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { role: true },
+    select: { id: true, email: true, name: true, role: true, password: true },
   });
-  if (!user) {
+
+  let storedPassword: string | null = user?.password ?? null;
+  if (!storedPassword && user?.id) {
+    const acct = await prisma.account.findFirst({
+      where: { userId: user.id, providerId: { in: ["credential", "email"] } },
+      select: { password: true },
+    });
+    storedPassword = acct?.password ?? null;
+  }
+
+  if (!user || !storedPassword) {
     redirect("/login?error=invalid-credentials");
   }
+
+  let passwordOk = false;
+  if (storedPassword.startsWith("$2")) {
+    passwordOk = await bcrypt.compare(password, storedPassword);
+  } else {
+    try {
+      const ctx = await (auth as any).$context;
+      passwordOk = await ctx.password.verify({
+        password,
+        hash: storedPassword,
+      });
+    } catch (err) {
+      console.warn("scrypt password verify failed:", err);
+      passwordOk = false;
+    }
+  }
+
+  if (!passwordOk) {
+    redirect("/login?error=invalid-credentials");
+  }
+
+  const sessionToken = randomUUID().replace(/-/g, "");
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await prisma.session.create({
+    data: { userId: user.id, token: sessionToken, expiresAt },
+  });
+
+  const signedToken = await createSessionJWT(
+    {
+      id: user.id,
+      name: user.name || user.email,
+      email: user.email,
+      role: user.role,
+    },
+    sessionToken
+  );
+
+  const cs = await cookies();
+  cs.set("better-auth.session_token", signedToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+  });
+
   redirect(getPostLoginPath(user.role));
 }
 
