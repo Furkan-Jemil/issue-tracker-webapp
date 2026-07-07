@@ -55,15 +55,18 @@ export default function MembersScreen() {
   const filteredMembers = useMemo(() => {
     let list = [...members];
 
-    const q = debouncedSearch.trim().toLowerCase();
+    let q = debouncedSearch.trim().toLowerCase();
+    if (q.startsWith('#')) {
+      q = q.slice(1).trim();
+    }
     const minMet = q.length === 0 || q.length >= 2;
     if (minMet && q) {
       list = list.filter((item) => {
         const m = item as any;
-        return (
-          (m.name && m.name.toLowerCase().includes(q)) ||
-          (m.email && m.email.toLowerCase().includes(q))
-        );
+        const nameMatch = Boolean(m.name && m.name.toLowerCase().includes(q));
+        const emailMatch = Boolean(m.email && m.email.toLowerCase().includes(q));
+        const roleMatch = Boolean(m.role && m.role.toLowerCase().includes(q));
+        return nameMatch || emailMatch || roleMatch;
       });
     }
 
@@ -220,6 +223,7 @@ export default function MembersScreen() {
         onChangeText={setSearchQuery}
         placeholder="Search by name or email…"
         prompt="Search members by name or email"
+        quickFilters={['ADMIN', 'TESTER', 'USER']}
         resultCount={filteredMembers.length}
       >
         {filteredMembers.slice(0, 30).map((m: any) => (

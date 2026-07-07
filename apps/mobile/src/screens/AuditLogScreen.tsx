@@ -89,10 +89,15 @@ export default function AuditLogScreen() {
     let list = [...auditLogs] as any[];
 
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+      let q = searchQuery.trim().toLowerCase();
+      if (q.startsWith('#')) {
+        q = q.slice(1).trim();
+      }
       list = list.filter((item) => {
-        const text = item.description ?? item.message ?? '';
-        return text.toLowerCase().includes(q);
+        const text = (item.description ?? item.message ?? '').toLowerCase();
+        const type = (item.eventType ?? item.type ?? '').toLowerCase();
+        const typeClean = type.replace(/_/g, ' ');
+        return text.includes(q) || type.includes(q) || typeClean.includes(q);
       });
     }
 
@@ -263,6 +268,7 @@ export default function AuditLogScreen() {
         onChangeText={setSearchQuery}
         placeholder="Search log entries…"
         prompt="Search the audit log"
+        quickFilters={['CREATED', 'STATUS_CHANGED', 'COMMENT_ADDED']}
         resultCount={filteredLogs.length}
       >
         {filteredLogs.slice(0, 40).map((item: any) => {

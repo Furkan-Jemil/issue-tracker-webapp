@@ -18,9 +18,11 @@ type Status = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 interface Issue {
   id: string;
   title: string;
+  description?: string;
+  category?: string;
   status: Status;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  severity: 'MINOR' | 'MAJOR' | 'CRITICAL';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  severity: 'MINOR' | 'MAJOR' | 'CRITICAL' | 'BLOCKER';
   type: 'BUG' | 'IMPROVEMENT' | 'FEATURE' | 'TASK';
   reporter: string;
   assignee?: string;
@@ -141,10 +143,25 @@ export default function TasksListScreen() {
   }, [(route.params as any)?.initialStatus]);
 
   const filtered = useMemo<Issue[]>(() => {
-    const q = debouncedSearch.trim().toLowerCase();
+    let q = debouncedSearch.trim().toLowerCase();
+    if (q.startsWith('#')) {
+      q = q.slice(1).trim();
+    }
     const minMet = q.length === 0 || q.length >= 2;
     return (issues as unknown as Issue[]).filter((i) => {
-      const matchesSearch = !minMet || i.title.toLowerCase().includes(q) || i.id.toLowerCase().includes(q);
+      if (!minMet) return true;
+      const titleMatch = Boolean(i.title && i.title.toLowerCase().includes(q));
+      const idMatch = Boolean(i.id && i.id.toLowerCase().includes(q));
+      const descMatch = Boolean(i.description && i.description.toLowerCase().includes(q));
+      const typeMatch = Boolean(i.type && i.type.toLowerCase().includes(q));
+      const statusMatch = Boolean(i.status && (i.status.toLowerCase().includes(q) || i.status.toLowerCase().replace('_', ' ').includes(q)));
+      const priorityMatch = Boolean(i.priority && i.priority.toLowerCase().includes(q));
+      const severityMatch = Boolean(i.severity && i.severity.toLowerCase().includes(q));
+      const categoryMatch = Boolean(i.category && i.category.toLowerCase().includes(q));
+      const reporterMatch = Boolean(i.reporter && i.reporter.toLowerCase().includes(q));
+      const assigneeMatch = Boolean(i.assignee && i.assignee.toLowerCase().includes(q));
+
+      const matchesSearch = titleMatch || idMatch || descMatch || typeMatch || statusMatch || priorityMatch || severityMatch || categoryMatch || reporterMatch || assigneeMatch;
       return (
         matchesSearch &&
         (statusF === 'all' || i.status === statusF) &&
@@ -256,8 +273,9 @@ export default function TasksListScreen() {
         onClose={closeSearch}
         value={search}
         onChangeText={(v) => { setSearch(v); resetPage(); }}
-        placeholder="Search by title or ID…"
-        prompt="Search issues by title or ID"
+        placeholder="Search issues, status, priority…"
+        prompt="Search by title, status, priority, or ID"
+        quickFilters={['BUG', 'IMPROVEMENT']}
         resultCount={filtered.length}
       >
         {filtered.slice(0, 30).map((issue) => (
