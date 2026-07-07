@@ -422,7 +422,7 @@ export function IssuesBoard({
                                   <IssueSemanticBadge kind="status" value={issue.status} className="px-2 py-0.5 text-[9px]" />
                                   <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2 py-0.5 text-[9px]" />
                                 </div>
-                                <Link href={`/tasks/${issue.id}`} className="text-[14px] font-semibold leading-snug text-primary hover:underline">
+                                <Link href={`/tasks/${issue.id}`} className="text-[14px] font-semibold leading-snug text-gray-950 dark:text-gray-100 hover:text-primary hover:underline">
                                   {issue.title}
                                 </Link>
                               </div>

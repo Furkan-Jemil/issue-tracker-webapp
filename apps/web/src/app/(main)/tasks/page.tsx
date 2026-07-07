@@ -352,7 +352,7 @@ export default async function IssuesListPage({
                       <TableCell className={cellPaddingClass}>
                         <Link
                           href={`/tasks/${issue.id}`}
-                          className="break-words text-[14px] font-medium text-primary hover:underline">
+                          className="break-words text-[14px] font-medium text-gray-950 dark:text-gray-100 hover:text-primary hover:underline">
                           {issue.title}
                         </Link>
                         <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground lg:hidden">
