@@ -69,9 +69,8 @@ export default function SearchOverlay({
         {/* Search input bar */}
         <View style={[styles.bar, { backgroundColor: colors.card, borderRadius: radius.lg, marginHorizontal: spacing.lg }]}>
           <TouchableOpacity onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close search">
-            <ArrowLeft size={20} color={colors.foreground} />
+            <ArrowLeft size={22} color={colors.foreground} />
           </TouchableOpacity>
-          <Search size={16} color={colors.mutedForeground} />
           <TextInput
             ref={inputRef}
             value={value}
@@ -84,7 +83,7 @@ export default function SearchOverlay({
           />
           {value.length > 0 && (
             <TouchableOpacity onPress={() => onChangeText('')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear search">
-              <X size={16} color={colors.mutedForeground} />
+              <X size={18} color={colors.mutedForeground} />
             </TouchableOpacity>
           )}
         </View>
@@ -92,18 +91,65 @@ export default function SearchOverlay({
         {/* Body: empty prompt → keep-typing hint → results */}
         <View style={[styles.panel, { backgroundColor: colors.card, borderRadius: radius.xl, marginHorizontal: spacing.lg, marginTop: spacing.sm }]}>
           {!meetsMin ? (
-            <View style={styles.hint}>
-              <Search size={30} color={colors.mutedForeground + '55'} />
-              <Text style={[typography.bodySm, { color: colors.mutedForeground, textAlign: 'center', marginTop: spacing.sm }]}>
-                {trimmed.length === 0 ? prompt : `Keep typing — ${minChars}+ characters to search`}
-              </Text>
+            <View style={[styles.hintContainer, { padding: spacing.lg }]}>
+              {trimmed.length === 0 ? (
+                <>
+                  <Text style={[typography.labelBadge, { color: colors.mutedForeground, marginBottom: spacing.sm }]}>
+                    QUICK FILTERS
+                  </Text>
+                  <View style={[styles.pillRow, { gap: spacing.sm, marginBottom: spacing.xl }]}>
+                    {['BUG', 'CRITICAL', 'HIGH', 'OPEN', 'IN_PROGRESS'].map((tag) => (
+                      <TouchableOpacity
+                        key={tag}
+                        activeOpacity={0.7}
+                        onPress={() => onChangeText(tag)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Quick search ${tag}`}
+                        style={[
+                          styles.pill,
+                          { backgroundColor: colors.background, borderColor: colors.cardBorder, borderRadius: radius.full, paddingHorizontal: 14, paddingVertical: 8 },
+                        ]}
+                      >
+                        <Text style={[typography.bodySmBold, { color: colors.foreground, fontSize: 12 }]}>
+                          #{tag}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  <View style={[styles.tipBox, { backgroundColor: colors.background + '80', borderColor: colors.cardBorder, borderRadius: radius.lg, padding: spacing.md }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                      <Search size={18} color={colors.primary} />
+                      <Text style={[typography.bodySmBold, { color: colors.foreground }]}>Pro Search Tips</Text>
+                    </View>
+                    <Text style={[typography.bodySm, { color: colors.mutedForeground, lineHeight: 18 }]}>
+                      • Search by exact issue ID (e.g. #104){'\n'}
+                      • Type keyword from issue title or description{'\n'}
+                      • Tap a quick filter above to jump straight to priority tasks
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <View style={styles.centerHint}>
+                  <Search size={32} color={colors.mutedForeground + '55'} />
+                  <Text style={[typography.bodySm, { color: colors.mutedForeground, textAlign: 'center', marginTop: spacing.sm }]}>
+                    Keep typing — {minChars}+ characters to search
+                  </Text>
+                </View>
+              )}
             </View>
           ) : resultCount === 0 ? (
-            <View style={styles.hint}>
-              <Search size={30} color={colors.mutedForeground + '55'} />
+            <View style={styles.centerHint}>
+              <Search size={32} color={colors.mutedForeground + '55'} />
               <Text style={[typography.bodySm, { color: colors.mutedForeground, textAlign: 'center', marginTop: spacing.sm }]}>
-                No matches for “{trimmed}”
+                No matches found for “{trimmed}”
               </Text>
+              <TouchableOpacity
+                style={{ marginTop: 16, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 18, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.cardBorder }}
+                onPress={() => onChangeText('')}
+              >
+                <Text style={[typography.bodySmBold, { color: colors.foreground, fontSize: 13 }]}>Clear search</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: spacing.sm }}>
@@ -117,20 +163,20 @@ export default function SearchOverlay({
 }
 
 const styles = StyleSheet.create({
-  dim: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.25)' },
+  dim: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.48)' },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 48,
-    paddingHorizontal: 14,
-    gap: 10,
+    height: 52,
+    paddingHorizontal: 16,
+    gap: 12,
     ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 },
-      android: { elevation: 6 },
+      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.18, shadowRadius: 16 },
+      android: { elevation: 8 },
       default: {},
     }),
   },
-  input: { flex: 1, height: '100%', paddingVertical: 0, fontFamily: 'Outfit_400Regular', fontSize: 15 },
+  input: { flex: 1, height: '100%', paddingVertical: 0, fontFamily: 'Outfit_500Medium', fontSize: 16 },
   panel: {
     flex: 1,
     marginBottom: 16,
@@ -141,5 +187,9 @@ const styles = StyleSheet.create({
       default: {},
     }),
   },
-  hint: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
+  hintContainer: { flex: 1 },
+  pillRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  pill: { borderWidth: 1 },
+  tipBox: { borderWidth: 1 },
+  centerHint: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
 });

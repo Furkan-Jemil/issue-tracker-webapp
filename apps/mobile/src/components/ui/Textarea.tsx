@@ -42,12 +42,12 @@ export default function Textarea({ label, rows = 4, style, error, ...rest }: Tex
 }
 
 const styles = StyleSheet.create({
-  label: { fontFamily: 'Outfit_600SemiBold', fontSize: 12 },
+  label: { fontFamily: 'Outfit_600SemiBold', fontSize: 13 },
   area: {
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontFamily: 'Outfit_400Regular',
-    fontSize: 14,
+    fontSize: 16,
   },
 });

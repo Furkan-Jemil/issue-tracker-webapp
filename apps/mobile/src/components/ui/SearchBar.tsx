@@ -50,5 +50,5 @@ const styles = StyleSheet.create({
       default: {},
     }),
   },
-  input: { flex: 1, height: '100%', paddingVertical: 0, fontFamily: 'Outfit_400Regular', fontSize: 14 },
+  input: { flex: 1, height: '100%', paddingVertical: 0, fontFamily: 'Outfit_400Regular', fontSize: 16 },
 });

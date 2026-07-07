@@ -34,7 +34,7 @@ export default function Badge({ bg, fg, label, kind, value, showIcon = true, sty
 
   return (
     <View style={[styles.badge, { backgroundColor: resolvedBg ?? colors.muted }, style]}>
-      {showIcon && Icon ? <Icon size={11} color={resolvedFg} style={{ marginRight: 4 }} /> : null}
+      {showIcon && Icon ? <Icon size={12} color={resolvedFg} style={{ marginRight: 4 }} /> : null}
       <Text numberOfLines={1} style={[styles.text, { color: resolvedFg ?? colors.mutedForeground }]}>{resolvedLabel}</Text>
     </View>
   );
@@ -46,12 +46,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 4.5,
     borderRadius: 6,
   },
   text: {
-    fontFamily: 'Outfit_600SemiBold',
-    fontSize: 11,
-    lineHeight: 15,
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
   },
 });

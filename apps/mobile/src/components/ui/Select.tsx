@@ -76,7 +76,7 @@ export default function Select({ label, value, options, onChange, placeholder = 
 }
 
 const styles = StyleSheet.create({
-  label: { fontFamily: 'Outfit_600SemiBold', fontSize: 12 },
+  label: { fontFamily: 'Outfit_600SemiBold', fontSize: 13 },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 12,
   },
-  value: { flex: 1, fontFamily: 'Outfit_400Regular', fontSize: 14, marginRight: 8 },
+  value: { flex: 1, fontFamily: 'Outfit_400Regular', fontSize: 16, marginRight: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -93,5 +93,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  rowText: { fontFamily: 'Outfit_500Medium', fontSize: 14 },
+  rowText: { fontFamily: 'Outfit_500Medium', fontSize: 15 },
 });

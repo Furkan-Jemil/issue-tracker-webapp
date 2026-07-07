@@ -55,7 +55,7 @@ export default function Input({ label, required, leftIcon, height = 40, style, e
 }
 
 const styles = StyleSheet.create({
-  label: { fontFamily: 'Outfit_600SemiBold', fontSize: 12 },
+  label: { fontFamily: 'Outfit_600SemiBold', fontSize: 13 },
   well: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -63,5 +63,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   icon: { alignItems: 'center', justifyContent: 'center' },
-  input: { flex: 1, height: '100%', paddingVertical: 0, fontFamily: 'Outfit_400Regular', fontSize: 14 },
+  input: { flex: 1, height: '100%', paddingVertical: 0, fontFamily: 'Outfit_400Regular', fontSize: 16 },
 });

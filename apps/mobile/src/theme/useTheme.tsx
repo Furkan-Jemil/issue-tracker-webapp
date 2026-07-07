@@ -208,27 +208,27 @@ const FONT_MED = 'Outfit_500Medium';
 const FONT_MONO = 'JetBrainsMono_400Regular';
 
 const typography: Record<string, TextStyle> = {
-  display: { fontFamily: FONT_BOLD, fontSize: 24, lineHeight: 32, letterSpacing: -0.3 },
-  pageTitle: { fontFamily: FONT_BOLD, fontSize: 20, lineHeight: 28, letterSpacing: -0.3 },
-  sectionHeading: { fontFamily: FONT_BOLD, fontSize: 16, lineHeight: 24 },
-  cardTitle: { fontFamily: FONT_BOLD, fontSize: 14, lineHeight: 20 },
-  bodyMd: { fontFamily: FONT, fontSize: 15, lineHeight: 22 },
-  bodySmBold: { fontFamily: FONT_SEMI, fontSize: 14, lineHeight: 20 },
-  bodySm: { fontFamily: FONT, fontSize: 14, lineHeight: 20 },
+  display: { fontFamily: FONT_BOLD, fontSize: 26, lineHeight: 34, letterSpacing: -0.3 },
+  pageTitle: { fontFamily: FONT_BOLD, fontSize: 22, lineHeight: 30, letterSpacing: -0.3 },
+  sectionHeading: { fontFamily: FONT_BOLD, fontSize: 17, lineHeight: 24 },
+  cardTitle: { fontFamily: FONT_BOLD, fontSize: 15, lineHeight: 22 },
+  bodyMd: { fontFamily: FONT, fontSize: 16, lineHeight: 24 },
+  bodySmBold: { fontFamily: FONT_SEMI, fontSize: 15, lineHeight: 22 },
+  bodySm: { fontFamily: FONT, fontSize: 15, lineHeight: 22 },
   labelBadge: { fontFamily: FONT_SEMI, fontSize: 12, lineHeight: 16 },
-  micro: { fontFamily: FONT_MED, fontSize: 11, lineHeight: 14 },
-  nanoCaps: { fontFamily: FONT_SEMI, fontSize: 10, lineHeight: 12, letterSpacing: 0.5, textTransform: 'uppercase' },
-  monoId: { fontFamily: FONT_MONO, fontSize: 10, lineHeight: 12, letterSpacing: 0.3 },
+  micro: { fontFamily: FONT_MED, fontSize: 12, lineHeight: 16 },
+  nanoCaps: { fontFamily: FONT_SEMI, fontSize: 11, lineHeight: 14, letterSpacing: 0.5, textTransform: 'uppercase' },
+  monoId: { fontFamily: FONT_MONO, fontSize: 11, lineHeight: 14, letterSpacing: 0.3 },
   // Dashboard-specific
-  statValue: { fontFamily: FONT_BOLD, fontSize: 30, lineHeight: 36 },
-  statLabel: { fontFamily: FONT_MED, fontSize: 11, lineHeight: 14 },
-  cardDesc: { fontFamily: FONT, fontSize: 11, lineHeight: 16 },
-  footerCaption: { fontFamily: FONT_BOLD, fontSize: 12, lineHeight: 16, textAlign: 'center' as const },
-  footerSub: { fontFamily: FONT, fontSize: 10, lineHeight: 14, textAlign: 'center' as const },
+  statValue: { fontFamily: FONT_BOLD, fontSize: 32, lineHeight: 38 },
+  statLabel: { fontFamily: FONT_MED, fontSize: 12, lineHeight: 16 },
+  cardDesc: { fontFamily: FONT_MED, fontSize: 12, lineHeight: 17 },
+  footerCaption: { fontFamily: FONT_BOLD, fontSize: 13, lineHeight: 18, textAlign: 'center' as const },
+  footerSub: { fontFamily: FONT, fontSize: 11, lineHeight: 15, textAlign: 'center' as const },
   // Task detail
-  detailTitle: { fontFamily: FONT_BOLD, fontSize: 18, lineHeight: 26 },
-  detailLabel: { fontFamily: FONT_MED, fontSize: 11, lineHeight: 14 },
-  detailValue: { fontFamily: FONT, fontSize: 13, lineHeight: 18 },
+  detailTitle: { fontFamily: FONT_BOLD, fontSize: 21, lineHeight: 28 },
+  detailLabel: { fontFamily: FONT_SEMI, fontSize: 12, lineHeight: 16 },
+  detailValue: { fontFamily: FONT, fontSize: 15, lineHeight: 22 },
 };
 
 /// 4px base grid spacing

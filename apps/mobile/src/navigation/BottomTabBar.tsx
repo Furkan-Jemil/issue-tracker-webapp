@@ -144,7 +144,7 @@ function FloatingBar({ state, navigation }: BottomTabBarProps) {
                 accessibilityLabel="Create new issue"
                 style={styles.fabSlot}
               >
-                <View style={[styles.fab, { backgroundColor: colors.green, borderColor: colors.background }]}>
+                <View style={[styles.fab, { backgroundColor: colors.green }]}>
                   <Plus size={26} color="#fff" strokeWidth={2.5} />
                 </View>
               </TouchableOpacity>
@@ -226,7 +226,6 @@ const styles = StyleSheet.create({
   fabSlot: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   fab: {
     width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', marginTop: -26,
-    borderWidth: 3.5,
     ...Platform.select({
       ios: { shadowColor: '#4a8a00', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.45, shadowRadius: 14 },
       android: { elevation: 14 },
