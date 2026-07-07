@@ -144,7 +144,7 @@ function FloatingBar({ state, navigation }: BottomTabBarProps) {
                 accessibilityLabel="Create new issue"
                 style={styles.fabSlot}
               >
-                <View style={[styles.fab, { backgroundColor: colors.green }]}>
+                <View style={[styles.fab, { backgroundColor: colors.green, borderColor: colors.background }]}>
                   <Plus size={26} color="#fff" strokeWidth={2.5} />
                 </View>
               </TouchableOpacity>
@@ -164,11 +164,18 @@ function FloatingBar({ state, navigation }: BottomTabBarProps) {
               style={styles.tab}
             >
               <meta.Icon
-                size={20}
-                strokeWidth={active ? 2.5 : 2}
+                size={23}
+                strokeWidth={active ? 2.5 : 1.8}
                 color={active ? colors.greenFg : colors.mutedForeground}
               />
-              <Text style={[styles.tabLabel, { color: active ? colors.greenFg : colors.mutedForeground, opacity: active ? 1 : 0.8 }]}>
+              <Text style={[
+                styles.tabLabel, 
+                { 
+                  color: active ? colors.greenFg : colors.mutedForeground,
+                  fontFamily: active ? 'Outfit_700Bold' : 'Outfit_500Medium',
+                  opacity: active ? 1 : 0.8 
+                }
+              ]}>
                 {t(meta.i18nKey, meta.label)}
               </Text>
             </TouchableOpacity>
@@ -201,26 +208,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '94%',
     maxWidth: 520,
-    height: 60,
-    borderRadius: 22,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 6,
+    height: 68,
+    borderRadius: 26,
+    borderWidth: 1,
+    paddingHorizontal: 8,
     ...Platform.select({
-      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16 },
-      android: { elevation: 8 },
+      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.14, shadowRadius: 20 },
+      android: { elevation: 12 },
       default: {},
     }),
   },
-  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2, paddingVertical: 6 },
-  tabLabel: { fontFamily: 'Outfit_600SemiBold', fontSize: 11 },
-  tabActive: { transform: [{ scale: 1.15 }] },
-  tabBadge: { position: 'absolute', top: -5, right: -7, minWidth: 14, height: 14, borderRadius: 7, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
-  tabBadgeText: { color: '#fff', fontFamily: 'Outfit_700Bold', fontSize: 7 },
+  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 6 },
+  tabLabel: { fontSize: 12, letterSpacing: 0.15 },
+  tabActive: { transform: [{ scale: 1.05 }] },
+  tabBadge: { position: 'absolute', top: -4, right: 10, minWidth: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  tabBadgeText: { color: '#fff', fontFamily: 'Outfit_700Bold', fontSize: 8 },
   fabSlot: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   fab: {
-    width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', marginTop: -30,
+    width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', marginTop: -26,
+    borderWidth: 3.5,
     ...Platform.select({
-      ios: { shadowColor: '#4a8a00', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.55, shadowRadius: 16 },
+      ios: { shadowColor: '#4a8a00', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.45, shadowRadius: 14 },
       android: { elevation: 14 },
       default: {},
     }),
