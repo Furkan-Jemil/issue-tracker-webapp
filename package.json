@@ -11,7 +11,8 @@
     "lint": "turbo run lint",
     "clean": "turbo run clean",
     "mobile": "npm run --prefix apps/mobile start",
-    "server:start": "npm run server:start --prefix apps/web"
+    "api:dev": "npm run dev --prefix apps/api",
+    "server:start": "npm run start:prod --prefix apps/api"
   },
   "packageManager": "npm@10.8.2",
   "devDependencies": {
