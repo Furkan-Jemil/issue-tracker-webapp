@@ -13,7 +13,12 @@
         "NEXTAUTH_URL",
         "NEXTAUTH_SECRET",
         "NODE_ENV",
-        "BLOB_READ_WRITE_TOKEN"
+        "BLOB_READ_WRITE_TOKEN",
+        "ALLOWED_ORIGINS",
+        "NEXT_PUBLIC_APP_URL",
+        "API_PROXY_TARGET",
+        "PORT",
+        "HOST"
       ]
     },
     "dev": {
