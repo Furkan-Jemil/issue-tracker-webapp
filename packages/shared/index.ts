@@ -14,6 +14,12 @@ export const CreateIssueSchema = z.object({
 
 export type CreateIssueInput = z.infer<typeof CreateIssueSchema>;
 
+export const UpdateIssueSchema = CreateIssueSchema.partial().extend({
+  status: z.enum(["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"]).optional(),
+});
+
+export type UpdateIssueInput = z.infer<typeof UpdateIssueSchema>;
+
 export * from "./casl";
 export * from "./routes";
 export * from "./statusWorkflow";
