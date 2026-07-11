@@ -16,6 +16,8 @@ import { checkRateLimit } from '../../common/guards/rate-limit.store';
 import { parseEnumValue } from '../../common/query/enum';
 import { CurrentUser } from '../../common/auth/current-user.decorator';
 import type { ServerUser } from '../../common/auth/session.service';
+import type { UpdateUserRoleDto } from './dto';
+
 
 /**
  * Ports apps/web/server/routes/admin.ts (mounted at /api/admin).
@@ -64,7 +66,7 @@ export class AdminController {
   async updateRole(
     @CurrentUser() user: ServerUser | null,
     @Param('id') userId: string,
-    @Body() body: any,
+    @Body() body: UpdateUserRoleDto | any,
   ) {
     if (!user || user.role !== 'ADMIN') {
       throw new HttpException({ error: 'Forbidden' }, 403);

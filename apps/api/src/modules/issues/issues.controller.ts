@@ -13,12 +13,16 @@ import {
 import { z } from 'zod';
 import {
   CreateIssueSchema,
+  UpdateIssueSchema,
   defineAbilitiesFor,
   canTransition,
 } from '@workspace/shared';
 import { IssuesService } from './issues.service';
 import { CurrentUser } from '../../common/auth/current-user.decorator';
 import type { ServerUser } from '../../common/auth/session.service';
+import { CheckPolicies } from '../../common/casl/check-policies.decorator';
+import type { CreateIssueDto, UpdateIssueDto } from './dto';
+
 
 // Uploaded-file references (from POST /api/upload) — validated separately from
 // CreateIssueSchema, verbatim from routes/issues.ts.
@@ -55,6 +59,7 @@ export class IssuesController {
 
   // GET /api/issues-mobile
   @Get()
+  @CheckPolicies((ability) => ability.can('read', 'Issue'))
   async list(@CurrentUser() user: ServerUser | null) {
     if (!user) throw new HttpException({ error: 'Unauthorized' }, 401);
 
@@ -69,9 +74,10 @@ export class IssuesController {
   // POST /api/issues-mobile
   @Post()
   @HttpCode(201)
+  @CheckPolicies((ability) => ability.can('create', 'Issue'))
   async create(
     @CurrentUser() user: ServerUser | null,
-    @Body() body: any,
+    @Body() body: CreateIssueDto | any,
   ) {
     if (!user) throw new HttpException({ error: 'Unauthorized' }, 401);
 
@@ -111,10 +117,11 @@ export class IssuesController {
 
   // PATCH /api/issues-mobile/:id
   @Patch(':id')
+  @CheckPolicies((ability) => ability.can('update', 'Issue'))
   async update(
     @CurrentUser() user: ServerUser | null,
     @Param('id') id: string,
-    @Body() body: any,
+    @Body() body: UpdateIssueDto | any,
   ) {
     if (!user) throw new HttpException({ error: 'Unauthorized' }, 401);
 
@@ -125,6 +132,14 @@ export class IssuesController {
 
     if (!body || typeof body !== 'object') {
       throw new HttpException({ error: 'Invalid input' }, 400);
+    }
+
+    const result = UpdateIssueSchema.safeParse(body);
+    if (!result.success) {
+      throw new HttpException(
+        { error: 'Validation failed', details: result.error.format() },
+        400,
+      );
     }
 
     const existing = await this.issues.findForUpdate(id);
@@ -138,8 +153,10 @@ export class IssuesController {
     }
 
     const updateData: Record<string, any> = {};
-    for (const field of ALLOWED_UPDATE_FIELDS) {
-      if (field in body) updateData[field] = body[field];
+    for (const [field, val] of Object.entries(result.data)) {
+      if (val !== undefined && ALLOWED_UPDATE_FIELDS.includes(field)) {
+        updateData[field] = val;
+      }
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -162,6 +179,7 @@ export class IssuesController {
 
   // DELETE /api/issues-mobile/:id
   @Delete(':id')
+  @CheckPolicies((ability) => ability.can('delete', 'Issue'))
   async remove(
     @CurrentUser() user: ServerUser | null,
     @Param('id') id: string,

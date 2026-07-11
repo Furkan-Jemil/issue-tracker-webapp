@@ -15,6 +15,9 @@ import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { checkRateLimit } from '../../common/guards/rate-limit.store';
 import { CurrentUser } from '../../common/auth/current-user.decorator';
 import type { ServerUser } from '../../common/auth/session.service';
+import { CheckPolicies } from '../../common/casl/check-policies.decorator';
+import type { CreateCommentDto } from './dto';
+
 
 /**
  * Ports apps/web/server/routes/comments.ts (`POST /api/comments`).
@@ -39,9 +42,11 @@ export class CommentsController {
 
   @Post()
   @HttpCode(200)
+  @CheckPolicies((ability) => ability.can('create', 'Comment'))
   async create(
     @CurrentUser() user: ServerUser | null,
-    @Body(new ZodValidationPipe(createCommentSchema)) body: CreateCommentInput,
+    @Body(new ZodValidationPipe(createCommentSchema))
+    body: CreateCommentDto | CreateCommentInput,
   ) {
     if (!user) throw new HttpException({ error: 'Unauthorized' }, 401);
 
