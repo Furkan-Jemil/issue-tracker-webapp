@@ -5,6 +5,7 @@ import type { Request, Response } from 'express';
 import { AppModule } from './app.module';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
 import { buildCorsOptions } from './common/cors/cors.config';
 
 /**
@@ -54,7 +55,7 @@ async function bootstrap(): Promise<void> {
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
   app.useGlobalInterceptors(new LoggingInterceptor());
-  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalFilters(new AllExceptionsFilter(), new PrismaExceptionFilter());
 
   const port = Number(process.env.PORT || 4000);
   const host = process.env.HOST || '0.0.0.0';
