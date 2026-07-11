@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process'
 
 function runScript() {
   return new Promise<number>((resolve, reject) => {
-    const proc = spawn('./node_modules/.bin/tsx', ['scripts/http-auth-smoke.ts'], {
+    const proc = spawn('npx', ['tsx', 'scripts/http-auth-smoke.ts'], {
       stdio: 'inherit',
       shell: false,
     })

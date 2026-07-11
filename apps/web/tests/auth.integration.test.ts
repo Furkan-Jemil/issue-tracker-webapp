@@ -52,7 +52,7 @@ test('sign in -> get session (integration)', async () => {
     select: { id: true },
   })
 
-  const proc = spawn('./node_modules/.bin/tsx', ['server/index.ts'], {
+  const proc = spawn('npx', ['tsx', 'server/index.ts'], {
     stdio: 'inherit',
     shell: false,
     env: { ...process.env, PORT: String(PORT) },
@@ -118,7 +118,7 @@ test('sign out clears the session (integration)', async () => {
     select: { id: true },
   })
 
-  const proc = spawn('./node_modules/.bin/tsx', ['server/index.ts'], {
+  const proc = spawn('npx', ['tsx', 'server/index.ts'], {
     stdio: 'inherit',
     shell: false,
     env: { ...process.env, PORT: String(PORT + 2) },
@@ -191,7 +191,7 @@ test('sign in sets a Secure cookie in production', async () => {
     select: { id: true },
   })
 
-  const proc = spawn('./node_modules/.bin/tsx', ['server/index.ts'], {
+  const proc = spawn('npx', ['tsx', 'server/index.ts'], {
     stdio: 'inherit',
     shell: false,
     env: { ...process.env, PORT: String(PORT + 1), NODE_ENV: 'production' },

@@ -13,6 +13,8 @@ node_modules/
 !.yarn/versions
 public/uploads/
 ADVISOR_PRESENTATION_GUIDE.md
+API_ARCHITECTURE_AND_FLOW_GUIDE.md
+NESTJS_MASTER_GUIDE.md
 
 # testing
 /coverage
