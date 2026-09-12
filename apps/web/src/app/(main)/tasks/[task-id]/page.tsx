@@ -6,6 +6,7 @@ import { CommentThread } from "@/app/(main)/tasks/comment-thread";
 import { IssueActions } from "@/app/(main)/tasks/task-actions";
 import { IssueEvidenceList } from "@/app/(main)/tasks/task-evidence-list";
 import { StatusQuickActions } from "@/app/(main)/tasks/tasks-table-row-actions";
+import { TaskActivityTimeline } from "@/app/(main)/tasks/task-activity-timeline";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -255,29 +256,16 @@ export default async function IssueDetailPage({
 
       <section className="mt-4" aria-labelledby="activity-heading">
         <Card>
-          <CardHeader>
-            <CardTitle id="activity-heading" className="text-lg">Activity Log</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle id="activity-heading" className="text-base font-semibold">
+              Activity
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Every change, status move, and update in chronological order.
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            {issue.history.length > 0 ? (
-              <ul className="space-y-2 text-sm text-muted-foreground" aria-live="polite">
-                {issue.history.map((h) => (
-                  <li key={h.id} className="rounded-lg border border-border/70 bg-background px-3 py-2.5">
-                    <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                      {formatDate(h.createdAt)}
-                    </p>
-                    <p className="mt-1 text-sm text-foreground">
-                      <span className="font-semibold">{h.eventType}</span>: {h.description}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">By {h.actor?.name || "Unknown"}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="rounded-lg border border-dashed border-border/70 bg-background/60 px-3 py-3 text-sm text-muted-foreground">
-                No activity recorded yet.
-              </div>
-            )}
+          <CardContent className="pt-0">
+            <TaskActivityTimeline history={issue.history} />
           </CardContent>
         </Card>
       </section>
