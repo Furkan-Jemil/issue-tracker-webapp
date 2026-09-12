@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/layout/search-input";
@@ -45,6 +46,15 @@ export function IssuesToolbar({
   onSubmitHref: string;
   onResetHref: string;
 }) {
+  const pathname = usePathname();
+  const onTasksPage = pathname === "/tasks" || pathname.startsWith("/tasks?");
+
+  function handleCreateClick() {
+    if (onTasksPage && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("issue-tracker:open-create-drawer"));
+    }
+  }
+
   return (
     <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
       <SearchInput
@@ -69,9 +79,15 @@ export function IssuesToolbar({
           onSubmitHref={onSubmitHref}
           onResetHref={onResetHref}
         />
-        <Button asChild size="sm">
-          <Link href="/tasks/new">Create Issue</Link>
-        </Button>
+        {onTasksPage ? (
+          <Button type="button" size="sm" onClick={handleCreateClick}>
+            Create issue
+          </Button>
+        ) : (
+          <Button asChild size="sm">
+            <Link href="/tasks/new">Create issue</Link>
+          </Button>
+        )}
       </div>
     </div>
   );
