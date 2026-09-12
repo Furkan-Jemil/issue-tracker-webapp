@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ClipboardList,
   History,
@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { ICON_STROKE, ICON_STYLE } from "@/lib/uiTokens";
 import { cn } from "@/lib/utils";
 import { AppShellProfileProvider } from "@/components/layout/app-shell-profile-context";
+import { useHotkeys, type HotkeyBinding } from "@/hooks/use-hotkeys";
 
 type NavIcon = "dashboard" | "issues" | "admin" | "audit";
 
@@ -47,7 +48,9 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AppShell({
+// ─── Inner shell that registers hotkeys and has access to router ──────────────
+
+function AppShellInner({
   children,
   navItems,
   profileName,
@@ -63,9 +66,12 @@ export function AppShell({
   initialTheme: "light" | "dark";
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  const hideSidebar = pathname.startsWith("/login") || pathname.startsWith("/register");
+  const hideSidebar =
+    pathname.startsWith("/login") || pathname.startsWith("/register");
 
+  // ── Sidebar persistence ─────────────────────────────────────────────────
   useEffect(() => {
     const stored = window.localStorage.getItem("app-shell-sidebar-expanded");
     if (window.innerWidth < 1024) {
@@ -79,9 +85,7 @@ export function AppShell({
 
   useEffect(() => {
     function onResize() {
-      if (window.innerWidth < 1024) {
-        setSidebarExpanded(false);
-      }
+      if (window.innerWidth < 1024) setSidebarExpanded(false);
     }
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
@@ -94,18 +98,99 @@ export function AppShell({
     );
   }, [sidebarExpanded]);
 
+  // ── Global hotkey bindings ──────────────────────────────────────────────
+  //
+  // All bindings are memoised so useHotkeys does not re-register on every
+  // render. Add new bindings here; the hook automatically deactivates them
+  // when the user is typing in an input/textarea/contenteditable.
+  //
+  // Registered shortcuts:
+  //   C            → navigate to /tasks/new (Create issue)
+  //   G then I     → navigate to /tasks     (Go to Issues)  [see note below]
+  //   ?            → navigate to /dashboard (shortcut hints page — dashboard)
+  //   Escape       → blur the focused element (close popovers, dropdowns)
+  //
+  // Note on Cmd+K: handled exclusively inside CommandPalette to avoid
+  // double-registration with the shell.
+  const hotkeys = useMemo<HotkeyBinding[]>(
+    () => [
+      {
+        // C — Create issue. Mirrors Linear's "C" shortcut.
+        // On /tasks: dispatches a custom event that opens the slide-over drawer
+        // so the user's filter context is preserved.
+        // On other pages: navigates to /tasks/new as a full-page fallback.
+        key: "c",
+        handler: (e) => {
+          e.preventDefault();
+          if (
+            typeof window !== "undefined" &&
+            (window.location.pathname === "/tasks" ||
+              window.location.pathname.startsWith("/tasks?"))
+          ) {
+            window.dispatchEvent(
+              new CustomEvent("issue-tracker:open-create-drawer"),
+            );
+          } else {
+            router.push("/tasks/new");
+          }
+        },
+      },
+      {
+        // ? — Open dashboard (shift+/ produces "?" on most keyboards).
+        key: "?",
+        shift: false, // "?" itself is the key value when Shift+/ is pressed
+        handler: (e) => {
+          e.preventDefault();
+          router.push("/dashboard");
+        },
+      },
+      {
+        // [ — Collapse sidebar.
+        key: "[",
+        handler: (e) => {
+          e.preventDefault();
+          setSidebarExpanded(false);
+        },
+      },
+      {
+        // ] — Expand sidebar.
+        key: "]",
+        handler: (e) => {
+          e.preventDefault();
+          setSidebarExpanded(true);
+        },
+      },
+      {
+        // Escape — blur the focused element. Browsers close most Radix
+        // popovers/dialogs on blur, so this acts as a universal close.
+        // ignoreInputGuard: true so it works while inside an input too.
+        key: "Escape",
+        ignoreInputGuard: true,
+        handler: () => {
+          const active = document.activeElement as HTMLElement | null;
+          active?.blur();
+        },
+      },
+    ],
+    [router],
+  );
+
+  useHotkeys(hotkeys);
+
+  // ── Layout derivations ──────────────────────────────────────────────────
   const sidebarWidthClass = sidebarExpanded ? "w-48 md:w-52" : "w-24";
-  const contentOffsetClass = sidebarExpanded
-    ? "pl-48 md:pl-52"
-    : "pl-24";
+  const contentOffsetClass = sidebarExpanded ? "pl-48 md:pl-52" : "pl-24";
   const primaryNavItems = navItems.filter((item) => item.section !== "admin");
   const adminNavItems = navItems.filter((item) => item.section === "admin");
 
+  // ── Auth-less pages (login / register) ─────────────────────────────────
   if (hideSidebar) {
     return (
       <div className="min-h-screen overflow-x-clip bg-background">
         <div className="relative min-h-screen min-w-0 overflow-x-clip">
-          <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme, role: profileRole }}>
+          <AppShellProfileProvider
+            value={{ profileName, profileEmail, initialTheme, role: profileRole }}
+          >
             <main
               id="main-content"
               className="page-enter page-shell w-full min-w-0"
@@ -113,7 +198,8 @@ export function AppShell({
                 paddingInline: "var(--space-page-x)",
                 paddingTop: "var(--space-main-top)",
                 paddingBottom: "var(--space-page-y)",
-              }}>
+              }}
+            >
               {children}
             </main>
           </AppShellProfileProvider>
@@ -122,18 +208,21 @@ export function AppShell({
     );
   }
 
+  // ── Main shell ──────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen overflow-x-clip bg-background">
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border bg-card transition-[width] duration-200 ease-out",
           sidebarWidthClass,
-        )}>
-        {/* Minimalist Sidebar Header: Keeps logo on the left and the collapse/expand toggle on the right side-by-side in all states */}
+        )}
+      >
+        {/* Sidebar header */}
         <div className="flex h-14 items-center justify-between gap-1 border-b border-border/80 px-2.5">
           <Link
             href="/tasks"
-            className="flex min-w-0 items-center gap-2 outline-none">
+            className="flex min-w-0 items-center gap-2 outline-none"
+          >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Ticket className="h-4.5 w-4.5" strokeWidth={2.25} aria-hidden />
             </span>
@@ -143,7 +232,8 @@ export function AppShell({
                 sidebarExpanded
                   ? "max-w-[168px] opacity-100"
                   : "max-w-0 opacity-0",
-              )}>
+              )}
+            >
               IssueTracker
             </span>
           </Link>
@@ -153,17 +243,27 @@ export function AppShell({
             size="icon"
             aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
             aria-pressed={sidebarExpanded}
-            onClick={() => setSidebarExpanded((current) => !current)}
-            title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm md:h-8 md:w-8">
+            onClick={() => setSidebarExpanded((c) => !c)}
+            title={sidebarExpanded ? "Collapse sidebar [ " : "Expand sidebar ]"}
+            className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm"
+          >
             {sidebarExpanded ? (
-              <PanelLeft className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+              <PanelLeft
+                className={cn(ICON_STYLE.control, "h-4 w-4")}
+                strokeWidth={ICON_STROKE.control}
+                aria-hidden="true"
+              />
             ) : (
-              <PanelRight className={cn(ICON_STYLE.control, "h-4 w-4")} strokeWidth={ICON_STROKE.control} aria-hidden="true" />
+              <PanelRight
+                className={cn(ICON_STYLE.control, "h-4 w-4")}
+                strokeWidth={ICON_STROKE.control}
+                aria-hidden="true"
+              />
             )}
           </Button>
         </div>
 
+        {/* Nav items */}
         <nav className="flex flex-1 flex-col gap-1.5 p-2 pt-1.5">
           {primaryNavItems.map((item) => {
             const active = isActive(pathname, item.href);
@@ -183,11 +283,12 @@ export function AppShell({
                   active
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                )}>
+                )}
+              >
                 {active ? (
                   <span
                     aria-hidden="true"
-                    className="absolute left-0 top-2 h-6 w-1 rounded-r-full bg-primary"
+                    className="absolute left-0 top-2 h-5 w-0.5 rounded-r-full bg-primary-foreground/60"
                   />
                 ) : null}
                 <Icon
@@ -201,12 +302,14 @@ export function AppShell({
                     sidebarExpanded
                       ? "max-w-[160px] opacity-100"
                       : "max-w-0 opacity-0",
-                  )}>
+                  )}
+                >
                   {item.label}
                 </span>
               </Link>
             );
           })}
+
           {adminNavItems.length > 0 ? (
             <div className="mt-auto space-y-1.5 pt-2">
               {sidebarExpanded ? (
@@ -232,11 +335,12 @@ export function AppShell({
                       active
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                    )}>
+                    )}
+                  >
                     {active ? (
                       <span
                         aria-hidden="true"
-                        className="absolute left-0 top-2 h-6 w-1 rounded-r-full bg-primary"
+                        className="absolute left-0 top-2 h-5 w-0.5 rounded-r-full bg-primary-foreground/60"
                       />
                     ) : null}
                     <Icon
@@ -250,7 +354,8 @@ export function AppShell({
                         sidebarExpanded
                           ? "max-w-[160px] opacity-100"
                           : "max-w-0 opacity-0",
-                      )}>
+                      )}
+                    >
                       {item.label}
                     </span>
                   </Link>
@@ -261,12 +366,16 @@ export function AppShell({
         </nav>
       </aside>
 
+      {/* Main content offset */}
       <div
         className={cn(
           "relative min-h-screen min-w-0 overflow-x-clip transition-[padding-left] duration-200 ease-out",
           contentOffsetClass,
-        )}>
-        <AppShellProfileProvider value={{ profileName, profileEmail, initialTheme, role: profileRole }}>
+        )}
+      >
+        <AppShellProfileProvider
+          value={{ profileName, profileEmail, initialTheme, role: profileRole }}
+        >
           <main
             id="main-content"
             className="page-enter page-shell w-full min-w-0"
@@ -274,11 +383,20 @@ export function AppShell({
               paddingInline: "var(--space-page-x)",
               paddingTop: "var(--space-main-top)",
               paddingBottom: "var(--space-page-y)",
-            }}>
+            }}
+          >
             {children}
           </main>
         </AppShellProfileProvider>
       </div>
     </div>
   );
+}
+
+// ─── Public export — thin wrapper so the RSC layout.tsx signature is unchanged
+
+export function AppShell(
+  props: React.ComponentProps<typeof AppShellInner>,
+) {
+  return <AppShellInner {...props} />;
 }

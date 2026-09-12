@@ -174,45 +174,50 @@ export function IssuesFilterPopover({
               />
             </div>
 
+            {/* ── Status / Priority / Severity: available to ALL roles ────────
+               Non-admin users can filter within their own row-level scope.
+               The server enforces ownership — these filters just narrow the
+               already-scoped result set, they never widen it.             */}
+            <Select
+              id="issues-status-filter"
+              name="status"
+              value={selectedStatus}
+              onValueChange={(v) => setField("status", v)}
+              className="h-9 rounded-md text-xs">
+              <option value="">All statuses</option>
+              <option value="OPEN">Open</option>
+              <option value="IN_PROGRESS">In progress</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
+            </Select>
+
+            <Select
+              id="issues-priority-filter"
+              name="priority"
+              value={selectedPriority}
+              onValueChange={(v) => setField("priority", v)}
+              className="h-9 rounded-md text-xs">
+              <option value="">All priorities</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+            </Select>
+
+            <Select
+              id="issues-severity-filter"
+              name="severity"
+              value={selectedSeverity}
+              onValueChange={(v) => setField("severity", v)}
+              className="h-9 rounded-md text-xs">
+              <option value="">All severities</option>
+              <option value="MINOR">Minor</option>
+              <option value="MAJOR">Major</option>
+              <option value="CRITICAL">Critical</option>
+            </Select>
+
+            {/* ── Reporter / Assignee: admin-only (cross-user visibility) ── */}
             {isAdmin ? (
               <>
-                <Select
-                  id="issues-status-filter"
-                  name="status"
-                  value={selectedStatus}
-                  onValueChange={(v) => setField("status", v)}
-                  className="h-9 rounded-md text-xs">
-                  <option value="">All statuses</option>
-                  <option value="OPEN">Open</option>
-                  <option value="IN_PROGRESS">In progress</option>
-                  <option value="RESOLVED">Resolved</option>
-                  <option value="CLOSED">Closed</option>
-                </Select>
-
-                <Select
-                  id="issues-priority-filter"
-                  name="priority"
-                  value={selectedPriority}
-                  onValueChange={(v) => setField("priority", v)}
-                  className="h-9 rounded-md text-xs">
-                  <option value="">All priorities</option>
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                </Select>
-
-                <Select
-                  id="issues-severity-filter"
-                  name="severity"
-                  value={selectedSeverity}
-                  onValueChange={(v) => setField("severity", v)}
-                  className="h-9 rounded-md text-xs">
-                  <option value="">All severities</option>
-                  <option value="MINOR">Minor</option>
-                  <option value="MAJOR">Major</option>
-                  <option value="CRITICAL">Critical</option>
-                </Select>
-
                 <Select
                   id="issues-reporter-filter"
                   name="reporter"
