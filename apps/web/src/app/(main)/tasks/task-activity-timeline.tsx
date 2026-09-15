@@ -4,26 +4,18 @@
  * Replaces the unstyled activity log card on /tasks/[task-id].
  *
  * Design:
- *   - Vertical connector line runs through all events (CSS border-left on
- *     the list item container, not a separate element, so it aligns
- *     precisely with the icon centres regardless of text height).
+ *   - Vertical connector line runs through all events via a CSS ::before
+ *     pseudo-element on each <li>, aligned to the icon circle centre.
  *   - Each event type has a distinct icon, icon background colour, and a
  *     subtle left-border accent on the card body.
- *   - Metadata (previous → next status, priority changes) is extracted from
- *     the JSON `metadata` field and rendered as an inline diff pill.
- *   - Timestamps use formatRelative() for recency and a full absolute date
- *     in the <time> title attribute for precision.
- *   - Empty state matches the dashed-border pattern used elsewhere in the app.
- *
- * This is a pure Server Component — it receives pre-fetched history rows from
- * the parent page and has no client-side state.
+ *   - STATUS_CHANGED events show a "Open → In progress" diff pill extracted
+ *     from the JSON metadata field.
+ *   - Timestamps use formatRelative() with a full absolute date in <time title>.
+ *   - Pure Server Component — no client state, no "use client".
  */
 
 import {
-  AlertTriangle,
   ArrowRight,
-  Bug,
-  CheckCircle2,
   Clock,
   MessageSquare,
   Pencil,
@@ -39,26 +31,33 @@ import { cn } from "@/lib/utils";
 
 type HistoryEvent = "CREATED" | "STATUS_CHANGED" | "UPDATED" | "COMMENTED";
 
-type HistoryEntry = {
+export type HistoryEntry = {
   id: string;
   eventType: string;
   description: string;
   createdAt: Date | string;
-  metadata?: Record<string, unknown> | null;
+  // Accept `unknown` so this type is compatible with Prisma's JsonValue
+  // (which is an opaque internal type that differs across Prisma versions).
+  // Narrowing is performed inside extractStatusDiff().
+  metadata?: unknown;
   actor?: { name: string | null } | null;
 };
 
-// ─── Event config map ──────────────────────────────────────────────────────────
+// ─── Icon component type ──────────────────────────────────────────────────────
+// Lucide icons accept aria-hidden as a boolean, not a string.
+
+type LucideIcon = React.ComponentType<{
+  className?: string;
+  "aria-hidden"?: boolean;
+}>;
+
+// ─── Event config map ─────────────────────────────────────────────────────────
 
 type EventConfig = {
-  Icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
-  /** Tailwind classes for the icon wrapper circle */
+  Icon: LucideIcon;
   iconBg: string;
-  /** Tailwind text colour for the icon itself */
   iconColor: string;
-  /** Tailwind left-border colour on the event card */
   borderAccent: string;
-  /** Human-readable label used in the sr-only event type span */
   label: string;
 };
 
@@ -107,38 +106,39 @@ function getConfig(eventType: string): EventConfig {
   return EVENT_CONFIG[eventType as HistoryEvent] ?? FALLBACK_CONFIG;
 }
 
-/**
- * Extracts previous→next metadata from a STATUS_CHANGED history entry.
- * Returns null if the metadata is absent or malformed.
- */
 function extractStatusDiff(
-  metadata: Record<string, unknown> | null | undefined,
+  metadata: unknown,
 ): { from: string; to: string } | null {
-  if (!metadata) return null;
+  if (
+    !metadata ||
+    typeof metadata !== "object" ||
+    Array.isArray(metadata)
+  ) {
+    return null;
+  }
+  const obj = metadata as Record<string, unknown>;
   const from =
-    typeof metadata.previousStatus === "string" ? metadata.previousStatus : null;
-  const to =
-    typeof metadata.newStatus === "string" ? metadata.newStatus : null;
+    typeof obj.previousStatus === "string" ? obj.previousStatus : null;
+  const to = typeof obj.newStatus === "string" ? obj.newStatus : null;
   if (!from || !to) return null;
   return { from, to };
 }
 
-/**
- * Humanises a SCREAMING_SNAKE status token for display.
- * "IN_PROGRESS" → "In progress"
- */
 function humaniseStatus(s: string): string {
   if (s === "IN_PROGRESS") return "In progress";
   return s.charAt(0) + s.slice(1).toLowerCase();
 }
 
-// ─── StatusDiffPill ────────────────────────────────────────────────────────────
+// ─── StatusDiffPill ───────────────────────────────────────────────────────────
 
 function StatusDiffPill({ from, to }: { from: string; to: string }) {
   return (
     <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-xs font-medium text-foreground">
       <span className="text-muted-foreground">{humaniseStatus(from)}</span>
-      <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground/60" aria-hidden="true" />
+      <ArrowRight
+        className="h-3 w-3 shrink-0 text-muted-foreground/60"
+        aria-hidden
+      />
       <span className="font-semibold">{humaniseStatus(to)}</span>
     </span>
   );
@@ -160,22 +160,18 @@ export function TaskActivityTimeline({
   }
 
   return (
-    <ol
-      aria-label="Issue activity timeline"
-      className="relative space-y-0"
-    >
+    <ol aria-label="Issue activity timeline" className="relative space-y-0">
       {history.map((entry, idx) => {
         const cfg = getConfig(entry.eventType);
         const { Icon } = cfg;
         const isLast = idx === history.length - 1;
+
         const statusDiff =
           entry.eventType === "STATUS_CHANGED"
-            ? extractStatusDiff(
-                entry.metadata as Record<string, unknown> | null,
-              )
+            ? extractStatusDiff(entry.metadata)
             : null;
 
-        const actorName = entry.actor?.name || "System";
+        const actorName = entry.actor?.name ?? "System";
         const relativeTime = formatRelative(entry.createdAt);
         const absoluteTime = formatAbsolute(entry.createdAt);
 
@@ -184,13 +180,11 @@ export function TaskActivityTimeline({
             key={entry.id}
             className={cn(
               "relative flex gap-3 pb-5",
-              // Vertical connector line — pseudo-element via border on the
-              // wrapper. Invisible for the last item.
               !isLast &&
                 "before:absolute before:left-[15px] before:top-8 before:h-[calc(100%-1.5rem)] before:w-px before:bg-border/60",
             )}
           >
-            {/* ── Icon column ────────────────────────────────────────────── */}
+            {/* Icon circle */}
             <div
               className={cn(
                 "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
@@ -198,34 +192,34 @@ export function TaskActivityTimeline({
               )}
               aria-hidden="true"
             >
-              <Icon className={cn("h-3.5 w-3.5", cfg.iconColor)} aria-hidden="true" />
+              <Icon
+                className={cn("h-3.5 w-3.5", cfg.iconColor)}
+                aria-hidden
+              />
             </div>
 
-            {/* ── Event card ─────────────────────────────────────────────── */}
+            {/* Event card */}
             <div
               className={cn(
                 "min-w-0 flex-1 rounded-lg border border-border/60 border-l-4 bg-background px-3 py-2.5",
                 cfg.borderAccent,
               )}
             >
-              {/* Header row: event type label + relative time */}
+              {/* Header */}
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Screen-reader event type */}
                   <span className="sr-only">{cfg.label}:</span>
-
-                  {/* Visible event label */}
                   <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     {cfg.label}
                   </span>
-
-                  {/* Status diff pill — only for STATUS_CHANGED */}
                   {statusDiff ? (
-                    <StatusDiffPill from={statusDiff.from} to={statusDiff.to} />
+                    <StatusDiffPill
+                      from={statusDiff.from}
+                      to={statusDiff.to}
+                    />
                   ) : null}
                 </div>
 
-                {/* Relative timestamp */}
                 <time
                   dateTime={new Date(entry.createdAt).toISOString()}
                   title={absoluteTime}
@@ -240,17 +234,19 @@ export function TaskActivityTimeline({
                 {entry.description}
               </p>
 
-              {/* Actor */}
+              {/* Actor + absolute time */}
               <div className="mt-1.5 flex items-center gap-1.5">
                 <User
                   className="h-3 w-3 shrink-0 text-muted-foreground/60"
-                  aria-hidden="true"
+                  aria-hidden
                 />
                 <span className="text-[11px] text-muted-foreground">
                   {actorName}
                 </span>
-                {/* Absolute timestamp as secondary context */}
-                <span className="text-[11px] text-muted-foreground/50" aria-hidden="true">
+                <span
+                  className="text-[11px] text-muted-foreground/50"
+                  aria-hidden="true"
+                >
                   · {absoluteTime}
                 </span>
               </div>

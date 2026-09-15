@@ -337,7 +337,7 @@ export function CommandPalette() {
         onClick={() => setOpen(true)}
       >
         <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-colors group-hover:text-foreground">
-          <Command className="h-3.5 w-3.5" aria-hidden="true" />
+          <Command className="h-3.5 w-3.5" aria-hidden />
         </span>
         <span className="hidden md:inline">Commands</span>
         <kbd
@@ -368,7 +368,7 @@ export function CommandPalette() {
             <div className="flex items-center gap-2.5 border-b border-border/60 px-3 py-2.5">
               <Search
                 className="h-4 w-4 shrink-0 text-muted-foreground"
-                aria-hidden="true"
+                aria-hidden
               />
               <input
                 ref={inputRef}
@@ -401,7 +401,7 @@ export function CommandPalette() {
                 aria-label="Close command palette"
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <X className="h-4 w-4" aria-hidden="true" />
+                <X className="h-4 w-4" aria-hidden />
               </button>
             </div>
 
@@ -466,7 +466,7 @@ export function CommandPalette() {
                               : "bg-muted/50 text-muted-foreground",
                           )}
                         >
-                          <Icon className="h-4 w-4" aria-hidden="true" />
+                          <Icon className="h-4 w-4" aria-hidden />
                         </span>
 
                         {/* Text */}
@@ -497,7 +497,7 @@ export function CommandPalette() {
                 <li className="px-4 py-8 text-center" role="option" aria-selected="false">
                   <AlertTriangle
                     className="mx-auto mb-2 h-5 w-5 text-muted-foreground/50"
-                    aria-hidden="true"
+                    aria-hidden
                   />
                   <p className="text-sm text-muted-foreground">
                     {query.length >= 2

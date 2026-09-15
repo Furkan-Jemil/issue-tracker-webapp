@@ -114,7 +114,7 @@ export function StatsGrid({ stats }: { stats: DashboardStats }) {
                   </p>
                 </div>
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground">
-                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  <Icon className="h-4 w-4" aria-hidden />
                 </div>
               </CardContent>
             </Card>
