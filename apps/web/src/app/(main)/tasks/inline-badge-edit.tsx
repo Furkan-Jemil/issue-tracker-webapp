@@ -75,6 +75,7 @@ export function InlineBadgeEdit({
   disabled = false,
   isPending = false,
   badgeClassName,
+  renderBadge,
 }: {
   kind: Kind;
   value: string;
@@ -87,6 +88,8 @@ export function InlineBadgeEdit({
   isPending?: boolean;
   /** Extra classes forwarded to the inner IssueSemanticBadge. */
   badgeClassName?: string;
+  /** Optional custom badge renderer. If provided, uses this instead of IssueSemanticBadge. */
+  renderBadge?: (value: string) => React.ReactNode;
 }) {
   const uid = useId();
   const options = getOptions(kind);
@@ -207,6 +210,9 @@ export function InlineBadgeEdit({
   // ── Read-only render ──────────────────────────────────────────────────────
 
   if (disabled) {
+    if (renderBadge) {
+      return <>{renderBadge(value)}</>;
+    }
     return (
       <IssueSemanticBadge
         kind={kind}
@@ -217,6 +223,16 @@ export function InlineBadgeEdit({
   }
 
   // ── Interactive render ────────────────────────────────────────────────────
+
+  const badgeElement = renderBadge ? (
+    renderBadge(value)
+  ) : (
+    <IssueSemanticBadge
+      kind={kind}
+      value={value}
+      className={cn("px-2.5 py-1 text-[11px]", badgeClassName)}
+    />
+  );
 
   return (
     <div className="relative inline-flex">
@@ -243,11 +259,7 @@ export function InlineBadgeEdit({
         )}
       >
         {/* Badge display */}
-        <IssueSemanticBadge
-          kind={kind}
-          value={value}
-          className={cn("px-2.5 py-1 text-[11px]", badgeClassName)}
-        />
+        {badgeElement}
 
         {/* Pending spinner overlay */}
         {isPending ? (
@@ -300,11 +312,15 @@ export function InlineBadgeEdit({
                   !isActive && "hover:bg-accent/60",
                 )}
               >
-                <IssueSemanticBadge
-                  kind={kind}
-                  value={opt.value}
-                  className="pointer-events-none px-2 py-0.5 text-[10px]"
-                />
+                {renderBadge ? (
+                  renderBadge(opt.value)
+                ) : (
+                  <IssueSemanticBadge
+                    kind={kind}
+                    value={opt.value}
+                    className="pointer-events-none px-2 py-0.5 text-[10px]"
+                  />
+                )}
                 {isSelected ? (
                   <span className="ml-auto text-[10px] font-semibold text-primary">
                     ✓

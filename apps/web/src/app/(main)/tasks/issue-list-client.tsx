@@ -48,6 +48,7 @@ import {
 } from "lucide-react";
 
 import { IssueSemanticBadge } from "@/app/(main)/tasks/task-semantic-badge";
+import { MinimalBadge } from "@/app/(main)/tasks/minimal-badge";
 import {
   StatusQuickActions,
   type QuickStatus,
@@ -167,42 +168,46 @@ function BulkActionBar({
       role="toolbar"
       aria-label={`Bulk actions for ${selectedCount} selected issue${selectedCount !== 1 ? "s" : ""}`}
       className={cn(
-        // Slide up from bottom of viewport, above the sidebar footer.
-        "fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between gap-3",
-        "border-t border-border/80 bg-card/95 px-4 py-3 shadow-2xl backdrop-blur-sm",
-        "animate-in slide-in-from-bottom-2 duration-200",
-        // On large screens, indent to account for the sidebar width.
-        "lg:left-[13rem]",
+        "glass-float-bar",
+        "fixed bottom-4 left-1/2 -translate-x-1/2 z-50",
+        "flex items-center gap-3 px-5 py-3 rounded-2xl",
+        "animate-in slide-in-from-bottom-3 duration-300 ease-out",
       )}
+      style={{
+        maxWidth: 'calc(100vw - 2rem)',
+      }}
     >
-      {/* Left: selection summary + clear */}
+      {/* Selection count capsule */}
       <div className="flex items-center gap-2">
-        <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+        <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-primary/10 border border-primary/30 px-2 text-xs font-semibold text-primary tabular-nums">
           {selectedCount}
         </span>
-        <span className="text-sm font-medium text-foreground">
-          {selectedCount === 1 ? "issue" : "issues"} selected
+        <span className="text-sm font-medium text-foreground/90">
+          selected
         </span>
         <button
           type="button"
           onClick={onClear}
           aria-label="Clear selection"
-          className="ml-1 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="ml-1 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors"
         >
           <X className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
       </div>
 
-      {/* Right: bulk action buttons */}
-      <div className="flex items-center gap-2">
+      {/* Hairline separator */}
+      <div className="h-6 w-px bg-border/30" aria-hidden="true" />
+
+      {/* Action buttons — minimal, icon-led */}
+      <div className="flex items-center gap-1.5">
         {/* Move to status */}
         <div ref={statusRef} className="relative">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
             disabled={isPending}
-            className="gap-1.5"
+            className="h-7 gap-1.5 text-xs font-medium hover:bg-accent/60"
             onClick={() => { setStatusOpen((v) => !v); setPriorityOpen(false); }}
           >
             Move to
@@ -210,7 +215,7 @@ function BulkActionBar({
           </Button>
           {statusOpen ? (
             <div
-              className="absolute bottom-full mb-1.5 right-0 min-w-[160px] overflow-hidden rounded-xl border border-border/70 bg-popover shadow-lg"
+              className="glass-popover absolute bottom-full mb-1.5 right-0 min-w-[160px] overflow-hidden rounded-xl shadow-lg"
               role="menu"
               aria-label="Select target status"
             >
@@ -222,10 +227,9 @@ function BulkActionBar({
                   className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
                   onClick={() => { onBatchStatus(opt.value); setStatusOpen(false); }}
                 >
-                  <IssueSemanticBadge
+                  <MinimalBadge
                     kind="status"
                     value={opt.value}
-                    className="px-2 py-0.5 text-[10px]"
                   />
                 </button>
               ))}
@@ -237,18 +241,18 @@ function BulkActionBar({
         <div ref={priorityRef} className="relative">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
             disabled={isPending}
-            className="gap-1.5"
+            className="h-7 gap-1.5 text-xs font-medium hover:bg-accent/60"
             onClick={() => { setPriorityOpen((v) => !v); setStatusOpen(false); }}
           >
-            Set priority
+            Priority
             <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
           </Button>
           {priorityOpen ? (
             <div
-              className="absolute bottom-full mb-1.5 right-0 min-w-[160px] overflow-hidden rounded-xl border border-border/70 bg-popover shadow-lg"
+              className="glass-popover absolute bottom-full mb-1.5 right-0 min-w-[160px] overflow-hidden rounded-xl shadow-lg"
               role="menu"
               aria-label="Select target priority"
             >
@@ -260,10 +264,9 @@ function BulkActionBar({
                   className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
                   onClick={() => { onBatchPriority(opt.value); setPriorityOpen(false); }}
                 >
-                  <IssueSemanticBadge
+                  <MinimalBadge
                     kind="priority"
                     value={opt.value}
-                    className="px-2 py-0.5 text-[10px]"
                   />
                 </button>
               ))}
@@ -271,13 +274,15 @@ function BulkActionBar({
           ) : null}
         </div>
 
+        <div className="h-5 w-px bg-border/30" aria-hidden="true" />
+
         {/* Delete */}
         <Button
           type="button"
-          variant="destructive"
+          variant="ghost"
           size="sm"
           disabled={isPending}
-          className="gap-1.5"
+          className="h-7 gap-1.5 text-xs font-medium text-destructive hover:bg-destructive/10"
           onClick={onBatchDelete}
         >
           {isPending ? (
@@ -790,6 +795,7 @@ export function IssueListClient({
               </TableHead>
             ) : null}
 
+            <TableHead scope="col" className={cn(headPaddingClass, "w-24")}>ID</TableHead>
             <TableHead scope="col" className={headPaddingClass}>Title</TableHead>
             <TableHead scope="col" className={cn(headPaddingClass, "hidden lg:table-cell")}>Type</TableHead>
             <TableHead scope="col" className={headPaddingClass}>Priority</TableHead>
@@ -825,81 +831,92 @@ export function IssueListClient({
                 <TableRow
                   key={issue.id}
                   data-state={isSelected ? "selected" : undefined}
-                  className={cn(
-                    "transition hover:bg-muted/20",
-                    isSelected && "bg-primary/[0.04] hover:bg-primary/[0.07]",
-                  )}
+                  className="table-row-base"
                 >
                   {/* Row checkbox */}
                   {showCheckboxColumn ? (
-                    <TableCell className={cn(cellPaddingClass, "w-10")}>
+                    <TableCell className="w-10 py-0.5">
                       <button
                         type="button"
                         onClick={() => toggleOne(issue.id)}
                         aria-label={isSelected ? `Deselect ${issue.title}` : `Select ${issue.title}`}
                         aria-pressed={isSelected}
-                        className="flex items-center text-muted-foreground hover:text-foreground"
-                      >
-                        {isSelected ? (
-                          <CheckSquare2 className="h-4 w-4 text-primary" aria-hidden="true" />
-                        ) : (
-                          <Square className="h-4 w-4" aria-hidden="true" />
+                        className={cn(
+                          "flex h-5 w-5 items-center justify-center rounded-md border transition-all",
+                          isSelected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border/40 bg-transparent hover:border-primary/50 hover:bg-primary/5"
                         )}
+                      >
+                        {isSelected && <CheckSquare2 className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />}
                       </button>
                     </TableCell>
                   ) : null}
 
-                  {/* Title */}
-                  <TableCell className={cellPaddingClass}>
+                  {/* Ticket ID (monospace #FJ-XXXX) */}
+                  <TableCell className="py-0.5 w-24">
                     <Link
                       href={`/tasks/${issue.id}`}
-                      className="break-words text-sm font-medium text-gray-950 hover:text-primary hover:underline dark:text-gray-100"
+                      className="font-mono text-2xs font-medium text-muted-foreground hover:text-primary transition-colors tabular-nums"
+                      title={`Issue ID: ${issue.id}`}
+                    >
+                      #{issue.id.slice(0, 8).toUpperCase()}
+                    </Link>
+                  </TableCell>
+
+                  {/* Title */}
+                  <TableCell className="py-0.5">
+                    <Link
+                      href={`/tasks/${issue.id}`}
+                      className="text-sm font-medium text-foreground hover:text-primary transition-colors line-clamp-1"
                     >
                       {issue.title}
                     </Link>
                     <div className="mt-1 flex flex-wrap items-center gap-1 lg:hidden">
-                      <IssueSemanticBadge kind="status"   value={issue.status}   className="px-2.5 py-1 text-[11px]" title={detailHintByKind.status} />
-                      <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2.5 py-1 text-[11px]" title={detailHintByKind.priority} />
-                      <IssueSemanticBadge kind="type"     value={issue.type}     className="px-2.5 py-1 text-[11px]" />
-                      <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2.5 py-1 text-[11px]" title={detailHintByKind.severity} />
+                      <MinimalBadge kind="status" value={issue.status} title={detailHintByKind.status} />
+                      <MinimalBadge kind="priority" value={issue.priority} title={detailHintByKind.priority} />
+                      <MinimalBadge kind="type" value={issue.type} />
+                      <MinimalBadge kind="severity" value={issue.severity} title={detailHintByKind.severity} />
                     </div>
                   </TableCell>
 
-                  {/* Type */}
-                  <TableCell className={cn(cellPaddingClass, "hidden lg:table-cell")}>
-                    <IssueSemanticBadge kind="type" value={issue.type} className="px-2.5 py-1 text-[11px]" />
+                  {/* Type — minimal dot + label */}
+                  <TableCell className={cn("py-0.5", "hidden lg:table-cell")}>
+                    <MinimalBadge kind="type" value={issue.type} />
                   </TableCell>
 
-                  {/* Priority — inline edit for admins, read-only for others */}
-                  <TableCell className={cellPaddingClass}>
+                  {/* Priority — inline edit with MinimalBadge */}
+                  <TableCell className="py-0.5">
                     <InlineBadgeEdit
                       kind="priority"
                       value={issue.priority}
                       disabled={!canQuickStatus}
                       isPending={pendingCells.has(`${issue.id}:priority`)}
                       onChange={(next) => handleInlinePriority(issue.id, next)}
+                      renderBadge={(val) => <MinimalBadge kind="priority" value={val} title={detailHintByKind.priority} />}
                     />
                   </TableCell>
 
-                  {/* Severity — always read-only (no workflow rules) */}
-                  <TableCell className={cn(cellPaddingClass, "hidden xl:table-cell")}>
-                    <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2.5 py-1 text-[11px]" title={detailHintByKind.severity} />
+                  {/* Severity — always read-only */}
+                  <TableCell className={cn("py-0.5", "hidden xl:table-cell")}>
+                    <MinimalBadge kind="severity" value={issue.severity} title={detailHintByKind.severity} />
                   </TableCell>
 
-                  {/* Status — inline edit for admins, read-only for others */}
-                  <TableCell className={cellPaddingClass}>
+                  {/* Status — inline edit with MinimalBadge */}
+                  <TableCell className="py-0.5">
                     <InlineBadgeEdit
                       kind="status"
                       value={issue.status}
                       disabled={!canQuickStatus}
                       isPending={pendingCells.has(`${issue.id}:status`)}
                       onChange={(next) => handleInlineStatus(issue.id, next)}
+                      renderBadge={(val) => <MinimalBadge kind="status" value={val} title={detailHintByKind.status} />}
                     />
                   </TableCell>
 
                   {/* Per-row actions */}
                   {showActionsColumn ? (
-                    <TableCell className={cn(cellPaddingClass, "text-right")}>
+                    <TableCell className="py-0.5 text-right">
                       {canShowActions ? (
                         <div className="flex justify-end">
                           <StatusQuickActions
@@ -917,7 +934,7 @@ export function IssueListClient({
 
                   {/* Assignee */}
                   {isAdmin && showDetails ? (
-                    <TableCell className={cellPaddingClass}>
+                    <TableCell className="py-0.5">
                       {issue.assigneeId ? (
                         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                           <span className="break-words text-sm">{getUserLabel(issue.assigneeId, "Unknown")}</span>
@@ -931,7 +948,7 @@ export function IssueListClient({
 
                   {/* Reporter */}
                   {isAdmin && showDetails ? (
-                    <TableCell className={cellPaddingClass}>
+                    <TableCell className="py-0.5">
                       <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                         <span className="break-words text-sm">{getUserLabel(issue.createdBy, "Unknown")}</span>
                         {getRoleChip(issue.createdBy)}
@@ -940,13 +957,13 @@ export function IssueListClient({
                   ) : null}
 
                   {showDetails ? (
-                    <TableCell className={cn(cellPaddingClass, "text-sm text-muted-foreground")}>
+                    <TableCell className="py-0.5 text-sm text-muted-foreground">
                       {issue.reportedAt ? formatDate(issue.reportedAt) : "—"}
                     </TableCell>
                   ) : null}
 
                   {showDetails ? (
-                    <TableCell className={cn(cellPaddingClass, "text-sm text-muted-foreground")}>
+                    <TableCell className="py-0.5 text-sm text-muted-foreground">
                       {formatDate(issue.createdAt)}
                     </TableCell>
                   ) : null}
