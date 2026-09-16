@@ -44,11 +44,15 @@ function ChartsSkeleton() {
       </div>
       {/* Filter toolbar placeholder */}
       <Skeleton className="h-12 w-full rounded-xl" />
-      {/* Chart cards */}
-      <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+      {/* Three doughnut charts */}
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+        <Skeleton className="h-[280px] w-full rounded-xl" />
         <Skeleton className="h-[280px] w-full rounded-xl" />
         <Skeleton className="h-[280px] w-full rounded-xl" />
       </div>
+      {/* Bar chart */}
+      <Skeleton className="h-[280px] w-full rounded-xl" />
+      {/* Line chart */}
       <Skeleton className="h-[280px] w-full rounded-xl" />
     </section>
   );

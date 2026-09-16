@@ -58,6 +58,12 @@ type ChartData = {
   inProgress: number;
   resolved: number;
   closed: number;
+  low: number;
+  medium: number;
+  high: number;
+  minor: number;
+  major: number;
+  critical: number;
   trend: {
     labels: string[];
     datasets: Array<{ label: string; data: number[] }>;
@@ -90,6 +96,14 @@ const C = {
   inProgressSoft:"hsl(216 83% 56% / 0.2)",
   resolved:      "hsl(225 73% 48%)",
   closed:        "hsl(230 68% 42%)",
+  // Priority colors
+  low:           "hsl(142 76% 36%)",
+  medium:        "hsl(48 96% 53%)",
+  high:          "hsl(0 84% 60%)",
+  // Severity colors
+  minor:         "hsl(173 58% 39%)",
+  major:         "hsl(25 95% 53%)",
+  critical:      "hsl(346 77% 50%)",
 } as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -300,15 +314,39 @@ export default function DashboardCharts() {
     }],
   }), [data]);
 
+  const priorityDataset = useMemo(() => ({
+    labels: ["Low", "Medium", "High"],
+    datasets: [{
+      label: "Priority distribution",
+      data: data ? [data.low, data.medium, data.high] : [],
+      backgroundColor: [C.low, C.medium, C.high],
+      borderWidth: 0, borderRadius: 10, hoverOffset: 4, spacing: 2, offset: [12, 0, 0],
+    }],
+  }), [data]);
+
+  const severityDataset = useMemo(() => ({
+    labels: ["Minor", "Major", "Critical"],
+    datasets: [{
+      label: "Severity distribution",
+      data: data ? [data.minor, data.major, data.critical] : [],
+      backgroundColor: [C.minor, C.major, C.critical],
+      borderWidth: 0, borderRadius: 10, hoverOffset: 4, spacing: 2, offset: [12, 0, 0],
+    }],
+  }), [data]);
+
   // ── Derived booleans ─────────────────────────────────────────────────────
   const hasStatusData     = Boolean(data && [data.open, data.inProgress, data.resolved, data.closed].some((v) => v > 0));
+  const hasPriorityData   = Boolean(data && [data.low, data.medium, data.high].some((v) => v > 0));
+  const hasSeverityData   = Boolean(data && [data.minor, data.major, data.critical].some((v) => v > 0));
   const hasComparisonData = buckets.some((b) => b.open > 0 || b.closed > 0);
   const hasTrendData      = timelinePoints.some((p) => p.open > 0 || p.inProgress > 0);
 
   // ── Navigate on chart click ──────────────────────────────────────────────
-  function goToIssues(filters: { status?: string; createdFrom?: Date | null; createdTo?: Date | null }) {
+  function goToIssues(filters: { status?: string; priority?: string; severity?: string; createdFrom?: Date | null; createdTo?: Date | null }) {
     const p = new URLSearchParams({ view: "details", page: "1" });
     if (filters.status)      p.set("status",      filters.status);
+    if (filters.priority)    p.set("priority",    filters.priority);
+    if (filters.severity)    p.set("severity",    filters.severity);
     if (filters.createdFrom) p.set("createdFrom", filters.createdFrom.toISOString().slice(0, 10));
     if (filters.createdTo)   p.set("createdTo",   filters.createdTo.toISOString().slice(0, 10));
     router.push(`/tasks?${p.toString()}`);
@@ -439,16 +477,23 @@ export default function DashboardCharts() {
 
       {/* ── Loading skeleton ─────────────────────────────────────────────── */}
       {loading ? (
-        <div className="grid grid-cols-1 gap-2 xl:grid-cols-2" aria-busy="true" aria-label="Loading charts">
+        <div className="space-y-2" aria-busy="true" aria-label="Loading charts">
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+            <Skeleton className="h-[280px] w-full rounded-xl" />
+            <Skeleton className="h-[280px] w-full rounded-xl" />
+            <Skeleton className="h-[280px] w-full rounded-xl" />
+          </div>
+          <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+            <Skeleton className="h-[280px] w-full rounded-xl" />
+            <Skeleton className="h-[280px] w-full rounded-xl" />
+          </div>
           <Skeleton className="h-[280px] w-full rounded-xl" />
-          <Skeleton className="h-[280px] w-full rounded-xl" />
-          <Skeleton className="h-[280px] w-full rounded-xl xl:col-span-2" />
         </div>
       ) : (
         <>
-          {/* ── Doughnut + Bar row ─────────────────────────────────────── */}
-          {(hasStatusData || hasComparisonData) ? (
-            <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+          {/* ── Doughnut charts row (Status, Priority, Severity) ───────── */}
+          {(hasStatusData || hasPriorityData || hasSeverityData) ? (
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               {hasStatusData ? (
                 <Card className="min-w-0 bg-card shadow-sm">
                   <CardHeader className="pb-2.5">
@@ -478,32 +523,57 @@ export default function DashboardCharts() {
                 </Card>
               ) : null}
 
-              {hasComparisonData ? (
+              {hasPriorityData ? (
                 <Card className="min-w-0 bg-card shadow-sm">
                   <CardHeader className="pb-2.5">
-                    <CardTitle className="text-base font-semibold">Open vs closed</CardTitle>
-                    <CardDescription className="text-xs">Issue throughput by grouped date buckets.</CardDescription>
+                    <CardTitle className="text-base font-semibold">Priority distribution</CardTitle>
+                    <CardDescription className="text-xs">Issue breakdown by priority level.</CardDescription>
                   </CardHeader>
                   <CardContent className="p-2.5">
-                    <div className="h-[190px] w-full lg:h-[210px]">
-                      <Bar
-                        key={`comparison-${themeMode}`}
-                        data={comparisonDataset}
+                    <div className="mx-auto h-[190px] w-full max-w-[220px] lg:h-[210px] lg:max-w-[240px]">
+                      <Doughnut
+                        key={`priority-${themeMode}`}
+                        data={priorityDataset}
                         options={{
                           responsive: true, maintainAspectRatio: false,
                           animation: { duration: 220, easing: "easeOutCubic" },
+                          cutout: "66%", rotation: -90,
                           onClick: (_e, els) => {
                             if (!els.length) return;
-                            const { datasetIndex, index } = els[0];
-                            const b = buckets[index];
-                            if (!b) return;
-                            goToIssues({ status: datasetIndex === 0 ? "OPEN" : "CLOSED", createdFrom: b.startDate, createdTo: b.endDate });
+                            const lbl = priorityDataset.labels[els[0].index];
+                            const map: Record<string, string> = { Low: "LOW", Medium: "MEDIUM", High: "HIGH" };
+                            goToIssues({ priority: map[lbl] });
                           },
                           plugins: { legend: legendBase, tooltip: tooltipBase },
-                          scales: {
-                            x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6, font: { size: 11 }, color: uiColors.axisText }, border: { display: false } },
-                            y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 }, color: uiColors.axisText }, grid: { color: uiColors.grid }, border: { display: false } },
+                        }}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : null}
+
+              {hasSeverityData ? (
+                <Card className="min-w-0 bg-card shadow-sm">
+                  <CardHeader className="pb-2.5">
+                    <CardTitle className="text-base font-semibold">Severity distribution</CardTitle>
+                    <CardDescription className="text-xs">Issue breakdown by severity level.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-2.5">
+                    <div className="mx-auto h-[190px] w-full max-w-[220px] lg:h-[210px] lg:max-w-[240px]">
+                      <Doughnut
+                        key={`severity-${themeMode}`}
+                        data={severityDataset}
+                        options={{
+                          responsive: true, maintainAspectRatio: false,
+                          animation: { duration: 220, easing: "easeOutCubic" },
+                          cutout: "66%", rotation: -90,
+                          onClick: (_e, els) => {
+                            if (!els.length) return;
+                            const lbl = severityDataset.labels[els[0].index];
+                            const map: Record<string, string> = { Minor: "MINOR", Major: "MAJOR", Critical: "CRITICAL" };
+                            goToIssues({ severity: map[lbl] });
                           },
+                          plugins: { legend: legendBase, tooltip: tooltipBase },
                         }}
                       />
                     </div>
@@ -511,6 +581,40 @@ export default function DashboardCharts() {
                 </Card>
               ) : null}
             </div>
+          ) : null}
+
+          {/* ── Bar comparison row ──────────────────────────────────────── */}
+          {hasComparisonData ? (
+            <Card className="min-w-0 bg-card shadow-sm">
+              <CardHeader className="pb-2.5">
+                <CardTitle className="text-base font-semibold">Open vs closed</CardTitle>
+                <CardDescription className="text-xs">Issue throughput by grouped date buckets.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-2.5">
+                <div className="h-[190px] w-full lg:h-[210px]">
+                  <Bar
+                    key={`comparison-${themeMode}`}
+                    data={comparisonDataset}
+                    options={{
+                      responsive: true, maintainAspectRatio: false,
+                      animation: { duration: 220, easing: "easeOutCubic" },
+                      onClick: (_e, els) => {
+                        if (!els.length) return;
+                        const { datasetIndex, index } = els[0];
+                        const b = buckets[index];
+                        if (!b) return;
+                        goToIssues({ status: datasetIndex === 0 ? "OPEN" : "CLOSED", createdFrom: b.startDate, createdTo: b.endDate });
+                      },
+                      plugins: { legend: legendBase, tooltip: tooltipBase },
+                      scales: {
+                        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6, font: { size: 11 }, color: uiColors.axisText }, border: { display: false } },
+                        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 }, color: uiColors.axisText }, grid: { color: uiColors.grid }, border: { display: false } },
+                      },
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           ) : null}
 
           {/* ── Trend line ────────────────────────────────────────────────── */}
@@ -550,7 +654,7 @@ export default function DashboardCharts() {
             </Card>
           ) : null}
 
-          {!hasStatusData && !hasComparisonData && !hasTrendData ? (
+          {!hasStatusData && !hasPriorityData && !hasSeverityData && !hasComparisonData && !hasTrendData ? (
             <Card>
               <CardContent className="p-6 text-center text-sm text-muted-foreground">
                 No analytics data for the selected filters and time range.
