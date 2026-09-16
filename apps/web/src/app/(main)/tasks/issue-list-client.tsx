@@ -57,6 +57,11 @@ import {
   batchChangePriority,
   batchDeleteIssues,
 } from "@/app/(main)/tasks/tasks-bulk-actions";
+import {
+  changeIssueStatusInline,
+  changeIssuePriorityInline,
+} from "@/app/(main)/tasks/tasks-inline-actions";
+import { InlineBadgeEdit } from "@/app/(main)/tasks/inline-badge-edit";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -620,6 +625,72 @@ export function IssueListClient({
     );
   }
 
+  // ── Inline badge edit: per-cell pending state ──────────────────────────
+  // Key format: `${issueId}:status` or `${issueId}:priority`
+  const [pendingCells, setPendingCells] = useState<Set<string>>(new Set());
+
+  function setCellPending(key: string, pending: boolean) {
+    setPendingCells((prev) => {
+      const next = new Set(prev);
+      if (pending) next.add(key); else next.delete(key);
+      return next;
+    });
+  }
+
+  function handleInlineStatus(issueId: string, nextStatus: string) {
+    const key = `${issueId}:status`;
+    const previousStatus = issues.find((i) => i.id === issueId)?.status;
+    if (!previousStatus || nextStatus === previousStatus) return;
+
+    // Optimistic update.
+    setIssues((prev) =>
+      prev.map((i) =>
+        i.id === issueId ? { ...i, status: nextStatus as QuickStatus } : i,
+      ),
+    );
+    setCellPending(key, true);
+
+    startTransition(async () => {
+      const result = await changeIssueStatusInline(issueId, nextStatus);
+      setCellPending(key, false);
+      if (!result.ok) {
+        // Roll back.
+        setIssues((prev) =>
+          prev.map((i) =>
+            i.id === issueId ? { ...i, status: previousStatus } : i,
+          ),
+        );
+      }
+    });
+  }
+
+  function handleInlinePriority(issueId: string, nextPriority: string) {
+    const key = `${issueId}:priority`;
+    const previousPriority = issues.find((i) => i.id === issueId)?.priority;
+    if (!previousPriority || nextPriority === previousPriority) return;
+
+    // Optimistic update.
+    setIssues((prev) =>
+      prev.map((i) =>
+        i.id === issueId ? { ...i, priority: nextPriority } : i,
+      ),
+    );
+    setCellPending(key, true);
+
+    startTransition(async () => {
+      const result = await changeIssuePriorityInline(issueId, nextPriority);
+      setCellPending(key, false);
+      if (!result.ok) {
+        // Roll back.
+        setIssues((prev) =>
+          prev.map((i) =>
+            i.id === issueId ? { ...i, priority: previousPriority } : i,
+          ),
+        );
+      }
+    });
+  }
+
   // ── Column counts ──────────────────────────────────────────────────────
 
   const showCheckboxColumn = isAdmin;
@@ -799,19 +870,31 @@ export function IssueListClient({
                     <IssueSemanticBadge kind="type" value={issue.type} className="px-2.5 py-1 text-[11px]" />
                   </TableCell>
 
-                  {/* Priority */}
+                  {/* Priority — inline edit for admins, read-only for others */}
                   <TableCell className={cellPaddingClass}>
-                    <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2.5 py-1 text-[11px]" title={detailHintByKind.priority} />
+                    <InlineBadgeEdit
+                      kind="priority"
+                      value={issue.priority}
+                      disabled={!canQuickStatus}
+                      isPending={pendingCells.has(`${issue.id}:priority`)}
+                      onChange={(next) => handleInlinePriority(issue.id, next)}
+                    />
                   </TableCell>
 
-                  {/* Severity */}
+                  {/* Severity — always read-only (no workflow rules) */}
                   <TableCell className={cn(cellPaddingClass, "hidden xl:table-cell")}>
                     <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2.5 py-1 text-[11px]" title={detailHintByKind.severity} />
                   </TableCell>
 
-                  {/* Status (optimistic) */}
+                  {/* Status — inline edit for admins, read-only for others */}
                   <TableCell className={cellPaddingClass}>
-                    <IssueSemanticBadge kind="status" value={issue.status} className="px-2.5 py-1 text-[11px]" title={detailHintByKind.status} />
+                    <InlineBadgeEdit
+                      kind="status"
+                      value={issue.status}
+                      disabled={!canQuickStatus}
+                      isPending={pendingCells.has(`${issue.id}:status`)}
+                      onChange={(next) => handleInlineStatus(issue.id, next)}
+                    />
                   </TableCell>
 
                   {/* Per-row actions */}
