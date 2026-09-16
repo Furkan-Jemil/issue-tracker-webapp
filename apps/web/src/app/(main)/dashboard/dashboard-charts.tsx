@@ -495,7 +495,7 @@ export default function DashboardCharts() {
           {(hasStatusData || hasPriorityData || hasSeverityData) ? (
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               {hasStatusData ? (
-                <Card className="min-w-0 bg-card shadow-sm">
+                <Card className="glass-card min-w-0">
                   <CardHeader className="pb-2.5">
                     <CardTitle className="text-base font-semibold">Status mix</CardTitle>
                     <CardDescription className="text-xs">Issue distribution by workflow state.</CardDescription>
@@ -524,7 +524,7 @@ export default function DashboardCharts() {
               ) : null}
 
               {hasPriorityData ? (
-                <Card className="min-w-0 bg-card shadow-sm">
+                <Card className="glass-card min-w-0">
                   <CardHeader className="pb-2.5">
                     <CardTitle className="text-base font-semibold">Priority distribution</CardTitle>
                     <CardDescription className="text-xs">Issue breakdown by priority level.</CardDescription>
@@ -553,7 +553,7 @@ export default function DashboardCharts() {
               ) : null}
 
               {hasSeverityData ? (
-                <Card className="min-w-0 bg-card shadow-sm">
+                <Card className="glass-card min-w-0">
                   <CardHeader className="pb-2.5">
                     <CardTitle className="text-base font-semibold">Severity distribution</CardTitle>
                     <CardDescription className="text-xs">Issue breakdown by severity level.</CardDescription>
@@ -585,7 +585,7 @@ export default function DashboardCharts() {
 
           {/* ── Bar comparison row ──────────────────────────────────────── */}
           {hasComparisonData ? (
-            <Card className="min-w-0 bg-card shadow-sm">
+            <Card className="glass-card min-w-0">
               <CardHeader className="pb-2.5">
                 <CardTitle className="text-base font-semibold">Open vs closed</CardTitle>
                 <CardDescription className="text-xs">Issue throughput by grouped date buckets.</CardDescription>
@@ -619,7 +619,7 @@ export default function DashboardCharts() {
 
           {/* ── Trend line ────────────────────────────────────────────────── */}
           {hasTrendData ? (
-            <Card className="min-w-0 bg-card shadow-sm">
+            <Card className="glass-card min-w-0">
               <CardHeader className="pb-2.5">
                 <CardTitle className="text-base font-semibold">Issue trend</CardTitle>
                 <CardDescription className="text-xs">Open and in-progress issues across the selected range.</CardDescription>

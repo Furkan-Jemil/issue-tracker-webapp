@@ -100,7 +100,7 @@ export function StatsGrid({ stats }: { stats: DashboardStats }) {
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-3 xl:grid-cols-5">
         {cards.map(({ label, value, href, icon: Icon, tone }) => (
           <Link key={label} href={href} className="group outline-none">
-            <Card className="h-full cursor-pointer bg-card shadow-sm transition-colors duration-150 hover:bg-accent/20 focus-within:ring-2 focus-within:ring-ring/50">
+            <Card className="glass-card h-full cursor-pointer transition-colors duration-150 hover:bg-accent/20 focus-within:ring-2 focus-within:ring-ring/50">
               <CardContent className="flex items-center justify-between gap-2.5 p-3">
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">

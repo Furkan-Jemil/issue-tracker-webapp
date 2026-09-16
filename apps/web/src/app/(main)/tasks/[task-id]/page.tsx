@@ -16,7 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
-import { IssueSemanticBadge } from "@/app/(main)/tasks/task-semantic-badge";
+import { MinimalBadge } from "@/app/(main)/tasks/minimal-badge";
 
 function formatDate(d: Date | string): string {
   const date = new Date(d);
@@ -106,38 +106,38 @@ export default async function IssueDetailPage({
       />
 
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
-        <Card tone="soft" density="dense" className="bg-card/80">
+        <Card tone="soft" density="dense" className="glass-card">
           <CardContent className="p-3">
               <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Status</p>
-              <IssueSemanticBadge kind="status" value={issue.status} className="mt-2 px-2.5 py-1 text-[11px]" />
+              <MinimalBadge kind="status" value={issue.status} className="mt-2" />
             </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="bg-card/80">
+        <Card tone="soft" density="dense" className="glass-card">
           <CardContent className="p-3">
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Priority</p>
-            <IssueSemanticBadge
+            <MinimalBadge
               kind="priority"
               value={issue.priority}
-              className="mt-2 px-2.5 py-1 text-[11px]"
+              className="mt-2"
               title="When this needs attention"
             />
           </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="bg-card/80">
+        <Card tone="soft" density="dense" className="glass-card">
           <CardContent className="p-3">
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Severity</p>
-            <IssueSemanticBadge
+            <MinimalBadge
               kind="severity"
               value={issue.severity}
-              className="mt-2 px-2.5 py-1 text-[11px]"
+              className="mt-2"
               title="How much this impacts users"
             />
           </CardContent>
         </Card>
 
-        <Card tone="soft" density="dense" className="bg-card/80 sm:col-span-2 xl:col-span-3">
+        <Card tone="soft" density="dense" className="glass-card sm:col-span-2 xl:col-span-3">
           <CardContent className="p-3">
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">People and reporting</p>
             <dl className="mt-2 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
