@@ -87,7 +87,7 @@ export default async function IssueDetailPage({
         description={issue.title}
         breadcrumbs={[
           { label: "Tasks", href: "/tasks" },
-          { label: issue.id.slice(0, 8).toUpperCase() },
+          { label: `#FJ-${issue.id.slice(0, 6).toUpperCase()}` },
         ]}
         actions={
           <div className="flex items-center gap-2">
@@ -196,7 +196,7 @@ export default async function IssueDetailPage({
             <dl className="mt-3 divide-y divide-border/50 text-sm">
               <div className="flex items-start justify-between gap-3 py-2 first:pt-0">
                 <dt className="text-muted-foreground">Issue ID</dt>
-                <dd className="font-medium text-foreground">{issue.id.slice(0, 8).toUpperCase()}</dd>
+                <dd className="font-mono font-semibold text-primary text-xs">#FJ-{issue.id.slice(0, 6).toUpperCase()}</dd>
               </div>
               <div className="flex items-start justify-between gap-3 py-2">
                 <dt className="text-muted-foreground">Type</dt>

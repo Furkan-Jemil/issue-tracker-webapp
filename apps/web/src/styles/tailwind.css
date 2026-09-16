@@ -55,11 +55,13 @@
     --border: 214 18% 83%;
     --input: 214 18% 83%;
     --ring: 87 67% 47%;
-    --chart-1: 87 67% 47%;
-    --chart-2: 42 90% 55%;
-    --chart-3: 142 52% 45%;
-    --chart-4: 351 77% 59%;
-    --chart-5: 261 63% 57%;
+    
+    /* ── shadcn Chart Palette (5-step semantic workflow) ──────────────────── */
+    --chart-1: 221 83% 53%;   /* Soft indigo — primary workflow state */
+    --chart-2: 212 95% 68%;   /* Sky blue — secondary state */
+    --chart-3: 216 92% 60%;   /* Bright blue — tertiary state */
+    --chart-4: 210 98% 78%;   /* Light blue — quaternary state */
+    --chart-5: 214 95% 88%;   /* Pale blue — quinary state */
     
     /* ── Furkan J. brand identity ──────────────────────────────────────────── */
     --brand-primary: 87 67% 47%;
@@ -133,11 +135,13 @@
     --border: 219 14% 25%;
     --input: 219 14% 25%;
     --ring: 87 67% 47%;
-    --chart-1: 87 67% 47%;
-    --chart-2: 42 95% 62%;
-    --chart-3: 142 48% 53%;
-    --chart-4: 352 82% 64%;
-    --chart-5: 261 70% 66%;
+    
+    /* ── shadcn Chart Palette (5-step semantic workflow — dark mode) ────────── */
+    --chart-1: 220 70% 50%;   /* Deeper indigo for dark backgrounds */
+    --chart-2: 213 94% 68%;   /* Sky blue maintained */
+    --chart-3: 217 91% 60%;   /* Bright blue */
+    --chart-4: 211 96% 78%;   /* Light blue */
+    --chart-5: 214 95% 85%;   /* Pale blue */
   }
 }
 

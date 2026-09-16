@@ -65,7 +65,7 @@ export default function LoginScreen() {
                 label="Email address"
                 value={email}
                 onChangeText={(t) => { setEmail(t); if (emailError) setEmailError(''); }}
-                placeholder="you@ethiotelecom.et"
+                placeholder="you@example.com"
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="email-address"

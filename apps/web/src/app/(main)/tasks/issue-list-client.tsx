@@ -857,10 +857,10 @@ export function IssueListClient({
                   <TableCell className="py-0.5 w-24">
                     <Link
                       href={`/tasks/${issue.id}`}
-                      className="font-mono text-2xs font-medium text-muted-foreground hover:text-primary transition-colors tabular-nums"
+                      className="font-mono text-2xs font-semibold text-primary hover:underline transition-colors tabular-nums"
                       title={`Issue ID: ${issue.id}`}
                     >
-                      #{issue.id.slice(0, 8).toUpperCase()}
+                      #FJ-{issue.id.slice(0, 6).toUpperCase()}
                     </Link>
                   </TableCell>
 

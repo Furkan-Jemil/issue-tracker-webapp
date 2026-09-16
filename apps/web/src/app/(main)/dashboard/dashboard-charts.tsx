@@ -89,22 +89,25 @@ type BucketSummary = {
 
 // ─── Colours ──────────────────────────────────────────────────────────────
 
-const C = {
-  open:          "hsl(214 74% 62%)",
-  openSoft:      "hsl(214 74% 62% / 0.22)",
-  inProgress:    "hsl(216 83% 56%)",
-  inProgressSoft:"hsl(216 83% 56% / 0.2)",
-  resolved:      "hsl(225 73% 48%)",
-  closed:        "hsl(230 68% 42%)",
-  // Priority colors
-  low:           "hsl(142 76% 36%)",
-  medium:        "hsl(48 96% 53%)",
-  high:          "hsl(0 84% 60%)",
-  // Severity colors
-  minor:         "hsl(173 58% 39%)",
-  major:         "hsl(25 95% 53%)",
-  critical:      "hsl(346 77% 50%)",
-} as const;
+/** 
+ * Dynamic chart color helper that reads shadcn --chart-N tokens.
+ * Falls back to hardcoded HSL if cssVar lookup fails (SSR safety).
+ */
+function chartColor(n: 1 | 2 | 3 | 4 | 5, alpha?: number): string {
+  const hsl = cssVar(`--chart-${n}`, alpha);
+  if (hsl) return hsl;
+  // Fallback palette (should never trigger in browser)
+  const fallback: Record<number, string> = {
+    1: "221 83% 53%",
+    2: "212 95% 68%",
+    3: "216 92% 60%",
+    4: "210 98% 78%",
+    5: "214 95% 88%",
+  };
+  return alpha === undefined 
+    ? `hsl(${fallback[n]})` 
+    : `hsl(${fallback[n]} / ${alpha})`;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -291,16 +294,16 @@ export default function DashboardCharts() {
   const trendDataset = useMemo(() => ({
     labels: timelinePoints.map((p) => p.label),
     datasets: [
-      { label: "Open",        data: timelinePoints.map((p) => p.open),        borderColor: C.open,       backgroundColor: C.openSoft,       fill: true, tension: 0.38, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2 },
-      { label: "In Progress", data: timelinePoints.map((p) => p.inProgress),  borderColor: C.inProgress, backgroundColor: C.inProgressSoft, fill: true, tension: 0.38, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2 },
+      { label: "Open",        data: timelinePoints.map((p) => p.open),        borderColor: chartColor(1), backgroundColor: chartColor(1, 0.18), fill: true, tension: 0.38, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2 },
+      { label: "In Progress", data: timelinePoints.map((p) => p.inProgress),  borderColor: chartColor(2), backgroundColor: chartColor(2, 0.16), fill: true, tension: 0.38, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2 },
     ],
   }), [timelinePoints]);
 
   const comparisonDataset = useMemo(() => ({
     labels: buckets.map((b) => b.label),
     datasets: [
-      { label: "Open",   data: buckets.map((b) => b.open),   backgroundColor: C.open,   borderRadius: 8, borderSkipped: false as const, barThickness: 14 },
-      { label: "Closed", data: buckets.map((b) => b.closed), backgroundColor: C.closed, borderRadius: 8, borderSkipped: false as const, barThickness: 14 },
+      { label: "Open",   data: buckets.map((b) => b.open),   backgroundColor: chartColor(1), borderRadius: 6, borderSkipped: false as const, barThickness: 16 },
+      { label: "Closed", data: buckets.map((b) => b.closed), backgroundColor: chartColor(3), borderRadius: 6, borderSkipped: false as const, barThickness: 16 },
     ],
   }), [buckets]);
 
@@ -309,8 +312,8 @@ export default function DashboardCharts() {
     datasets: [{
       label: "Status mix",
       data: data ? [data.open, data.inProgress, data.resolved, data.closed] : [],
-      backgroundColor: [C.open, C.inProgress, C.resolved, C.closed],
-      borderWidth: 0, borderRadius: 10, hoverOffset: 4, spacing: 2, offset: [14, 0, 0, 0],
+      backgroundColor: [chartColor(1), chartColor(2), chartColor(3), chartColor(4)],
+      borderWidth: 0, borderRadius: 6, hoverOffset: 6, spacing: 3,
     }],
   }), [data]);
 
@@ -319,8 +322,8 @@ export default function DashboardCharts() {
     datasets: [{
       label: "Priority distribution",
       data: data ? [data.low, data.medium, data.high] : [],
-      backgroundColor: [C.low, C.medium, C.high],
-      borderWidth: 0, borderRadius: 10, hoverOffset: 4, spacing: 2, offset: [12, 0, 0],
+      backgroundColor: [chartColor(2), chartColor(3), chartColor(1)],
+      borderWidth: 0, borderRadius: 6, hoverOffset: 6, spacing: 3,
     }],
   }), [data]);
 
@@ -329,8 +332,8 @@ export default function DashboardCharts() {
     datasets: [{
       label: "Severity distribution",
       data: data ? [data.minor, data.major, data.critical] : [],
-      backgroundColor: [C.minor, C.major, C.critical],
-      borderWidth: 0, borderRadius: 10, hoverOffset: 4, spacing: 2, offset: [12, 0, 0],
+      backgroundColor: [chartColor(4), chartColor(2), chartColor(1)],
+      borderWidth: 0, borderRadius: 6, hoverOffset: 6, spacing: 3,
     }],
   }), [data]);
 
@@ -508,14 +511,24 @@ export default function DashboardCharts() {
                         options={{
                           responsive: true, maintainAspectRatio: false,
                           animation: { duration: 220, easing: "easeOutCubic" },
-                          cutout: "66%", rotation: -90,
+                          cutout: "72%", rotation: -90,
                           onClick: (_e, els) => {
                             if (!els.length) return;
                             const lbl = statusDataset.labels[els[0].index];
                             const map: Record<string, string> = { Open: "OPEN", "In Progress": "IN_PROGRESS", Resolved: "RESOLVED", Closed: "CLOSED" };
                             goToIssues({ status: map[lbl] });
                           },
-                          plugins: { legend: legendBase, tooltip: tooltipBase },
+                          plugins: { 
+                            legend: {
+                              ...legendBase,
+                              labels: {
+                                ...legendBase.labels,
+                                pointStyle: "circle" as const,
+                                usePointStyle: true,
+                              },
+                            },
+                            tooltip: tooltipBase 
+                          },
                         }}
                       />
                     </div>
@@ -537,14 +550,24 @@ export default function DashboardCharts() {
                         options={{
                           responsive: true, maintainAspectRatio: false,
                           animation: { duration: 220, easing: "easeOutCubic" },
-                          cutout: "66%", rotation: -90,
+                          cutout: "72%", rotation: -90,
                           onClick: (_e, els) => {
                             if (!els.length) return;
                             const lbl = priorityDataset.labels[els[0].index];
                             const map: Record<string, string> = { Low: "LOW", Medium: "MEDIUM", High: "HIGH" };
                             goToIssues({ priority: map[lbl] });
                           },
-                          plugins: { legend: legendBase, tooltip: tooltipBase },
+                          plugins: { 
+                            legend: {
+                              ...legendBase,
+                              labels: {
+                                ...legendBase.labels,
+                                pointStyle: "circle" as const,
+                                usePointStyle: true,
+                              },
+                            },
+                            tooltip: tooltipBase 
+                          },
                         }}
                       />
                     </div>
@@ -566,14 +589,24 @@ export default function DashboardCharts() {
                         options={{
                           responsive: true, maintainAspectRatio: false,
                           animation: { duration: 220, easing: "easeOutCubic" },
-                          cutout: "66%", rotation: -90,
+                          cutout: "72%", rotation: -90,
                           onClick: (_e, els) => {
                             if (!els.length) return;
                             const lbl = severityDataset.labels[els[0].index];
                             const map: Record<string, string> = { Minor: "MINOR", Major: "MAJOR", Critical: "CRITICAL" };
                             goToIssues({ severity: map[lbl] });
                           },
-                          plugins: { legend: legendBase, tooltip: tooltipBase },
+                          plugins: { 
+                            legend: {
+                              ...legendBase,
+                              labels: {
+                                ...legendBase.labels,
+                                pointStyle: "circle" as const,
+                                usePointStyle: true,
+                              },
+                            },
+                            tooltip: tooltipBase 
+                          },
                         }}
                       />
                     </div>
