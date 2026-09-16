@@ -26,6 +26,15 @@ function buildNavItems(role: string | undefined): AppNavItem[] {
   return items;
 }
 
+export const metadata = {
+  title: {
+    default: "Furkan J. Tracker",
+    template: "%s | Furkan J.",
+  },
+  description: "High-velocity issue tracking and team collaboration platform by Furkan J. Systems",
+  keywords: ["issue tracker", "bug tracking", "project management", "furkan j", "fj tracker"],
+};
+
 export default async function RootLayout({
   children,
 }: {

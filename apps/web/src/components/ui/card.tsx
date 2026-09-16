@@ -12,7 +12,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-xl bg-card text-card-foreground shadow-sm",
+      "glass-card rounded-xl text-card-foreground",
       tone === "soft" && "bg-muted/20",
       density === "dense" ? "rounded-lg" : "rounded-xl",
       className,

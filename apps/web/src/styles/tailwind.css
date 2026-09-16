@@ -5,22 +5,49 @@
 @layer base {
   :root {
     color-scheme: light;
-    --background: 210 20% 96%;
+    /* ── Base canvas floor (lifted for cleaner whites) ──────────────────── */
+    --background: 210 20% 98%;
     --foreground: 222 26% 14%;
-    --card: 0 0% 99%;
+    
+    /* ── Translucent elevated cards ──────────────────────────────────────── */
+    --card: 0 0% 100%;
+    --card-alpha: 0.75;
     --card-foreground: 222 26% 14%;
+    --card-border: 214 18% 88%;
+    --card-border-alpha: 0.25;
+    --card-highlight: 0 0% 100%;
+    --card-highlight-alpha: 0.6;
+    
+    /* ── Overlays, modals, slide-overs ────────────────────────────────────── */
     --popover: 0 0% 100%;
+    --popover-alpha: 0.85;
+    --popover-blur: 16px;
     --popover-foreground: 222 26% 14%;
+    
+    /* ── Floating action bars ──────────────────────────────────────────────── */
+    --float-bar: 0 0% 100%;
+    --float-bar-alpha: 0.92;
+    --float-bar-blur: 24px;
+    --float-bar-border: 214 18% 88%;
+    --float-bar-border-alpha: 0.3;
+    
+    /* ── Table micro-states ─────────────────────────────────────────────────── */
+    --table-hover: 87 14% 96%;
+    --table-hover-alpha: 0.4;
+    --table-selected: 87 67% 47%;
+    --table-selected-alpha: 0.06;
+    
+    /* ── Badge weightless styling ────────────────────────────────────────────── */
+    --badge-border-alpha: 0.2;
+    --badge-bg-alpha: 0;
+    --badge-dot-size: 6px;
+    
     --primary: 87 67% 47%;
     --primary-foreground: 210 12% 8%;
     --secondary: 210 18% 91%;
     --secondary-foreground: 222 26% 14%;
     --muted: 210 18% 90%;
     --muted-foreground: 218 14% 38%;
-    /* ── Neutral accent: matches primary hue (87°) at low saturation ──────
-       Previously 208° (blue), which caused a chromatic clash on hover.
-       Now a warm off-white that reads as "selected" without fighting the
-       lime-green primary.                                                  */
     --accent: 87 14% 92%;
     --accent-foreground: 222 26% 14%;
     --destructive: 0 72% 51%;
@@ -33,46 +60,72 @@
     --chart-3: 142 52% 45%;
     --chart-4: 351 77% 59%;
     --chart-5: 261 63% 57%;
-    --color-et-green-light: #80ca28;
+    
+    /* ── Furkan J. brand identity ──────────────────────────────────────────── */
+    --brand-primary: 87 67% 47%;
+    --brand-accent: 42 90% 55%;
+    
+    /* ── Layout & density tokens (compact for high-volume scanning) ────────── */
     --radius: 0.625rem;
     --density-scale: 1;
-    --space-page-y: 0.95rem;
-    --space-page-x: 0.75rem;
+    --space-page-y: 0.75rem;
+    --space-page-x: 0.625rem;
     --space-main-top: 0.45rem;
-    --space-stack: 0.95rem;
-    --card-pad: 0.95rem;
-    --card-gap: 0.8rem;
+    --space-stack: 0.75rem;
+    --card-pad: 0.875rem;
+    --card-gap: 0.625rem;
     --header-pad-y: 0.8rem;
     --header-pad-x: 1rem;
-    --table-head-h: 2.45rem;
-    --table-cell-py: 0.7rem;
-    --table-cell-px: 0.8rem;
+    --table-head-h: 2.25rem;
+    --table-cell-py: 0.5rem;
+    --table-cell-px: 0.75rem;
     --interactive-min: 2.7rem;
     --surface-radius: 1rem;
-    --surface-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
   }
 
   .dark {
     color-scheme: dark;
-    /* ── Deeper base: was L=8%, now L=6% ──────────────────────────────────
-       Creates a 6% lightness delta between background and card (was 3%).
-       This matches the spatial hierarchy used by Linear and Supabase dark
-       mode where cards visually "lift" off the page floor.                 */
-    --background: 224 20% 6%;
+    /* ── Deeper base for enhanced depth (L=4% → 14% elevation delta) ─────── */
+    --background: 224 20% 4%;
     --foreground: 210 12% 94%;
-    /* ── Card: L=12% (was 11%) → 6% delta vs background ───────────────── */
-    --card: 225 16% 12%;
+    
+    /* ── Translucent elevated cards ──────────────────────────────────────── */
+    --card: 225 16% 14%;
+    --card-alpha: 0.65;
     --card-foreground: 210 12% 94%;
-    /* ── Popover: L=15% — sits one step above card for modals/sheets ───── */
-    --popover: 225 18% 15%;
+    --card-border: 219 14% 32%;
+    --card-border-alpha: 0.18;
+    --card-highlight: 0 0% 100%;
+    --card-highlight-alpha: 0.04;
+    
+    /* ── Popover (one step above card) ────────────────────────────────────── */
+    --popover: 225 18% 18%;
+    --popover-alpha: 0.88;
+    --popover-blur: 20px;
     --popover-foreground: 210 12% 94%;
+    
+    /* ── Floating bars ────────────────────────────────────────────────────── */
+    --float-bar: 225 16% 16%;
+    --float-bar-alpha: 0.95;
+    --float-bar-blur: 32px;
+    --float-bar-border: 219 14% 38%;
+    --float-bar-border-alpha: 0.25;
+    
+    /* ── Table micro-states (dark mode) ────────────────────────────────────── */
+    --table-hover: 87 10% 20%;
+    --table-hover-alpha: 0.3;
+    --table-selected: 87 67% 47%;
+    --table-selected-alpha: 0.08;
+    
+    /* ── Badge borders (softer in dark) ────────────────────────────────────── */
+    --badge-border-alpha: 0.15;
+    
     --primary: 87 67% 47%;
     --primary-foreground: 0 0% 100%;
     --secondary: 225 12% 18%;
     --secondary-foreground: 210 12% 94%;
     --muted: 225 10% 17%;
     --muted-foreground: 214 12% 74%;
-    /* ── Neutral accent in dark: matches primary hue, low saturation ───── */
     --accent: 87 10% 20%;
     --accent-foreground: 210 20% 95%;
     --destructive: 0 70% 53%;
@@ -203,10 +256,73 @@
 }
 
 @layer components {
+  /* ── Glassmorphic elevated card ─────────────────────────────────────────── */
+  .glass-card {
+    background: hsl(var(--card) / var(--card-alpha));
+    backdrop-filter: blur(12px) saturate(1.2);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    border: 1px solid hsl(var(--card-border) / var(--card-border-alpha));
+    position: relative;
+  }
+  
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--card-highlight) / var(--card-highlight-alpha)),
+      transparent 40%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  
+  /* ── Floating glassmorphic action bar ────────────────────────────────────── */
+  .glass-float-bar {
+    background: hsl(var(--float-bar) / var(--float-bar-alpha));
+    backdrop-filter: blur(var(--float-bar-blur)) saturate(1.3);
+    -webkit-backdrop-filter: blur(var(--float-bar-blur)) saturate(1.3);
+    border: 1px solid hsl(var(--float-bar-border) / var(--float-bar-border-alpha));
+    box-shadow:
+      0 2px 8px hsl(0 0% 0% / 0.04),
+      0 12px 32px hsl(0 0% 0% / 0.08);
+  }
+  
+  /* ── Popover glass surface ─────────────────────────────────────────────── */
+  .glass-popover {
+    background: hsl(var(--popover) / var(--popover-alpha));
+    backdrop-filter: blur(var(--popover-blur)) saturate(1.25);
+    -webkit-backdrop-filter: blur(var(--popover-blur)) saturate(1.25);
+    border: 1px solid hsl(var(--card-border) / var(--card-border-alpha));
+  }
+  
+  /* ── Table row micro-states ──────────────────────────────────────────────── */
+  .table-row-base {
+    transition: background-color 120ms cubic-bezier(0.2, 0, 0, 1);
+    border-bottom: 1px solid hsl(var(--border) / 0.15);
+  }
+  
+  .table-row-base:hover {
+    background: hsl(var(--table-hover) / var(--table-hover-alpha));
+  }
+  
+  .table-row-base[data-state="selected"] {
+    background: hsl(var(--table-selected) / var(--table-selected-alpha));
+    border-left: 2px solid hsl(var(--primary));
+  }
+  
+  .table-row-base[data-state="selected"]:hover {
+    background: hsl(var(--table-selected) / calc(var(--table-selected-alpha) + 0.02));
+  }
+  
   .surface {
-    @apply bg-card;
+    @apply glass-card;
     border-radius: var(--surface-radius);
-    box-shadow: var(--surface-shadow);
   }
   .page-shell {
     @apply mx-auto w-full max-w-[1480px] min-w-0;

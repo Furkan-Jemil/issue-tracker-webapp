@@ -17,27 +17,26 @@ module.exports = {
           "sans-serif",
         ],
       },
-      // ─── Consolidated type scale ──────────────────────────────────────────
-      // Replaces scattered magic-number text-[9px]…text-[15px] inline classes.
-      // Five semantic steps + one label step. All rem-based so they respect
-      // the user's browser font-size preference.
+      // ─── Consolidated type scale for high-density information display ─────
+      // Five semantic steps optimized for ticket triage and data tables.
+      // All rem-based to respect user browser font-size preferences.
       fontSize: {
-        // 10px – badge labels, table footers, micro-metadata
-        "2xs": ["0.625rem",  { lineHeight: "0.875rem", letterSpacing: "0.025em" }],
-        // 11px – secondary labels, timestamps, helper text
-        xs:    ["0.6875rem", { lineHeight: "1rem",     letterSpacing: "0.01em"  }],
-        // 13px – body small, table cells, form hints
-        sm:    ["0.8125rem", { lineHeight: "1.25rem"                            }],
-        // 15px – primary body copy, card descriptions
-        base:  ["0.9375rem", { lineHeight: "1.5rem"                             }],
-        // 17px – sub-headings, card titles
-        lg:    ["1.0625rem", { lineHeight: "1.625rem"                           }],
-        // 20px – page section headings
-        xl:    ["1.25rem",   { lineHeight: "1.75rem"                            }],
+        // 10px – ticket IDs (monospace, tabular numerals), micro-labels
+        "2xs": ["0.625rem",  { lineHeight: "0.875rem", letterSpacing: "0.02em", fontFeatureSettings: '"tnum"' }],
+        // 11px – timestamps, helper text, secondary labels
+        xs:    ["0.6875rem", { lineHeight: "1rem",     letterSpacing: "0.005em" }],
+        // 13px – table cells, compact UI (REDUCED from 13.5px for density)
+        sm:    ["0.8125rem", { lineHeight: "1.125rem" }],
+        // 14px – primary body copy (REDUCED from 15px for scanner efficiency)
+        base:  ["0.875rem",  { lineHeight: "1.375rem" }],
+        // 16px – card titles, sub-headings
+        lg:    ["1rem",      { lineHeight: "1.5rem",   letterSpacing: "-0.01em" }],
+        // 18px – section headings
+        xl:    ["1.125rem",  { lineHeight: "1.625rem", letterSpacing: "-0.015em" }],
+        // 22px – page-level h2
+        "1.5xl": ["1.375rem", { lineHeight: "1.75rem", letterSpacing: "-0.015em" }],
         // 25px – page-level h1 (maps to .page-title)
         "2xl": ["1.5625rem", { lineHeight: "1.875rem", letterSpacing: "-0.02em" }],
-        // 22px – h2
-        "1.5xl": ["1.375rem", { lineHeight: "1.75rem", letterSpacing: "-0.015em" }],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -44,7 +44,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md">
                 <Ticket className="h-5 w-5" strokeWidth={2} aria-hidden />
               </span>
-              <Badge variant="outline" className="h-8 w-8 rounded-full p-0 text-primary" aria-label="Live workspace">
+              <Badge variant="outline" className="h-8 w-8 rounded-full p-0 text-primary" aria-label="Live platform">
                 <Activity className="h-4 w-4" aria-hidden />
               </Badge>
             </div>
@@ -53,7 +53,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
                 Ship quality with a clear issue workflow
               </h1>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Track, triage, and ship with one focused workspace.
+                High-velocity issue tracking and collaboration by Furkan J.
               </p>
             </div>
             <div className="rounded-xl border border-border/65 bg-background/72 p-3 shadow-sm">

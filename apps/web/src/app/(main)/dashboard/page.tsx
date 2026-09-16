@@ -94,7 +94,7 @@ export default async function DashboardPage() {
         title="Dashboard"
         description={
           isAdmin
-            ? "Track task activity, status, and trends across the full workspace."
+            ? "Track task activity, status, and trends across your organization."
             : "Track activity, status, and trends for your assigned and created issues."
         }
       />
@@ -103,10 +103,10 @@ export default async function DashboardPage() {
       {!isAdmin ? (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Personal workspace view</CardTitle>
+            <CardTitle className="text-sm">Personal view</CardTitle>
             <CardDescription>
               This dashboard reflects issues you created or are assigned to.
-              Admin dashboards include workspace-wide data.
+              Admin dashboards include organization-wide data.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-0">

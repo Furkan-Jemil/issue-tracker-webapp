@@ -157,7 +157,7 @@ export default async function LoginPage({
                 id="email"
                 name="email"
                 type="email"
-                placeholder="you@company.com"
+                placeholder="you@example.com"
                 autoComplete="email"
                 aria-describedby={errorMessage ? "login-error" : undefined}
                 required

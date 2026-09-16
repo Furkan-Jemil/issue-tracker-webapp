@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Formats a date/string as "DD/MM/YYYY, HH:MM" in UTC+3 (EAT — EthioTelecom local time).
+ * Formats a date/string as "DD/MM/YYYY, HH:MM" in UTC+3 (EAT — East Africa Time).
  * Used in tables, activity logs, and task detail views.
  */
 export function formatDate(d: Date | string): string {

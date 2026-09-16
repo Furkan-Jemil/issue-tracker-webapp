@@ -213,39 +213,44 @@ function AppShellInner({
     <div className="min-h-screen overflow-x-clip bg-background">
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border bg-card transition-[width] duration-200 ease-out",
+          "fixed inset-y-0 left-0 z-40 flex flex-col transition-[width] duration-200 ease-out",
+          "glass-card border-r",
           sidebarWidthClass,
         )}
       >
-        {/* Sidebar header */}
-        <div className="flex h-14 items-center justify-between gap-1 border-b border-border/80 px-2.5">
+        {/* Sidebar header with micro top highlight */}
+        <div className="relative flex h-14 items-center justify-between gap-1 border-b border-border/20 bg-accent/5 px-3">
+          {/* Ambient top glow */}
+          <div 
+            className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" 
+            aria-hidden="true" 
+          />
+          
           <Link
             href="/tasks"
-            className="flex min-w-0 items-center gap-2 outline-none"
+            className="flex min-w-0 items-center gap-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Ticket className="h-4.5 w-4.5" strokeWidth={2.25} aria-hidden />
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary">
+              <Ticket className="h-5 w-5" strokeWidth={2} aria-hidden />
             </span>
             <span
               className={cn(
-                "min-w-0 overflow-hidden whitespace-nowrap text-[13px] font-semibold tracking-normal text-foreground transition-all duration-200",
+                "min-w-0 overflow-hidden whitespace-nowrap text-sm font-semibold tracking-tight text-foreground transition-all duration-200",
                 sidebarExpanded
                   ? "max-w-[168px] opacity-100"
                   : "max-w-0 opacity-0",
               )}
             >
-              IssueTracker
+              Furkan J.
             </span>
           </Link>
-          <Button
+          <button
             type="button"
-            variant="outline"
-            size="icon"
             aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
             aria-pressed={sidebarExpanded}
             onClick={() => setSidebarExpanded((c) => !c)}
             title={sidebarExpanded ? "Collapse sidebar [ " : "Expand sidebar ]"}
-            className="h-8 w-8 shrink-0 rounded-lg border border-border bg-card text-muted-foreground shadow-sm"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-card/50 text-muted-foreground hover:bg-accent/40 hover:text-foreground transition-all"
           >
             {sidebarExpanded ? (
               <PanelLeft
@@ -260,11 +265,11 @@ function AppShellInner({
                 aria-hidden="true"
               />
             )}
-          </Button>
+          </button>
         </div>
 
-        {/* Nav items */}
-        <nav className="flex flex-1 flex-col gap-1.5 p-2 pt-1.5">
+        {/* Nav items with refined micro-states */}
+        <nav className="flex flex-1 flex-col gap-1 p-2 pt-1.5">
           {primaryNavItems.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = getIcon(item.icon);
@@ -276,24 +281,24 @@ function AppShellInner({
                 aria-current={active ? "page" : undefined}
                 title={item.label}
                 className={cn(
-                  "group relative flex h-9 items-center rounded-xl text-[12px] font-medium transition-all duration-200",
+                  "group relative flex h-9 items-center rounded-lg text-xs font-medium transition-all duration-150",
                   sidebarExpanded
                     ? "justify-start gap-3 px-3"
                     : "justify-center px-2",
                   active
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : "text-muted-foreground hover:bg-accent/40 hover:text-foreground border border-transparent",
                 )}
               >
                 {active ? (
                   <span
                     aria-hidden="true"
-                    className="absolute left-0 top-2 h-5 w-0.5 rounded-r-full bg-primary-foreground/60"
+                    className="absolute left-0 top-2 h-5 w-1 rounded-r-full bg-primary"
                   />
                 ) : null}
                 <Icon
-                  className={ICON_STYLE.nav}
-                  strokeWidth={ICON_STROKE.nav}
+                  className="h-4.5 w-4.5"
+                  strokeWidth={1.75}
                   aria-hidden="true"
                 />
                 <span
@@ -311,7 +316,7 @@ function AppShellInner({
           })}
 
           {adminNavItems.length > 0 ? (
-            <div className="mt-auto space-y-1.5 pt-2">
+            <div className="mt-auto space-y-1 pt-2">
               {sidebarExpanded ? (
                 <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
                   Administration
@@ -328,24 +333,24 @@ function AppShellInner({
                     aria-current={active ? "page" : undefined}
                     title={item.label}
                     className={cn(
-                      "group relative flex h-9 items-center rounded-xl text-[12px] font-medium transition-all duration-200",
+                      "group relative flex h-9 items-center rounded-lg text-xs font-medium transition-all duration-150",
                       sidebarExpanded
                         ? "justify-start gap-3 px-3"
                         : "justify-center px-2",
                       active
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground hover:bg-accent/40 hover:text-foreground border border-transparent",
                     )}
                   >
                     {active ? (
                       <span
                         aria-hidden="true"
-                        className="absolute left-0 top-2 h-5 w-0.5 rounded-r-full bg-primary-foreground/60"
+                        className="absolute left-0 top-2 h-5 w-1 rounded-r-full bg-primary"
                       />
                     ) : null}
                     <Icon
-                      className={ICON_STYLE.nav}
-                      strokeWidth={ICON_STROKE.nav}
+                      className="h-4.5 w-4.5"
+                      strokeWidth={1.75}
                       aria-hidden="true"
                     />
                     <span
