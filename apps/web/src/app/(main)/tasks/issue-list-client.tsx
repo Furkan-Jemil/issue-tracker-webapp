@@ -47,7 +47,6 @@ import {
   X,
 } from "lucide-react";
 
-import { IssueSemanticBadge } from "@/app/(main)/tasks/task-semantic-badge";
 import { MinimalBadge } from "@/app/(main)/tasks/minimal-badge";
 import {
   StatusQuickActions,

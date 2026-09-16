@@ -7,7 +7,7 @@ import { GripVertical, Kanban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { IssueSemanticBadge } from "@/app/(main)/tasks/task-semantic-badge";
+import { MinimalBadge } from "@/app/(main)/tasks/minimal-badge";
 import { changeIssueStatusQuick } from "@/app/(main)/tasks/tasks-action-menu";
 import { StatusQuickActions } from "@/app/(main)/tasks/tasks-table-row-actions";
 import { cn } from "@/lib/utils";
@@ -419,8 +419,8 @@ export function IssuesBoard({
                             <div className="flex items-start justify-between gap-2">
                               <div className="space-y-1">
                                 <div className="flex flex-wrap items-center gap-1">
-                                  <IssueSemanticBadge kind="status" value={issue.status} className="px-2 py-0.5 text-[9px]" />
-                                  <IssueSemanticBadge kind="priority" value={issue.priority} className="px-2 py-0.5 text-[9px]" />
+                                  <MinimalBadge kind="status" value={issue.status} />
+                                  <MinimalBadge kind="priority" value={issue.priority} />
                                 </div>
                                 <Link href={`/tasks/${issue.id}`} className="text-[14px] font-semibold leading-snug text-gray-950 dark:text-gray-100 hover:text-primary hover:underline">
                                   {issue.title}
@@ -443,8 +443,8 @@ export function IssuesBoard({
                             </div>
 
                             <div className="flex flex-wrap gap-1 text-[10px] text-muted-foreground">
-                              <IssueSemanticBadge kind="type" value={issue.type} className="px-2 py-0.5 text-[9px]" />
-                              <IssueSemanticBadge kind="severity" value={issue.severity} className="px-2 py-0.5 text-[9px]" />
+                              <MinimalBadge kind="type" value={issue.type} />
+                              <MinimalBadge kind="severity" value={issue.severity} />
                               <span className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-2 py-0.5 text-[10px]">
                                 Assignee: {issue.assigneeId ? assigneeLabelById[issue.assigneeId] || "Unknown" : "Unassigned"}
                               </span>

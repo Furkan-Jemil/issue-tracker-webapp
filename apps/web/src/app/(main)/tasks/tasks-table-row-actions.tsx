@@ -29,7 +29,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { IssueSemanticBadge } from "@/app/(main)/tasks/task-semantic-badge";
+import { MinimalBadge } from "@/app/(main)/tasks/minimal-badge";
 import { changeIssueStatusQuick } from "@/app/(main)/tasks/tasks-action-menu";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -151,11 +151,7 @@ export function StatusQuickActions({
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             Current status
           </p>
-          <IssueSemanticBadge
-            kind="status"
-            value={optimisticStatus}
-            className="px-2 py-0.5 text-[10px]"
-          />
+          <MinimalBadge kind="status" value={optimisticStatus} />
         </div>
 
         {(effectiveEditHref || visibleOptions.length > 0) && (

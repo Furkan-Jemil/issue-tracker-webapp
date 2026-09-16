@@ -35,7 +35,7 @@ import {
 } from "react";
 import { Loader2 } from "lucide-react";
 
-import { IssueSemanticBadge } from "@/app/(main)/tasks/task-semantic-badge";
+import { MinimalBadge } from "@/app/(main)/tasks/minimal-badge";
 import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -213,13 +213,7 @@ export function InlineBadgeEdit({
     if (renderBadge) {
       return <>{renderBadge(value)}</>;
     }
-    return (
-      <IssueSemanticBadge
-        kind={kind}
-        value={value}
-        className={cn("px-2.5 py-1 text-[11px]", badgeClassName)}
-      />
-    );
+    return <MinimalBadge kind={kind} value={value} className={badgeClassName} />;
   }
 
   // ── Interactive render ────────────────────────────────────────────────────
@@ -227,11 +221,7 @@ export function InlineBadgeEdit({
   const badgeElement = renderBadge ? (
     renderBadge(value)
   ) : (
-    <IssueSemanticBadge
-      kind={kind}
-      value={value}
-      className={cn("px-2.5 py-1 text-[11px]", badgeClassName)}
-    />
+    <MinimalBadge kind={kind} value={value} className={badgeClassName} />
   );
 
   return (
@@ -315,11 +305,7 @@ export function InlineBadgeEdit({
                 {renderBadge ? (
                   renderBadge(opt.value)
                 ) : (
-                  <IssueSemanticBadge
-                    kind={kind}
-                    value={opt.value}
-                    className="pointer-events-none px-2 py-0.5 text-[10px]"
-                  />
+                  <MinimalBadge kind={kind} value={opt.value} />
                 )}
                 {isSelected ? (
                   <span className="ml-auto text-[10px] font-semibold text-primary">
