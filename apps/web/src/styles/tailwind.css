@@ -32,29 +32,29 @@
     --float-bar-border-alpha: 0.3;
     
     /* ── Table micro-states ─────────────────────────────────────────────────── */
-    --table-hover: 87 14% 96%;
-    --table-hover-alpha: 0.4;
-    --table-selected: 87 67% 47%;
-    --table-selected-alpha: 0.06;
+    --table-hover: 214 18% 96%;
+    --table-hover-alpha: 0.5;
+    --table-selected: 222 47% 23%;
+    --table-selected-alpha: 0.05;
     
     /* ── Badge weightless styling ────────────────────────────────────────────── */
     --badge-border-alpha: 0.2;
     --badge-bg-alpha: 0;
     --badge-dot-size: 6px;
     
-    --primary: 87 67% 47%;
-    --primary-foreground: 210 12% 8%;
+    --primary: 222 47% 23%;
+    --primary-foreground: 210 40% 98%;
     --secondary: 210 18% 91%;
     --secondary-foreground: 222 26% 14%;
     --muted: 210 18% 90%;
     --muted-foreground: 218 14% 38%;
-    --accent: 87 14% 92%;
+    --accent: 214 14% 93%;
     --accent-foreground: 222 26% 14%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --border: 214 18% 83%;
     --input: 214 18% 83%;
-    --ring: 87 67% 47%;
+    --ring: 222 47% 23%;
     
     /* ── shadcn Chart Palette (5-step semantic workflow) ──────────────────── */
     --chart-1: 221 83% 53%;   /* Soft indigo — primary workflow state */
@@ -114,27 +114,27 @@
     --float-bar-border-alpha: 0.25;
     
     /* ── Table micro-states (dark mode) ────────────────────────────────────── */
-    --table-hover: 87 10% 20%;
-    --table-hover-alpha: 0.3;
-    --table-selected: 87 67% 47%;
+    --table-hover: 222 16% 22%;
+    --table-hover-alpha: 0.5;
+    --table-selected: 210 40% 78%;
     --table-selected-alpha: 0.08;
     
     /* ── Badge borders (softer in dark) ────────────────────────────────────── */
     --badge-border-alpha: 0.15;
     
-    --primary: 87 67% 47%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222 47% 11%;
     --secondary: 225 12% 18%;
     --secondary-foreground: 210 12% 94%;
     --muted: 225 10% 17%;
     --muted-foreground: 214 12% 74%;
-    --accent: 87 10% 20%;
+    --accent: 222 16% 22%;
     --accent-foreground: 210 20% 95%;
     --destructive: 0 70% 53%;
     --destructive-foreground: 0 0% 100%;
     --border: 219 14% 25%;
     --input: 219 14% 25%;
-    --ring: 87 67% 47%;
+    --ring: 210 40% 78%;
     
     /* ── shadcn Chart Palette (5-step semantic workflow — dark mode) ────────── */
     --chart-1: 220 70% 50%;   /* Deeper indigo for dark backgrounds */
