@@ -134,7 +134,7 @@ export default async function IssuesListPage({
   };
 
   // ── Queries ───────────────────────────────────────────────────────────
-  const [issues, filteredTotal, totalVisible, reporters] = await Promise.all([
+  const [issues, filteredTotal, totalVisible, reporters, assignableUsers] = await Promise.all([
     prisma.issue.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -155,12 +155,22 @@ export default async function IssuesListPage({
     }),
     prisma.issue.count({ where }),
     prisma.issue.count({ where: baseWhere }),
+    // Reporters list is admin-only (used for the reporter/assignee filter UI
+    // and for displaying names in the "Reporter" table column).
     isAdmin
       ? prisma.user.findMany({
           select: { id: true, name: true, email: true, role: true },
           orderBy: { name: "asc" },
         })
       : Promise.resolve([]),
+    // Assignable users for the quick-create drawer are fetched for ALL roles
+    // so the "Assign to" dropdown is populated regardless of the viewer's role.
+    // Non-admins still cannot see users outside their org — the query returns
+    // the same global list that the full-page /tasks/new form uses.
+    prisma.user.findMany({
+      select: { id: true, name: true, email: true },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   const { totalPages, hasPrev, hasNext } = getPaginationMeta(
@@ -215,9 +225,9 @@ export default async function IssuesListPage({
   }));
 
   // All users are potential assignees in the drawer form.
-  // We reuse the reporters list (already fetched for admin) and fall back to
-  // an empty array for non-admins (the drawer still works, just no assignee).
-  const assigneesForCreate = reporters.map((u) => ({
+  // We use the dedicated assignableUsers query (fetched for all roles above)
+  // so non-admins also see the full user list when filing via the drawer.
+  const assigneesForCreate = assignableUsers.map((u) => ({
     id: u.id,
     label: u.name ?? u.email,
   }));

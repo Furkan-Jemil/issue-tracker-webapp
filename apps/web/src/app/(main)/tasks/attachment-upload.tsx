@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
@@ -28,6 +28,10 @@ export function AttachmentUpload({
 }) {
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState("");
+  // A ref lets us reset the native input value after each selection so the
+  // same file can be removed and re-added without the onChange event silently
+  // swallowing the pick (which happens when the input value hasn't changed).
+  const inputRef = useRef<HTMLInputElement>(null);
 
   function pickFiles(selected: FileList | null) {
     if (!selected) return;
@@ -45,12 +49,15 @@ export function AttachmentUpload({
 
     if (rejected > 0) {
       setError(
-        `${rejected} file(s) were skipped. Allowed: images, PDF, TXT, CSV, ZIP, JSON, DOC/DOCX, XLS/XLSX up to 10MB.`,
+        `${rejected} file(s) were skipped. Allowed: images, PDF, TXT, CSV, ZIP, JSON, DOC/DOCX, XLS/XLSX up to 10 MB.`,
       );
     }
 
     setFiles(accepted);
     onChange(accepted);
+
+    // Reset so the same filename can be picked again after removal.
+    if (inputRef.current) inputRef.current.value = "";
   }
 
   function removeAt(index: number) {
@@ -63,9 +70,10 @@ export function AttachmentUpload({
     <div className="space-y-2.5 rounded-lg border border-dashed border-input bg-secondary/25 p-3 md:p-4">
       <Label htmlFor="attachments">Associated files</Label>
       <p className="text-xs text-muted-foreground">
-        Add documents or exports that help explain the issue (up to 10MB each).
+        Add documents or exports that help explain the issue (up to 10 MB each).
       </p>
       <input
+        ref={inputRef}
         id="attachments"
         type="file"
         className="hidden"
@@ -75,7 +83,7 @@ export function AttachmentUpload({
       <Button
         type="button"
         variant="outline"
-        onClick={() => document.getElementById("attachments")?.click()}>
+        onClick={() => inputRef.current?.click()}>
         Add files
       </Button>
       {error && (

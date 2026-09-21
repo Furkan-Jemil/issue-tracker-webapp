@@ -315,12 +315,26 @@ export function NewIssueForm({
 
               {/* Right: metadata sidebar */}
               <aside className="space-y-4 rounded-xl border border-border/70 bg-muted/20 p-3 md:p-4">
-                {/* Quick setup */}
+                {/* Quick setup — type, priority, severity, assignee are ALL
+                    always visible. These are required fields; hiding them in a
+                    collapsible caused silent "invalid enum" errors on submit. */}
                 <div className="rounded-lg border border-border/70 bg-background/70 p-3">
                   <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
                     Quick setup
                   </h3>
                   <div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="type">Type</Label>
+                      <Select
+                        id="type"
+                        name="type"
+                        required
+                        defaultValue="BUG"
+                      >
+                        <option value="BUG">Bug</option>
+                        <option value="IMPROVEMENT">Improvement</option>
+                      </Select>
+                    </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="priority">Priority</Label>
                       <Select
@@ -332,6 +346,19 @@ export function NewIssueForm({
                         <option value="LOW">Low</option>
                         <option value="MEDIUM">Medium</option>
                         <option value="HIGH">High</option>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="severity">Severity</Label>
+                      <Select
+                        id="severity"
+                        name="severity"
+                        required
+                        defaultValue="MINOR"
+                      >
+                        <option value="MINOR">Minor</option>
+                        <option value="MAJOR">Major</option>
+                        <option value="CRITICAL">Critical</option>
                       </Select>
                     </div>
                     <div className="space-y-1.5">
@@ -352,7 +379,8 @@ export function NewIssueForm({
                   </div>
                 </div>
 
-                {/* More details — controlled collapsible */}
+                {/* More details — controlled collapsible.
+                    Only truly optional fields live here now. */}
                 <div className="rounded-lg border border-border/70 bg-background/70">
                   <button
                     type="button"
@@ -374,14 +402,13 @@ export function NewIssueForm({
 
                   {showMoreDetails ? (
                     <div className="space-y-4 border-t border-border/60 px-3 pb-3 pt-3">
-                      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+                      {isAdmin ? (
                         <div className="space-y-1.5">
                           <Label htmlFor="status">Status</Label>
                           <Select
                             id="status"
                             name="status"
                             defaultValue="OPEN"
-                            disabled={!isAdmin}
                           >
                             <option value="OPEN">Open</option>
                             <option value="IN_PROGRESS">In progress</option>
@@ -392,42 +419,15 @@ export function NewIssueForm({
                             Only admins can set status at creation time.
                           </p>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="type">Type</Label>
-                          <Select
-                            id="type"
-                            name="type"
-                            required
-                            defaultValue="BUG"
-                          >
-                            <option value="BUG">Bug</option>
-                            <option value="IMPROVEMENT">Improvement</option>
-                          </Select>
-                        </div>
-                      </div>
+                      ) : null}
 
-                      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="severity">Severity</Label>
-                          <Select
-                            id="severity"
-                            name="severity"
-                            required
-                            defaultValue="MINOR"
-                          >
-                            <option value="MINOR">Minor</option>
-                            <option value="MAJOR">Major</option>
-                            <option value="CRITICAL">Critical</option>
-                          </Select>
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="reportedAt">Date reported</Label>
-                          <Input
-                            id="reportedAt"
-                            name="reportedAt"
-                            type="date"
-                          />
-                        </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="reportedAt">Date reported</Label>
+                        <Input
+                          id="reportedAt"
+                          name="reportedAt"
+                          type="date"
+                        />
                       </div>
 
                       <div className="space-y-1.5">
