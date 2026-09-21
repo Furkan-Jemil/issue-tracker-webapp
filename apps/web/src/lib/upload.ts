@@ -135,7 +135,11 @@ export async function persistUploadedFile(options: {
 }): Promise<{ url: string }> {
   const { buffer, mimeType, storedFilename, kind } = options;
 
-  if (USE_BLOB_STORAGE) {
+  // ── Priority 1: Vercel Blob (production) ─────────────────────────────────
+  // Use blob storage whenever the token is present, regardless of whether
+  // VERCEL=1 is set. This ensures Blob works in preview deployments and in
+  // any non-Vercel host that has the token configured.
+  if (BLOB_TOKEN) {
     try {
       const blob = await put(`uploads/${storedFilename}`, buffer, {
         access: "public",
@@ -146,17 +150,25 @@ export async function persistUploadedFile(options: {
       return { url: blob.url };
     } catch (error) {
       console.error(
-        `${kind} blob upload failed, falling back to data URL`,
+        `${kind} blob upload failed, falling back to disk`,
         error,
       );
     }
   }
 
+  // ── Priority 2: Local disk (dev / self-hosted) ────────────────────────────
+  // Write to public/uploads/ and return a root-relative URL that Next.js
+  // serves from the same origin — no cross-port issues.
+  // Skipped on Vercel because the filesystem is read-only in serverless
+  // functions (only /tmp is writable, which is ephemeral and not web-accessible).
   if (!IS_VERCEL) {
     try {
       await fs.mkdir(UPLOAD_DIR, { recursive: true });
       const filepath = path.join(UPLOAD_DIR, storedFilename);
       await fs.writeFile(filepath, buffer);
+      // Root-relative path — served by Next.js static file serving from
+      // the same origin as the app, so thumbnails and download links work
+      // correctly without any cross-port configuration.
       return { url: `/uploads/${storedFilename}` };
     } catch (error) {
       console.error(
@@ -166,5 +178,12 @@ export async function persistUploadedFile(options: {
     }
   }
 
+  // ── Priority 3: Base64 data URL (last resort) ─────────────────────────────
+  // Reached only when running on Vercel without a Blob token, or when both
+  // Blob and disk writes have failed. Data URLs are functional but bypass
+  // the CDN, inflate response sizes, and are not suitable for large files.
+  console.warn(
+    `[upload] ${kind} stored as data URL — configure BLOB_READ_WRITE_TOKEN for production.`,
+  );
   return { url: toDataUrl(mimeType, buffer) };
 }
