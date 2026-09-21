@@ -9,6 +9,8 @@ import {
   parsePriority,
   parseReportedAtDate,
   parseSeverity,
+  parseScreenshotMetadata,
+  parseAttachmentMetadata,
 } from "@/lib/issueValidation";
 import { createNotification } from "@/lib/notifications";
 import { redirect } from "next/navigation";
@@ -115,6 +117,54 @@ export async function updateIssue(issueId: string, formData: FormData) {
       },
     });
 
+    // ── Append new evidence ────────────────────────────────────────────
+    // Parse and append any new screenshots submitted via the edit form.
+    const newScreenshotsResult = parseScreenshotMetadata(
+      formData.get("newScreenshotsMeta"),
+    );
+    if (!newScreenshotsResult.error && newScreenshotsResult.data && newScreenshotsResult.data.length > 0) {
+      // Find the current highest order index to continue the sequence.
+      const maxOrder = await tx.screenshot.aggregate({
+        where: { issueId },
+        _max: { order: true },
+      });
+      const startOrder = (maxOrder._max.order ?? -1) + 1;
+
+      await tx.screenshot.createMany({
+        data: newScreenshotsResult.data.map((f, idx) => ({
+          issueId,
+          url: f.url,
+          filename: f.filename,
+          mimeType: f.mimeType,
+          sizeBytes: f.sizeBytes,
+          order: startOrder + idx,
+        })),
+      });
+    }
+
+    const newAttachmentsResult = parseAttachmentMetadata(
+      formData.get("newAttachmentsMeta"),
+    );
+    if (!newAttachmentsResult.error && newAttachmentsResult.data && newAttachmentsResult.data.length > 0) {
+      const maxOrder = await tx.attachment.aggregate({
+        where: { issueId },
+        _max: { order: true },
+      });
+      const startOrder = (maxOrder._max.order ?? -1) + 1;
+
+      await tx.attachment.createMany({
+        data: newAttachmentsResult.data.map((f, idx) => ({
+          issueId,
+          url: f.url,
+          filename: f.filename,
+          mimeType: f.mimeType,
+          sizeBytes: f.sizeBytes,
+          uploaderId: session.user.id,
+          order: startOrder + idx,
+        })),
+      });
+    }
+
     if (statusChanged) {
       await tx.issueHistory.create({
         data: {
@@ -142,6 +192,8 @@ export async function updateIssue(issueId: string, formData: FormData) {
           newAssigneeId: nextAssigneeId,
           reportedAt: reportedAt ? reportedAt.toISOString() : null,
           sourceNotes,
+          newScreenshots: newScreenshotsResult.data?.length ?? 0,
+          newAttachments: newAttachmentsResult.data?.length ?? 0,
         },
       },
     });
