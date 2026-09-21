@@ -11,7 +11,12 @@ node_modules/
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+# Local file uploads — never commit user-uploaded files to git.
+# Files uploaded in dev are stored in apps/web/public/uploads/ (disk fallback).
+# Production uses Vercel Blob. Neither should be in version control.
 public/uploads/
+apps/web/public/uploads/
+apps/api/public/uploads/
 ADVISOR_PRESENTATION_GUIDE.md
 API_ARCHITECTURE_AND_FLOW_GUIDE.md
 NESTJS_MASTER_GUIDE.md
