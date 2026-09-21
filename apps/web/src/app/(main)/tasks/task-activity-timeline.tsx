@@ -1,17 +1,11 @@
 /**
- * TaskActivityTimeline
+ * TaskActivityTimeline — Enterprise-grade vertical event log.
  *
- * Replaces the unstyled activity log card on /tasks/[task-id].
+ * Pure Server Component. Renders a chronological list of issue history events
+ * with icon circles, left-border accent cards, and relative/absolute timestamps.
  *
- * Design:
- *   - Vertical connector line runs through all events via a CSS ::before
- *     pseudo-element on each <li>, aligned to the icon circle centre.
- *   - Each event type has a distinct icon, icon background colour, and a
- *     subtle left-border accent on the card body.
- *   - STATUS_CHANGED events show a "Open → In progress" diff pill extracted
- *     from the JSON metadata field.
- *   - Timestamps use formatRelative() with a full absolute date in <time title>.
- *   - Pure Server Component — no client state, no "use client".
+ * All colour tokens are strict Tailwind zinc/slate design-system values.
+ * No arbitrary colours.
  */
 
 import {
@@ -36,22 +30,16 @@ export type HistoryEntry = {
   eventType: string;
   description: string;
   createdAt: Date | string;
-  // Accept `unknown` so this type is compatible with Prisma's JsonValue
-  // (which is an opaque internal type that differs across Prisma versions).
-  // Narrowing is performed inside extractStatusDiff().
   metadata?: unknown;
   actor?: { name: string | null } | null;
 };
-
-// ─── Icon component type ──────────────────────────────────────────────────────
-// Lucide icons accept aria-hidden as a boolean, not a string.
 
 type LucideIcon = React.ComponentType<{
   className?: string;
   "aria-hidden"?: boolean;
 }>;
 
-// ─── Event config map ─────────────────────────────────────────────────────────
+// ─── Event config ─────────────────────────────────────────────────────────────
 
 type EventConfig = {
   Icon: LucideIcon;
@@ -64,39 +52,39 @@ type EventConfig = {
 const EVENT_CONFIG: Record<HistoryEvent, EventConfig> = {
   CREATED: {
     Icon: Plus,
-    iconBg: "bg-emerald-100 dark:bg-emerald-400/20",
-    iconColor: "text-emerald-700 dark:text-emerald-300",
-    borderAccent: "border-l-emerald-400/70 dark:border-l-emerald-500/50",
+    iconBg: "bg-zinc-100 dark:bg-zinc-800",
+    iconColor: "text-zinc-600 dark:text-zinc-300",
+    borderAccent: "border-l-zinc-400/60",
     label: "Created",
   },
   STATUS_CHANGED: {
     Icon: RefreshCw,
-    iconBg: "bg-blue-100 dark:bg-blue-400/20",
-    iconColor: "text-blue-700 dark:text-blue-300",
-    borderAccent: "border-l-blue-400/70 dark:border-l-blue-500/50",
+    iconBg: "bg-slate-100 dark:bg-slate-800",
+    iconColor: "text-slate-600 dark:text-slate-300",
+    borderAccent: "border-l-slate-400/60",
     label: "Status changed",
   },
   UPDATED: {
     Icon: Pencil,
-    iconBg: "bg-amber-100 dark:bg-amber-400/20",
-    iconColor: "text-amber-700 dark:text-amber-300",
-    borderAccent: "border-l-amber-400/70 dark:border-l-amber-500/50",
+    iconBg: "bg-zinc-100 dark:bg-zinc-800",
+    iconColor: "text-zinc-500 dark:text-zinc-400",
+    borderAccent: "border-l-zinc-300/60",
     label: "Updated",
   },
   COMMENTED: {
     Icon: MessageSquare,
-    iconBg: "bg-slate-100 dark:bg-slate-400/20",
-    iconColor: "text-slate-600 dark:text-slate-300",
-    borderAccent: "border-l-slate-300/70 dark:border-l-slate-500/50",
+    iconBg: "bg-muted",
+    iconColor: "text-muted-foreground",
+    borderAccent: "border-l-border/60",
     label: "Comment added",
   },
 };
 
 const FALLBACK_CONFIG: EventConfig = {
   Icon: Clock,
-  iconBg: "bg-muted/60",
+  iconBg: "bg-muted",
   iconColor: "text-muted-foreground",
-  borderAccent: "border-l-border/50",
+  borderAccent: "border-l-border/40",
   label: "Activity",
 };
 
@@ -109,11 +97,7 @@ function getConfig(eventType: string): EventConfig {
 function extractStatusDiff(
   metadata: unknown,
 ): { from: string; to: string } | null {
-  if (
-    !metadata ||
-    typeof metadata !== "object" ||
-    Array.isArray(metadata)
-  ) {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
     return null;
   }
   const obj = metadata as Record<string, unknown>;
@@ -136,10 +120,12 @@ function StatusDiffPill({ from, to }: { from: string; to: string }) {
     <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-xs font-medium text-foreground">
       <span className="text-muted-foreground">{humaniseStatus(from)}</span>
       <ArrowRight
-        className="h-3 w-3 shrink-0 text-muted-foreground/60"
+        className="h-3 w-3 shrink-0 text-muted-foreground/50"
         aria-hidden
       />
-      <span className="font-semibold">{humaniseStatus(to)}</span>
+      <span className="font-semibold text-foreground">
+        {humaniseStatus(to)}
+      </span>
     </span>
   );
 }
@@ -153,7 +139,8 @@ export function TaskActivityTimeline({
 }) {
   if (history.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border/70 bg-background/60 px-4 py-6 text-center text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 rounded-lg border border-dashed border-border/50 bg-muted/10 px-3 py-3 text-xs text-muted-foreground">
+        <Clock className="h-3.5 w-3.5 shrink-0 opacity-40" aria-hidden="true" />
         No activity recorded yet.
       </div>
     );
@@ -179,72 +166,68 @@ export function TaskActivityTimeline({
           <li
             key={entry.id}
             className={cn(
-              "relative flex gap-3 pb-5",
+              "relative flex gap-3 pb-4",
+              // Vertical connector line between events
               !isLast &&
-                "before:absolute before:left-[15px] before:top-8 before:h-[calc(100%-1.5rem)] before:w-px before:bg-border/60",
+                "before:absolute before:left-[15px] before:top-8 before:h-[calc(100%-1.25rem)] before:w-px before:bg-border/50",
             )}
           >
             {/* Icon circle */}
             <div
               className={cn(
-                "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/40",
                 cfg.iconBg,
               )}
               aria-hidden="true"
             >
-              <Icon
-                className={cn("h-3.5 w-3.5", cfg.iconColor)}
-                aria-hidden
-              />
+              <Icon className={cn("h-3.5 w-3.5", cfg.iconColor)} aria-hidden />
             </div>
 
             {/* Event card */}
             <div
               className={cn(
-                "min-w-0 flex-1 rounded-lg border border-border/60 border-l-4 bg-background px-3 py-2.5",
+                "min-w-0 flex-1 rounded-lg border border-border/50 border-l-[3px] bg-card px-3 py-2.5",
                 cfg.borderAccent,
               )}
             >
-              {/* Header */}
-              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
+              {/* Header row */}
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="sr-only">{cfg.label}:</span>
-                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                     {cfg.label}
                   </span>
-                  {statusDiff ? (
+                  {statusDiff && (
                     <StatusDiffPill
                       from={statusDiff.from}
                       to={statusDiff.to}
                     />
-                  ) : null}
+                  )}
                 </div>
-
                 <time
                   dateTime={new Date(entry.createdAt).toISOString()}
                   title={absoluteTime}
-                  className="shrink-0 text-[11px] text-muted-foreground/80"
+                  className="shrink-0 font-mono text-[10px] text-muted-foreground/70"
                 >
                   {relativeTime}
                 </time>
               </div>
 
               {/* Description */}
-              <p className="mt-1 text-sm leading-relaxed text-foreground/85">
+              <p className="mt-1 text-sm leading-relaxed text-foreground/80">
                 {entry.description}
               </p>
 
-              {/* Actor + absolute time */}
+              {/* Actor + absolute stamp */}
               <div className="mt-1.5 flex items-center gap-1.5">
                 <User
-                  className="h-3 w-3 shrink-0 text-muted-foreground/60"
+                  className="h-3 w-3 shrink-0 text-muted-foreground/50"
                   aria-hidden
                 />
                 <span className="text-[11px] text-muted-foreground">
                   {actorName}
                 </span>
                 <span
-                  className="text-[11px] text-muted-foreground/50"
+                  className="font-mono text-[10px] text-muted-foreground/50"
                   aria-hidden="true"
                 >
                   · {absoluteTime}

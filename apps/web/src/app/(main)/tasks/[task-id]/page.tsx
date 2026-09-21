@@ -2,27 +2,25 @@ import prisma from "@/lib/prisma";
 import { getAppSession } from "@/lib/auth/session";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ExternalLink, Shield } from "lucide-react";
+
 import { CommentThread } from "@/app/(main)/tasks/comment-thread";
 import { IssueActions } from "@/app/(main)/tasks/task-actions";
 import { IssueEvidenceList } from "@/app/(main)/tasks/task-evidence-list";
 import { StatusQuickActions } from "@/app/(main)/tasks/tasks-table-row-actions";
 import { TaskActivityTimeline } from "@/app/(main)/tasks/task-activity-timeline";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { PageHeader } from "@/components/layout/page-header";
 import { MinimalBadge } from "@/app/(main)/tasks/minimal-badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatAbsolute } from "@/lib/formatRelative";
 
-function formatDate(d: Date | string): string {
-  const date = new Date(d);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()}, ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function shortId(id: string) {
+  return `#FJ-${id.slice(0, 8).toUpperCase()}`;
 }
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function IssueDetailPage({
   params,
@@ -33,11 +31,14 @@ export default async function IssueDetailPage({
   const session = await getAppSession();
 
   if (!session?.user) {
-    return <div className="rounded-xl border border-border/70 bg-card/80 p-4 text-sm">You must be logged in to view this issue.</div>;
+    return (
+      <div className="rounded-xl border border-border/70 bg-card/80 p-4 text-sm text-muted-foreground">
+        You must be logged in to view this issue.
+      </div>
+    );
   }
 
   const isAdmin = session.user.role === "ADMIN";
-  const canQuickStatus = session.user.role === "ADMIN";
 
   const [issue, assignableUsers] = await Promise.all([
     prisma.issue.findUnique({
@@ -68,165 +69,257 @@ export default async function IssueDetailPage({
       : Promise.resolve([]),
   ]);
 
-  if (!issue) {
-    notFound();
-  }
+  if (!issue) notFound();
 
   const isOwner = issue.createdBy === session.user.id;
-  if (!isOwner && !isAdmin) {
-    notFound();
-  }
+  if (!isOwner && !isAdmin) notFound();
 
   const canEdit = isAdmin || (isOwner && issue.status === "OPEN");
   const canDelete = isAdmin;
+  const reporterName = issue.creator.name || issue.creator.email;
+  const assigneeName = issue.assignee
+    ? issue.assignee.name || issue.assignee.email
+    : null;
 
   return (
-    <div className="page-stack">
-      <PageHeader
-        title="Issue details"
-        description={issue.title}
-        breadcrumbs={[
-          { label: "Tasks", href: "/tasks" },
-          { label: `#FJ-${issue.id.slice(0, 6).toUpperCase()}` },
-        ]}
-        actions={
+    <div className="mx-auto max-w-screen-xl space-y-5 px-0 py-1">
+
+      {/* ── Command Header ──────────────────────────────────────────────── */}
+      <header className="space-y-3">
+
+        {/* Breadcrumb row */}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Link
+              href="/tasks"
+              className="font-mono uppercase tracking-wider hover:text-foreground transition-colors"
+            >
+              Tasks
+            </Link>
+            <span aria-hidden="true" className="opacity-40">/</span>
+            <span className="font-mono uppercase tracking-wider text-foreground/70">
+              {shortId(issue.id)}
+            </span>
+          </nav>
+
+          {/* Top-right actions */}
           <div className="flex items-center gap-2">
-            {canQuickStatus && (
+            {isAdmin && (
               <StatusQuickActions
                 issueId={issue.id}
                 currentStatus={issue.status}
                 editHref={`/tasks/${issue.id}#edit-section`}
               />
             )}
+            {canEdit && (
+              <Button asChild variant="default" size="sm">
+                <Link href={`#edit-section`}>Edit Details</Link>
+              </Button>
+            )}
             <Button asChild variant="outline" size="sm">
-              <Link href="#comments-heading">Jump to comments</Link>
+              <Link href="#comments-heading">Jump to Comments</Link>
             </Button>
           </div>
-        }
-      />
+        </div>
 
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
-        <Card tone="soft" density="dense" className="glass-card">
-          <CardContent className="p-3">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Status</p>
-              <MinimalBadge kind="status" value={issue.status} className="mt-2" />
+        {/* Title + reporter */}
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">
+            {issue.title}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Reported by{" "}
+            <span className="font-medium text-foreground">{reporterName}</span>
+            {issue.reportedAt && (
+              <>
+                {" "}on{" "}
+                <time
+                  dateTime={new Date(issue.reportedAt).toISOString()}
+                  className="font-mono text-xs"
+                >
+                  {formatAbsolute(issue.reportedAt)}
+                </time>
+              </>
+            )}
+          </p>
+        </div>
+
+        {/* Status strip — 4-column responsive grid */}
+        <div className="grid grid-cols-2 divide-x divide-border/60 rounded-xl border border-border/60 bg-card sm:grid-cols-4">
+          <div className="flex flex-col gap-1 px-4 py-3">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              Lifecycle
+            </span>
+            <MinimalBadge kind="status" value={issue.status} />
+          </div>
+          <div className="flex flex-col gap-1 px-4 py-3">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              Priority
+            </span>
+            <MinimalBadge kind="priority" value={issue.priority} />
+          </div>
+          <div className="flex flex-col gap-1 px-4 py-3">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              Severity
+            </span>
+            <MinimalBadge kind="severity" value={issue.severity} />
+          </div>
+          <div className="flex flex-col gap-1 px-4 py-3">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              Assigned Owner
+            </span>
+            {assigneeName ? (
+              <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                <span
+                  aria-hidden="true"
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold uppercase text-muted-foreground"
+                >
+                  {assigneeName[0]}
+                </span>
+                <span className="truncate">{assigneeName}</span>
+              </span>
+            ) : (
+              <span className="text-sm italic text-muted-foreground/60">
+                Unassigned
+              </span>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* ── 8 / 4 Two-Column Body ──────────────────────────────────────── */}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(240px,1fr)]">
+
+        {/* Left — 8 cols */}
+        <div className="space-y-5">
+
+          {/* Description card */}
+          <Card className="overflow-hidden">
+            <CardHeader className="border-b border-border/60 bg-muted/30 px-5 py-3">
+              <CardTitle className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Description &amp; Reproduction
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 py-4">
+              <p className="text-[15px] leading-7 text-foreground/85 whitespace-pre-wrap">
+                {issue.description}
+              </p>
             </CardContent>
-        </Card>
+          </Card>
 
-        <Card tone="soft" density="dense" className="glass-card">
-          <CardContent className="p-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Priority</p>
-            <MinimalBadge
-              kind="priority"
-              value={issue.priority}
-              className="mt-2"
-              title="When this needs attention"
-            />
-          </CardContent>
-        </Card>
+          {/* External reference */}
+          {issue.url && (
+            <a
+              href={issue.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-start gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 transition-colors hover:border-border hover:bg-accent/30"
+            >
+              <ExternalLink
+                className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground"
+                aria-hidden="true"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                  External Reference
+                </p>
+                <p className="mt-0.5 truncate font-mono text-xs text-foreground group-hover:underline">
+                  {issue.url}
+                </p>
+              </div>
+            </a>
+          )}
 
-        <Card tone="soft" density="dense" className="glass-card">
-          <CardContent className="p-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Severity</p>
-            <MinimalBadge
-              kind="severity"
-              value={issue.severity}
-              className="mt-2"
-              title="How much this impacts users"
-            />
-          </CardContent>
-        </Card>
+          {/* Source notes */}
+          {issue.sourceNotes && (
+            <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                Context Note
+              </p>
+              <p className="mt-1 text-sm text-foreground/80">
+                {issue.sourceNotes}
+              </p>
+            </div>
+          )}
 
-        <Card tone="soft" density="dense" className="glass-card sm:col-span-2 xl:col-span-3">
-          <CardContent className="p-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">People and reporting</p>
-            <dl className="mt-2 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
-              <div>
-                <dt className="text-xs text-muted-foreground">Assignee</dt>
-                <dd className="font-semibold text-foreground">
-                  {issue.assignee ? issue.assignee.name || issue.assignee.email : "Unassigned"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Reporter</dt>
-                <dd className="font-semibold text-foreground">{issue.creator.name || issue.creator.email}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Reported</dt>
-                <dd className="font-semibold text-foreground">{issue.reportedAt ? formatDate(issue.reportedAt) : "Not specified"}</dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
+          {/* Evidence */}
+          <Card className="overflow-hidden">
+            <CardHeader className="border-b border-border/60 bg-muted/30 px-5 py-3">
+              <CardTitle className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Evidence &amp; Attachments
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 py-4">
+              <IssueEvidenceList
+                screenshots={issue.screenshots}
+                attachments={issue.attachments}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right — 4 cols sidebar rail */}
+        <aside className="space-y-4">
+
+          {/* Tracking snapshot */}
+          <Card className="overflow-hidden">
+            <CardHeader className="border-b border-border/60 bg-muted/30 px-4 py-3">
+              <CardTitle className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Tracking Snapshot
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <dl className="divide-y divide-border/50">
+                <SnapshotRow label="Issue ID">
+                  <span className="font-mono text-xs font-semibold text-foreground">
+                    {shortId(issue.id)}
+                  </span>
+                </SnapshotRow>
+                <SnapshotRow label="Type">
+                  <MinimalBadge kind="type" value={issue.type} />
+                </SnapshotRow>
+                <SnapshotRow label="Created">
+                  <time
+                    dateTime={new Date(issue.createdAt).toISOString()}
+                    className="font-mono text-xs text-foreground/80"
+                  >
+                    {formatAbsolute(issue.createdAt)}
+                  </time>
+                </SnapshotRow>
+                <SnapshotRow label="Last Updated">
+                  <time
+                    dateTime={new Date(issue.updatedAt).toISOString()}
+                    className="font-mono text-xs text-foreground/80"
+                  >
+                    {formatAbsolute(issue.updatedAt)}
+                  </time>
+                </SnapshotRow>
+                <SnapshotRow label="Reporter">
+                  <span className="text-xs font-medium text-foreground">
+                    {reporterName}
+                  </span>
+                </SnapshotRow>
+                <SnapshotRow label="Access Scope">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Shield
+                      className="h-3 w-3 shrink-0"
+                      aria-hidden="true"
+                    />
+                    CASL Enforced
+                  </span>
+                </SnapshotRow>
+              </dl>
+            </CardContent>
+          </Card>
+
+          {/* Back link */}
+          <Button asChild variant="outline" size="sm" className="w-full">
+            <Link href="/tasks">← Back to Tasks</Link>
+          </Button>
+        </aside>
       </div>
 
-      <Card className="overflow-hidden border-0 shadow-sm">
-        <CardContent className="grid gap-4 p-4 md:p-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] lg:gap-5">
-          <section className="space-y-5">
-            <div className="border-l-4 border-l-slate-300 pl-4">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-foreground mb-2">Issue summary</h2>
-              <p className="mt-2 text-[15px] leading-7 text-foreground/85 font-light">{issue.description}</p>
-            </div>
-            {issue.url && (
-              <div className="flex items-start gap-3 rounded-lg bg-blue-50/50 p-3">
-                <svg className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-blue-900 mb-1">Related page or feature:</p>
-                  <a href={issue.url} target="_blank" rel="noopener noreferrer" className="break-all text-sm text-blue-600 hover:text-blue-700 hover:underline font-medium">
-                    {issue.url}
-                  </a>
-                </div>
-              </div>
-            )}
-            {issue.sourceNotes && (
-              <div className="flex items-start gap-3 rounded-lg bg-amber-50/50 p-3">
-                <svg className="h-4 w-4 text-amber-600 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1h2v2H7V4zm2 4H7v2h2V8zm2-4h2v2h-2V4zm2 4h-2v2h2V8z" /></svg>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-amber-900 mb-1">Context note:</p>
-                  <p className="text-sm text-amber-800">{issue.sourceNotes}</p>
-                </div>
-              </div>
-            )}
-            
-            <IssueEvidenceList screenshots={issue.screenshots} attachments={issue.attachments} />
-          </section>
-
-          <aside className="rounded-xl bg-muted/20 p-3 md:p-4">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Tracking snapshot</h2>
-            <dl className="mt-3 divide-y divide-border/50 text-sm">
-              <div className="flex items-start justify-between gap-3 py-2 first:pt-0">
-                <dt className="text-muted-foreground">Issue ID</dt>
-                <dd className="font-mono font-semibold text-primary text-xs">#FJ-{issue.id.slice(0, 6).toUpperCase()}</dd>
-              </div>
-              <div className="flex items-start justify-between gap-3 py-2">
-                <dt className="text-muted-foreground">Type</dt>
-                <dd className="font-medium text-foreground">{issue.type}</dd>
-              </div>
-              <div className="flex items-start justify-between gap-3 py-2">
-                <dt className="text-muted-foreground">Created</dt>
-                <dd className="max-w-[14rem] break-words text-right font-medium text-foreground">{formatDate(issue.createdAt)}</dd>
-              </div>
-              <div className="flex items-start justify-between gap-3 py-2">
-                <dt className="text-muted-foreground">Updated</dt>
-                <dd className="max-w-[14rem] break-words text-right font-medium text-foreground">{formatDate(issue.updatedAt)}</dd>
-              </div>
-              <div className="flex items-start justify-between gap-3 py-2">
-                <dt className="text-muted-foreground">Assignee</dt>
-                <dd className="max-w-[14rem] break-words text-right font-medium text-foreground">
-                  {issue.assignee ? issue.assignee.name || issue.assignee.email : "Unassigned"}
-                </dd>
-              </div>
-              <div className="flex items-start justify-between gap-3 py-2 pb-0">
-                <dt className="text-muted-foreground">Reporter</dt>
-                <dd className="max-w-[14rem] break-words text-right font-medium text-foreground">
-                  {issue.creator.name || issue.creator.email}
-                </dd>
-              </div>
-            </dl>
-          </aside>
-        </CardContent>
-      </Card>
-
+      {/* ── Edit / Delete Actions ─────────────────────────────────────── */}
       <IssueActions
         issueId={issue.id}
         initial={{
@@ -237,7 +330,9 @@ export default async function IssueDetailPage({
           severity: issue.severity,
           url: issue.url,
           sourceNotes: issue.sourceNotes,
-          reportedAt: issue.reportedAt ? issue.reportedAt.toISOString().slice(0, 10) : "",
+          reportedAt: issue.reportedAt
+            ? issue.reportedAt.toISOString().slice(0, 10)
+            : "",
           assigneeId: issue.assigneeId,
           status: issue.status,
         }}
@@ -250,31 +345,46 @@ export default async function IssueDetailPage({
         }))}
       />
 
-      <section className="mt-4" aria-labelledby="comments-heading">
+      {/* ── Discussion ───────────────────────────────────────────────────── */}
+      <section aria-labelledby="comments-heading">
         <CommentThread issueId={issue.id} comments={issue.comments} />
       </section>
 
-      <section className="mt-4" aria-labelledby="activity-heading">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle id="activity-heading" className="text-base font-semibold">
-              Activity
+      {/* ── Activity Timeline ─────────────────────────────────────────── */}
+      <section aria-labelledby="activity-heading">
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-border/60 bg-muted/30 px-5 py-3">
+            <CardTitle
+              id="activity-heading"
+              className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
+            >
+              Activity Log
             </CardTitle>
-            <CardDescription className="text-xs">
-              Every change, status move, and update in chronological order.
-            </CardDescription>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="px-5 py-4">
             <TaskActivityTimeline history={issue.history} />
           </CardContent>
         </Card>
       </section>
+    </div>
+  );
+}
 
-      <div className="mt-6">
-        <Button asChild variant="outline">
-          <Link href="/tasks">Back to Tasks</Link>
-        </Button>
-      </div>
+// ─── SnapshotRow ──────────────────────────────────────────────────────────────
+
+function SnapshotRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground shrink-0">
+        {label}
+      </dt>
+      <dd className="flex justify-end">{children}</dd>
     </div>
   );
 }
