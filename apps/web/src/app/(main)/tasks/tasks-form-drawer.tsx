@@ -20,7 +20,7 @@
  * via the same ScreenshotUpload ref handle.
  */
 
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState } from "react";
 import { ImagePlus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -56,7 +56,10 @@ export function NewIssueFormDrawer({
   /** Called after a successful server response so the drawer can close. */
   onSuccess: () => void;
 }) {
-  const [pending, startTransition] = useTransition();
+  // Replace useTransition with plain useState so we fully own the pending flag.
+  // useTransition wraps async work in React's concurrent scheduler which can
+  // re-invoke the callback, causing duplicate POSTs when the form is submitted.
+  const [pending, setPending] = useState(false);
   const [screenshotFiles, setScreenshotFiles] = useState<File[]>([]);
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const [uploadError, setUploadError] = useState("");
@@ -69,6 +72,8 @@ export function NewIssueFormDrawer({
   const attachmentsMetaRef  = useRef<HTMLInputElement>(null);
   const screenshotUploadRef = useRef<ScreenshotUploadHandle>(null);
   const pasteTimerRef       = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Hard in-flight guard — prevents any re-entry regardless of React render cycles.
+  const submittingRef       = useRef(false);
 
   // ── Clipboard paste ──────────────────────────────────────────────────────
 
@@ -99,73 +104,76 @@ export function NewIssueFormDrawer({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    // Hard guard: if a submission is already in flight, do nothing.
+    // This is the primary defence against duplicate issues — it prevents
+    // React concurrent-mode re-renders, double-clicks, and any other source
+    // of re-entry from firing a second POST.
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setPending(true);
     setUploadError("");
     setSubmitError("");
 
     const form = e.currentTarget;
-    if (!form.reportValidity()) return;
+    if (!form.reportValidity()) {
+      submittingRef.current = false;
+      setPending(false);
+      return;
+    }
 
-    // ── 1. Upload files if any ────────────────────────────────────────────
-    let screenshotsMeta: UploadedFile[] = [];
-    let attachmentsMeta: UploadedFile[] = [];
+    try {
+      // ── 1. Upload files if any ──────────────────────────────────────────
+      let screenshotsMeta: UploadedFile[] = [];
+      let attachmentsMeta: UploadedFile[] = [];
 
-    if (screenshotFiles.length > 0 || attachmentFiles.length > 0) {
-      const fd = new FormData();
-      screenshotFiles.forEach((f) => fd.append("screenshots", f));
-      attachmentFiles.forEach((f) => fd.append("attachments", f));
+      if (screenshotFiles.length > 0 || attachmentFiles.length > 0) {
+        const fd = new FormData();
+        screenshotFiles.forEach((f) => fd.append("screenshots", f));
+        attachmentFiles.forEach((f) => fd.append("attachments", f));
 
-      try {
-        const res = await fetch("/api/upload", { method: "POST", body: fd });
-        const payload = await res.json().catch(() => ({}));
-        if (!res.ok) {
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
+        const uploadPayload = await uploadRes.json().catch(() => ({}));
+        if (!uploadRes.ok) {
           setUploadError(
-            typeof payload?.error === "string"
-              ? payload.error
+            typeof uploadPayload?.error === "string"
+              ? uploadPayload.error
               : "File upload failed. Please retry.",
           );
           return;
         }
-        screenshotsMeta = Array.isArray(payload.files) ? payload.files : [];
-        attachmentsMeta = Array.isArray(payload.attachments) ? payload.attachments : [];
-      } catch {
-        setUploadError("File upload is temporarily unavailable. Please retry.");
+        screenshotsMeta = Array.isArray(uploadPayload.files) ? uploadPayload.files : [];
+        attachmentsMeta = Array.isArray(uploadPayload.attachments) ? uploadPayload.attachments : [];
+      }
+
+      // ── 2. Write meta into hidden inputs so FormData picks them up ──────
+      if (screenshotsMetaRef.current)
+        screenshotsMetaRef.current.value = JSON.stringify(screenshotsMeta);
+      if (attachmentsMetaRef.current)
+        attachmentsMetaRef.current.value = JSON.stringify(attachmentsMeta);
+
+      // ── 3. POST issue — single fetch, no startTransition wrapper ────────
+      const formData = new FormData(form);
+      const res = await fetch("/api/issues", { method: "POST", body: formData });
+
+      if (res.ok || res.status === 201) {
+        onSuccess();
         return;
       }
+
+      const payload = await res.json().catch(() => ({}));
+      setSubmitError(
+        typeof payload?.error === "string"
+          ? payload.error
+          : `Server error (${res.status}). Please try again.`,
+      );
+    } catch {
+      setSubmitError("Could not reach the server. Check your connection.");
+    } finally {
+      // Always release the guard so the user can retry after an error.
+      submittingRef.current = false;
+      setPending(false);
     }
-
-    // ── 2. Write meta refs so FormData picks them up ──────────────────────
-    if (screenshotsMetaRef.current)
-      screenshotsMetaRef.current.value = JSON.stringify(screenshotsMeta);
-    if (attachmentsMetaRef.current)
-      attachmentsMetaRef.current.value = JSON.stringify(attachmentsMeta);
-
-    // ── 3. POST to the existing Hono/App Router issue creation endpoint ───
-    //    We post the raw FormData so the server-side validation logic is
-    //    identical to the full-page route.
-    startTransition(async () => {
-      try {
-        const formData = new FormData(form);
-        const res = await fetch("/api/issues", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (res.ok || res.status === 201) {
-          onSuccess();
-          return;
-        }
-
-        // Non-2xx — surface the error inside the drawer without closing it.
-        const payload = await res.json().catch(() => ({}));
-        setSubmitError(
-          typeof payload?.error === "string"
-            ? payload.error
-            : `Server error (${res.status}). Please try again.`,
-        );
-      } catch {
-        setSubmitError("Could not reach the server. Check your connection.");
-      }
-    });
   }
 
   // ── Render ───────────────────────────────────────────────────────────────
