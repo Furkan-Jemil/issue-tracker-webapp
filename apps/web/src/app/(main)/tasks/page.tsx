@@ -8,7 +8,6 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { IssuesFilterPopover } from "@/app/(main)/tasks/tasks-table-filter";
 import { IssuesBoard } from "@/app/(main)/tasks/tasks-table";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -340,37 +339,7 @@ export default async function IssuesListPage({
           />
         )}
 
-        {/* Pagination */}
-        {(hasPrev || hasNext) && (
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              disabled={!hasPrev}
-            >
-              <Link
-                href={hasPrev ? buildPageHref(currentPage - 1) : "#"}
-                aria-disabled={!hasPrev}
-              >
-                Previous
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              disabled={!hasNext}
-            >
-              <Link
-                href={hasNext ? buildPageHref(currentPage + 1) : "#"}
-                aria-disabled={!hasNext}
-              >
-                Next
-              </Link>
-            </Button>
-          </div>
-        )}
+        {/* Pagination is rendered inside IssueListClient's table footer */}
       </section>
     </div>
   );

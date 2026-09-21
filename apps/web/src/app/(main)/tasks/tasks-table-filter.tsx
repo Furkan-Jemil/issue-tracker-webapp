@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
-import { useFilters } from "@/lib/useFilters";
 import { CalendarRange, Check, Filter, Kanban, Rows3, StretchHorizontal } from "lucide-react";
+import { useFilters } from "@/lib/useFilters";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,14 +50,7 @@ export function IssuesFilterPopover({
   onSubmitHref: string;
   onResetHref: string;
 }) {
-  const {
-    drafts,
-    setField,
-    apply,
-    clear,
-    isOpen,
-    setIsOpen,
-  } = useFilters(
+  const { drafts, setField, apply, clear, isOpen, setIsOpen } = useFilters(
     {
       view,
       q: query,
@@ -73,21 +65,25 @@ export function IssuesFilterPopover({
     { onSubmitHref, onResetHref },
   );
 
-  const selectedView = drafts.view ?? view;
-  const selectedStatus = drafts.status ?? "";
-  const selectedPriority = drafts.priority ?? "";
-  const selectedSeverity = drafts.severity ?? "";
-  const selectedReporter = drafts.reporter ?? "";
-  const selectedAssignee = drafts.assignee ?? "";
+  const selectedView      = drafts.view ?? view;
+  const selectedStatus    = drafts.status ?? "";
+  const selectedPriority  = drafts.priority ?? "";
+  const selectedSeverity  = drafts.severity ?? "";
+  const selectedReporter  = drafts.reporter ?? "";
+  const selectedAssignee  = drafts.assignee ?? "";
   const selectedCreatedFrom = drafts.createdFrom ?? "";
-  const selectedCreatedTo = drafts.createdTo ?? "";
+  const selectedCreatedTo   = drafts.createdTo ?? "";
 
   const reporterOptions = useMemo(() => reporters, [reporters]);
 
   function cycleViewMode() {
     setField(
       "view",
-      selectedView === "compact" ? "details" : selectedView === "details" ? "board" : "compact",
+      selectedView === "compact"
+        ? "details"
+        : selectedView === "details"
+          ? "board"
+          : "compact",
     );
   }
 
@@ -98,9 +94,12 @@ export function IssuesFilterPopover({
         ? "Detailed"
         : "Board";
 
-  const ViewModeIcon = selectedView === "compact" ? Rows3 : selectedView === "details" ? StretchHorizontal : Kanban;
-
-  const handleApply = (e?: React.FormEvent) => apply(e);
+  const ViewModeIcon =
+    selectedView === "compact"
+      ? Rows3
+      : selectedView === "details"
+        ? StretchHorizontal
+        : Kanban;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -108,82 +107,98 @@ export function IssuesFilterPopover({
         <Button
           type="button"
           variant="outline"
-          size="icon"
-          className="relative h-9 w-9 rounded-md border-border bg-background"
+          size="sm"
+          className="relative h-8 gap-1.5 px-2.5"
           aria-label="Open filters"
-          title="Filters">
-          <Filter className="h-4 w-4" aria-hidden="true" />
+        >
+          <Filter className="h-3.5 w-3.5" aria-hidden="true" />
+          <span className="hidden sm:inline">Filters</span>
           {hasActiveFilters && (
-            <Badge variant="secondary" className="absolute -right-1.5 -top-1 min-w-4 px-1 py-0 text-[10px]">
+            <Badge
+              variant="secondary"
+              className="absolute -right-1.5 -top-1 min-w-[18px] px-1 py-0 text-[10px] font-semibold"
+            >
               {activeFilterCount}
             </Badge>
           )}
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent id="issues-filter-popover" className="w-[min(92vw,340px)] p-3" align="end">
-        <form className="space-y-3" onSubmit={handleApply}>
+      <PopoverContent
+        className="w-[min(92vw,320px)] p-3"
+        align="end"
+      >
+        <form className="space-y-3" onSubmit={apply}>
+          {/* Header row */}
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.13em] text-muted-foreground">Filters</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Filters
+            </p>
             <Button
               type="button"
               variant="outline"
               size="icon"
               onClick={cycleViewMode}
-              aria-label={`View mode: ${viewModeLabel}. Click to switch mode.`}
+              aria-label={`View mode: ${viewModeLabel}. Click to switch.`}
               title={`View mode: ${viewModeLabel}`}
-              className="h-8 w-8 rounded-md">
-              <ViewModeIcon className="h-4 w-4" aria-hidden="true" />
+              className="h-7 w-7"
+            >
+              <ViewModeIcon className="h-3.5 w-3.5" aria-hidden="true" />
             </Button>
           </div>
 
-          {hasActiveFilters ? (
+          {/* Active-filter pill */}
+          {hasActiveFilters && (
             <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-              <Check className="h-3.5 w-3.5" aria-hidden="true" />
-              Active filters
+              <Check className="h-3 w-3" aria-hidden="true" />
+              {activeFilterCount} active
             </span>
-          ) : null}
+          )}
 
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <Label htmlFor="issues-created-from" className="text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <CalendarRange className="h-3.5 w-3.5" aria-hidden="true" />
-                  Created from
-                </span>
-              </Label>
-              <Input
-                id="issues-created-from"
-                type="date"
-                value={selectedCreatedFrom}
-                onChange={(event) => setField("createdFrom", event.target.value)}
-                className="h-9 text-xs"
-              />
+          <div className="space-y-2.5">
+            {/* Date range */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label
+                  htmlFor="filter-created-from"
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground"
+                >
+                  <CalendarRange className="h-3 w-3" aria-hidden="true" />
+                  From
+                </Label>
+                <Input
+                  id="filter-created-from"
+                  type="date"
+                  value={selectedCreatedFrom}
+                  onChange={(e) => setField("createdFrom", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label
+                  htmlFor="filter-created-to"
+                  className="text-[10px] text-muted-foreground"
+                >
+                  To
+                </Label>
+                <Input
+                  id="filter-created-to"
+                  type="date"
+                  value={selectedCreatedTo}
+                  onChange={(e) => setField("createdTo", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="issues-created-to" className="text-xs text-muted-foreground">
-                Created to
-              </Label>
-              <Input
-                id="issues-created-to"
-                type="date"
-                value={selectedCreatedTo}
-                onChange={(event) => setField("createdTo", event.target.value)}
-                className="h-9 text-xs"
-              />
-            </div>
-
-            {/* ── Status / Priority / Severity: available to ALL roles ────────
-               Non-admin users can filter within their own row-level scope.
-               The server enforces ownership — these filters just narrow the
-               already-scoped result set, they never widen it.             */}
+            {/* Status */}
             <Select
-              id="issues-status-filter"
+              id="filter-status"
               name="status"
               value={selectedStatus}
               onValueChange={(v) => setField("status", v)}
-              className="h-9 rounded-md text-xs">
+              className="h-8 text-xs"
+            >
               <option value="">All statuses</option>
               <option value="OPEN">Open</option>
               <option value="IN_PROGRESS">In progress</option>
@@ -191,76 +206,84 @@ export function IssuesFilterPopover({
               <option value="CLOSED">Closed</option>
             </Select>
 
+            {/* Priority */}
             <Select
-              id="issues-priority-filter"
+              id="filter-priority"
               name="priority"
               value={selectedPriority}
               onValueChange={(v) => setField("priority", v)}
-              className="h-9 rounded-md text-xs">
+              className="h-8 text-xs"
+            >
               <option value="">All priorities</option>
               <option value="LOW">Low</option>
               <option value="MEDIUM">Medium</option>
               <option value="HIGH">High</option>
             </Select>
 
+            {/* Severity */}
             <Select
-              id="issues-severity-filter"
+              id="filter-severity"
               name="severity"
               value={selectedSeverity}
               onValueChange={(v) => setField("severity", v)}
-              className="h-9 rounded-md text-xs">
+              className="h-8 text-xs"
+            >
               <option value="">All severities</option>
               <option value="MINOR">Minor</option>
               <option value="MAJOR">Major</option>
               <option value="CRITICAL">Critical</option>
             </Select>
 
-            {/* ── Reporter / Assignee: admin-only (cross-user visibility) ── */}
-            {isAdmin ? (
+            {/* Admin-only: reporter + assignee */}
+            {isAdmin && (
               <>
                 <Select
-                  id="issues-reporter-filter"
+                  id="filter-reporter"
                   name="reporter"
                   value={selectedReporter}
                   onValueChange={(v) => setField("reporter", v)}
-                  className="h-9 rounded-md text-xs">
+                  className="h-8 text-xs"
+                >
                   <option value="">All reporters</option>
-                  {reporterOptions.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.label}
+                  {reporterOptions.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.label}
                     </option>
                   ))}
                 </Select>
 
                 <Select
-                  id="issues-assignee-filter"
+                  id="filter-assignee"
                   name="assignee"
                   value={selectedAssignee}
                   onValueChange={(v) => setField("assignee", v)}
-                  className="h-9 rounded-md text-xs">
+                  className="h-8 text-xs"
+                >
                   <option value="">All assignees</option>
-                  {reporterOptions.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.label}
+                  {reporterOptions.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.label}
                     </option>
                   ))}
                 </Select>
               </>
-            ) : null}
+            )}
           </div>
 
+          {/* Footer actions */}
           <div className="flex items-center justify-end gap-2 border-t border-border/60 pt-2">
-            {hasActiveFilters ? (
+            {hasActiveFilters && (
               <Button
-                variant="outline"
-                size="dense"
-                className="rounded-md"
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2.5 text-xs"
                 onClick={() => clear()}
               >
                 Clear
               </Button>
-            ) : null}
-            <Button type="submit" size="dense" className="rounded-md">
+            )}
+            <Button type="submit" size="sm" className="h-7 px-3 text-xs">
               Apply
             </Button>
           </div>

@@ -1,35 +1,22 @@
 "use client";
 
 /**
- * IssueListClient — v2
+ * IssueListClient — enterprise data table
  *
- * New in this version:
- *   ── Multi-select & bulk actions ──────────────────────────────────────────
- *   - Each row has a checkbox (admin-only) and a keyboard-accessible label.
- *   - The <thead> checkbox is indeterminate when a subset is selected; checked
- *     when all visible rows are selected; unchecked otherwise.
- *   - A floating bottom action bar slides up from the viewport bottom whenever
- *     `selectedIds.size > 0`. It offers:
- *       • Move to status  (dropdown → batchChangeStatus)
- *       • Set priority    (dropdown → batchChangePriority)
- *       • Delete selected (with confirm → batchDeleteIssues)
- *   - All three bulk actions are optimistic: local state is updated first and
- *     rolled back on server error.
- *   - The bar dismisses (clears selection) on Escape.
+ * All server-action wiring, optimistic update logic, bulk-action handling,
+ * inline badge editing, and drawer plumbing are unchanged from v2.
+ * This version only updates the visual layer:
  *
- *   ── Quick-create drawer ──────────────────────────────────────────────────
- *   - "Create Issue" toolbar button now opens an inline slide-over `<Drawer>`
- *     instead of navigating to /tasks/new, preserving the current filter state.
- *   - The drawer embeds `<NewIssueFormDrawer>` — a lightweight wrapper around
- *     the existing form that calls a Server Action and closes the drawer on
- *     success.
- *   - The standalone /tasks/new route still works for deep-linking.
- *   - The `C` hotkey (registered in app-shell) now programmatically opens the
- *     drawer via a custom event so the hotkey handler doesn't need a ref.
+ *   - Table wrapped in a rounded border container with shadow-xs
+ *   - Column headers: 10px uppercase muted labels, h-10 rows, bg-muted/40
+ *   - ID column: neutral mono tag, no aggressive colour
+ *   - Rows: hover:bg-muted/30 transition-colors, generous py-3 padding
+ *   - Pagination footer rebuilt: "Showing X–Y of Z" on the left,
+ *     Previous / Page N of M / Next controls on the right
+ *   - Bulk action bar and drawer unchanged
  */
 
 import {
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -41,11 +28,14 @@ import { useRouter } from "next/navigation";
 import {
   CheckSquare2,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   Square,
   Trash2,
   X,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 
 import { MinimalBadge } from "@/app/(main)/tasks/minimal-badge";
 import {
@@ -74,7 +64,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-// ─── Types ─────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ListIssue = {
   id: string;
@@ -96,7 +86,7 @@ type UserMeta = {
   role: string;
 };
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(d: string): string {
   const date = new Date(d);
@@ -112,19 +102,23 @@ const detailHintByKind = {
 } as const;
 
 const STATUS_OPTIONS: { value: QuickStatus; label: string }[] = [
-  { value: "OPEN", label: "Open" },
+  { value: "OPEN",        label: "Open" },
   { value: "IN_PROGRESS", label: "In progress" },
-  { value: "RESOLVED", label: "Resolved" },
-  { value: "CLOSED", label: "Closed" },
+  { value: "RESOLVED",    label: "Resolved" },
+  { value: "CLOSED",      label: "Closed" },
 ];
 
 const PRIORITY_OPTIONS = [
-  { value: "LOW", label: "Low" },
+  { value: "LOW",    label: "Low" },
   { value: "MEDIUM", label: "Medium" },
-  { value: "HIGH", label: "High" },
+  { value: "HIGH",   label: "High" },
 ];
 
-// ─── BulkActionBar ─────────────────────────────────────────────────────────
+// ─── Shared column header class ───────────────────────────────────────────────
+
+const TH = "h-10 px-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/40";
+
+// ─── BulkActionBar ────────────────────────────────────────────────────────────
 
 function BulkActionBar({
   selectedCount,
@@ -146,21 +140,16 @@ function BulkActionBar({
   const statusRef   = useRef<HTMLDivElement>(null);
   const priorityRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdowns on outside click.
   useEffect(() => {
     function handler(e: MouseEvent) {
-      if (statusRef.current && !statusRef.current.contains(e.target as Node)) {
+      if (statusRef.current && !statusRef.current.contains(e.target as Node))
         setStatusOpen(false);
-      }
-      if (priorityRef.current && !priorityRef.current.contains(e.target as Node)) {
+      if (priorityRef.current && !priorityRef.current.contains(e.target as Node))
         setPriorityOpen(false);
-      }
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-
-  // Escape clears the selection (handled in parent via the event bus).
 
   return (
     <div
@@ -172,18 +161,14 @@ function BulkActionBar({
         "flex items-center gap-3 px-5 py-3 rounded-2xl",
         "animate-in slide-in-from-bottom-3 duration-300 ease-out",
       )}
-      style={{
-        maxWidth: 'calc(100vw - 2rem)',
-      }}
+      style={{ maxWidth: "calc(100vw - 2rem)" }}
     >
-      {/* Selection count capsule */}
+      {/* Selection count */}
       <div className="flex items-center gap-2">
         <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-primary/10 border border-primary/30 px-2 text-xs font-semibold text-primary tabular-nums">
           {selectedCount}
         </span>
-        <span className="text-sm font-medium text-foreground/90">
-          selected
-        </span>
+        <span className="text-sm font-medium text-foreground/90">selected</span>
         <button
           type="button"
           onClick={onClear}
@@ -194,101 +179,76 @@ function BulkActionBar({
         </button>
       </div>
 
-      {/* Hairline separator */}
       <div className="h-6 w-px bg-border/30" aria-hidden="true" />
 
-      {/* Action buttons — minimal, icon-led */}
       <div className="flex items-center gap-1.5">
         {/* Move to status */}
         <div ref={statusRef} className="relative">
           <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={isPending}
+            type="button" variant="ghost" size="sm" disabled={isPending}
             className="h-7 gap-1.5 text-xs font-medium hover:bg-accent/60"
             onClick={() => { setStatusOpen((v) => !v); setPriorityOpen(false); }}
           >
             Move to
             <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
           </Button>
-          {statusOpen ? (
+          {statusOpen && (
             <div
               className="glass-popover absolute bottom-full mb-1.5 right-0 min-w-[160px] overflow-hidden rounded-xl shadow-lg"
-              role="menu"
-              aria-label="Select target status"
+              role="menu" aria-label="Select target status"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <button
-                  key={opt.value}
-                  type="button"
-                  role="menuitem"
+                  key={opt.value} type="button" role="menuitem"
                   className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
                   onClick={() => { onBatchStatus(opt.value); setStatusOpen(false); }}
                 >
-                  <MinimalBadge
-                    kind="status"
-                    value={opt.value}
-                  />
+                  <MinimalBadge kind="status" value={opt.value} />
                 </button>
               ))}
             </div>
-          ) : null}
+          )}
         </div>
 
         {/* Set priority */}
         <div ref={priorityRef} className="relative">
           <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={isPending}
+            type="button" variant="ghost" size="sm" disabled={isPending}
             className="h-7 gap-1.5 text-xs font-medium hover:bg-accent/60"
             onClick={() => { setPriorityOpen((v) => !v); setStatusOpen(false); }}
           >
             Priority
             <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
           </Button>
-          {priorityOpen ? (
+          {priorityOpen && (
             <div
               className="glass-popover absolute bottom-full mb-1.5 right-0 min-w-[160px] overflow-hidden rounded-xl shadow-lg"
-              role="menu"
-              aria-label="Select target priority"
+              role="menu" aria-label="Select target priority"
             >
               {PRIORITY_OPTIONS.map((opt) => (
                 <button
-                  key={opt.value}
-                  type="button"
-                  role="menuitem"
+                  key={opt.value} type="button" role="menuitem"
                   className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
                   onClick={() => { onBatchPriority(opt.value); setPriorityOpen(false); }}
                 >
-                  <MinimalBadge
-                    kind="priority"
-                    value={opt.value}
-                  />
+                  <MinimalBadge kind="priority" value={opt.value} />
                 </button>
               ))}
             </div>
-          ) : null}
+          )}
         </div>
 
         <div className="h-5 w-px bg-border/30" aria-hidden="true" />
 
         {/* Delete */}
         <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={isPending}
+          type="button" variant="ghost" size="sm" disabled={isPending}
           className="h-7 gap-1.5 text-xs font-medium text-destructive hover:bg-destructive/10"
           onClick={onBatchDelete}
         >
-          {isPending ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-          ) : (
-            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-          )}
+          {isPending
+            ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+            : <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />}
           Delete
         </Button>
       </div>
@@ -296,15 +256,8 @@ function BulkActionBar({
   );
 }
 
-// ─── QuickCreateDrawer ─────────────────────────────────────────────────────
+// ─── QuickCreateDrawer ────────────────────────────────────────────────────────
 
-/**
- * Slide-over drawer that embeds the issue creation form.
- * Triggered by the toolbar button or the `C` hotkey.
- *
- * The drawer is a portal so it renders above the table without disrupting
- * the document flow. Focus is trapped inside while open.
- */
 function QuickCreateDrawer({
   isOpen,
   onClose,
@@ -317,14 +270,10 @@ function QuickCreateDrawer({
   const router = useRouter();
   const firstFocusRef = useRef<HTMLButtonElement>(null);
 
-  // Focus management: focus the close button when the drawer opens.
   useEffect(() => {
-    if (isOpen) {
-      requestAnimationFrame(() => firstFocusRef.current?.focus());
-    }
+    if (isOpen) requestAnimationFrame(() => firstFocusRef.current?.focus());
   }, [isOpen]);
 
-  // Close on Escape.
   useEffect(() => {
     if (!isOpen) return;
     function handler(e: KeyboardEvent) {
@@ -337,58 +286,31 @@ function QuickCreateDrawer({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex justify-end"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Create new issue"
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        aria-hidden="true"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
+    <div className="fixed inset-0 z-[60] flex justify-end" role="dialog" aria-modal="true" aria-label="Create new issue">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-hidden="true" onClick={onClose} />
       <div className="relative flex h-full w-full max-w-2xl flex-col border-l border-border bg-card shadow-2xl animate-in slide-in-from-right duration-200">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-border/60 bg-muted/20 px-5 py-3.5">
           <div>
-            <h2 className="text-base font-semibold text-foreground">
-              Create issue
-            </h2>
+            <h2 className="text-base font-semibold text-foreground">Create issue</h2>
             <p className="text-xs text-muted-foreground">
               Or{" "}
-              <Link
-                href="/tasks/new"
-                className="text-primary underline-offset-2 hover:underline"
-                onClick={onClose}
-              >
+              <Link href="/tasks/new" className="text-primary underline-offset-2 hover:underline" onClick={onClose}>
                 open full page
               </Link>{" "}
               for more space.
             </p>
           </div>
           <button
-            ref={firstFocusRef}
-            type="button"
-            onClick={onClose}
-            aria-label="Close drawer"
+            ref={firstFocusRef} type="button" onClick={onClose} aria-label="Close drawer"
             className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
-
-        {/* Scrollable body — imports NewIssueForm lazily */}
         <div className="flex-1 overflow-y-auto px-5 py-4">
           <DrawerFormBridge
             assignees={assignees}
-            onSuccess={() => {
-              onClose();
-              router.refresh();
-            }}
+            onSuccess={() => { onClose(); router.refresh(); }}
           />
         </div>
       </div>
@@ -396,40 +318,16 @@ function QuickCreateDrawer({
   );
 }
 
-/**
- * DrawerFormBridge
- *
- * Renders the same compact form fields as NewIssuePage but wires a trimmed
- * Server Action inline so the full-page /tasks/new route is not required.
- * We import NewIssueForm lazily to avoid pulling the full form into the
- * main bundle for every visitor of /tasks.
- */
-import dynamic from "next/dynamic";
-
 const NewIssueFormDrawer = dynamic(
-  () =>
-    import("@/app/(main)/tasks/tasks-form-drawer").then(
-      (m) => m.NewIssueFormDrawer,
-    ),
+  () => import("@/app/(main)/tasks/tasks-form-drawer").then((m) => m.NewIssueFormDrawer),
   { ssr: false, loading: () => <p className="text-sm text-muted-foreground">Loading form…</p> },
 );
 
-function DrawerFormBridge({
-  assignees,
-  onSuccess,
-}: {
-  assignees: { id: string; label: string }[];
-  onSuccess: () => void;
-}) {
-  return (
-    <NewIssueFormDrawer
-      assignees={assignees}
-      onSuccess={onSuccess}
-    />
-  );
+function DrawerFormBridge({ assignees, onSuccess }: { assignees: { id: string; label: string }[]; onSuccess: () => void }) {
+  return <NewIssueFormDrawer assignees={assignees} onSuccess={onSuccess} />;
 }
 
-// ─── IssueListClient ────────────────────────────────────────────────────────
+// ─── IssueListClient ──────────────────────────────────────────────────────────
 
 export function IssueListClient({
   initialIssues,
@@ -454,131 +352,98 @@ export function IssueListClient({
   filteredTotal: number;
   currentPage: number;
   totalPages: number;
-  /** Passed from the server so the drawer form can populate the assignee select. */
   assigneesForCreate?: { id: string; label: string }[];
 }) {
-  const [issues, setIssues]           = useState<ListIssue[]>(initialIssues);
+  const [issues, setIssues]          = useState<ListIssue[]>(initialIssues);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [drawerOpen, setDrawerOpen]   = useState(false);
-  const [bulkError, setBulkError]     = useState<string | null>(null);
-  const [isPending, startTransition]  = useTransition();
+  const [drawerOpen, setDrawerOpen]  = useState(false);
+  const [bulkError, setBulkError]    = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-  // Sync when the server re-renders with new props.
+  // Sync on server re-render
   useEffect(() => {
     setIssues(initialIssues);
-    setSelectedIds(new Set()); // clear selection on page/filter change
+    setSelectedIds(new Set());
   }, [initialIssues]);
 
-  // Open drawer when the `C` hotkey fires (dispatched by app-shell hotkey).
-  // We use a custom window event so the hotkey handler doesn't need a ref
-  // into this component.
+  // C hotkey → open drawer
   useEffect(() => {
-    function onOpenDrawer() { setDrawerOpen(true); }
-    window.addEventListener("issue-tracker:open-create-drawer", onOpenDrawer);
-    return () => window.removeEventListener("issue-tracker:open-create-drawer", onOpenDrawer);
+    function onOpen() { setDrawerOpen(true); }
+    window.addEventListener("issue-tracker:open-create-drawer", onOpen);
+    return () => window.removeEventListener("issue-tracker:open-create-drawer", onOpen);
   }, []);
 
-  // Close the bulk bar on Escape.
+  // Escape → clear selection
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && selectedIds.size > 0) {
-        setSelectedIds(new Set());
-      }
+      if (e.key === "Escape" && selectedIds.size > 0) setSelectedIds(new Set());
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [selectedIds]);
 
-  // ── Selection helpers ──────────────────────────────────────────────────
+  // ── Selection ──────────────────────────────────────────────────────────────
 
-  const allIds = useMemo(() => issues.map((i) => i.id), [issues]);
-  const allSelected   = allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
-  const someSelected  = !allSelected && allIds.some((id) => selectedIds.has(id));
+  const allIds       = useMemo(() => issues.map((i) => i.id), [issues]);
+  const allSelected  = allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
+  const someSelected = !allSelected && allIds.some((id) => selectedIds.has(id));
 
   function toggleOne(id: string) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   }
-
   function toggleAll() {
-    if (allSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(allIds));
-    }
+    setSelectedIds(allSelected ? new Set() : new Set(allIds));
   }
 
-  // ── Optimistic helpers ────────────────────────────────────────────────
+  // ── Optimistic helpers ─────────────────────────────────────────────────────
 
   function optimisticallyUpdateStatus(ids: Set<string>, nextStatus: QuickStatus) {
-    setIssues((prev) =>
-      prev.map((iss) =>
-        ids.has(iss.id) ? { ...iss, status: nextStatus } : iss,
-      ),
-    );
+    setIssues((prev) => prev.map((i) => ids.has(i.id) ? { ...i, status: nextStatus } : i));
   }
-
-  function optimisticallyUpdatePriority(ids: Set<string>, nextPriority: string) {
-    setIssues((prev) =>
-      prev.map((iss) =>
-        ids.has(iss.id) ? { ...iss, priority: nextPriority } : iss,
-      ),
-    );
+  function optimisticallyUpdatePriority(ids: Set<string>, next: string) {
+    setIssues((prev) => prev.map((i) => ids.has(i.id) ? { ...i, priority: next } : i));
   }
-
   function optimisticallyRemove(ids: Set<string>) {
-    setIssues((prev) => prev.filter((iss) => !ids.has(iss.id)));
+    setIssues((prev) => prev.filter((i) => !ids.has(i.id)));
   }
 
-  // ── Bulk action handlers ──────────────────────────────────────────────
+  // ── Bulk actions ───────────────────────────────────────────────────────────
 
   function handleBatchStatus(nextStatus: string) {
-    const snapshot = new Set(selectedIds);
-    const snapshotIssues = issues.filter((i) => snapshot.has(i.id));
+    const snap = new Set(selectedIds);
+    const snapIssues = issues.filter((i) => snap.has(i.id));
     setBulkError(null);
-
-    optimisticallyUpdateStatus(snapshot, nextStatus as QuickStatus);
+    optimisticallyUpdateStatus(snap, nextStatus as QuickStatus);
     setSelectedIds(new Set());
-
     startTransition(async () => {
-      const result = await batchChangeStatus([...snapshot], nextStatus);
+      const result = await batchChangeStatus([...snap], nextStatus);
       if (!result.ok) {
-        // Roll back
-        setIssues((prev) =>
-          prev.map((iss) => {
-            const original = snapshotIssues.find((s) => s.id === iss.id);
-            return original && snapshot.has(iss.id)
-              ? { ...iss, status: original.status }
-              : iss;
-          }),
-        );
+        setIssues((prev) => prev.map((i) => {
+          const orig = snapIssues.find((s) => s.id === i.id);
+          return orig && snap.has(i.id) ? { ...i, status: orig.status } : i;
+        }));
         setBulkError(result.error);
       }
     });
   }
 
   function handleBatchPriority(nextPriority: string) {
-    const snapshot = new Set(selectedIds);
-    const snapshotIssues = issues.filter((i) => snapshot.has(i.id));
+    const snap = new Set(selectedIds);
+    const snapIssues = issues.filter((i) => snap.has(i.id));
     setBulkError(null);
-
-    optimisticallyUpdatePriority(snapshot, nextPriority);
+    optimisticallyUpdatePriority(snap, nextPriority);
     setSelectedIds(new Set());
-
     startTransition(async () => {
-      const result = await batchChangePriority([...snapshot], nextPriority);
+      const result = await batchChangePriority([...snap], nextPriority);
       if (!result.ok) {
-        setIssues((prev) =>
-          prev.map((iss) => {
-            const original = snapshotIssues.find((s) => s.id === iss.id);
-            return original && snapshot.has(iss.id)
-              ? { ...iss, priority: original.priority }
-              : iss;
-          }),
-        );
+        setIssues((prev) => prev.map((i) => {
+          const orig = snapIssues.find((s) => s.id === i.id);
+          return orig && snap.has(i.id) ? { ...i, priority: orig.priority } : i;
+        }));
         setBulkError(result.error);
       }
     });
@@ -586,27 +451,18 @@ export function IssueListClient({
 
   function handleBatchDelete() {
     const count = selectedIds.size;
-    if (
-      !window.confirm(
-        `Permanently delete ${count} issue${count !== 1 ? "s" : ""}? This cannot be undone.`,
-      )
-    )
-      return;
-
-    const snapshot = new Set(selectedIds);
-    const snapshotIssues = issues.filter((i) => snapshot.has(i.id));
+    if (!window.confirm(`Permanently delete ${count} issue${count !== 1 ? "s" : ""}? This cannot be undone.`)) return;
+    const snap = new Set(selectedIds);
+    const snapIssues = issues.filter((i) => snap.has(i.id));
     setBulkError(null);
-
-    optimisticallyRemove(snapshot);
+    optimisticallyRemove(snap);
     setSelectedIds(new Set());
-
     startTransition(async () => {
-      const result = await batchDeleteIssues([...snapshot]);
+      const result = await batchDeleteIssues([...snap]);
       if (!result.ok) {
-        // Restore deleted issues
         setIssues((prev) => {
           const existing = new Set(prev.map((i) => i.id));
-          const toRestore = snapshotIssues.filter((i) => !existing.has(i.id));
+          const toRestore = snapIssues.filter((i) => !existing.has(i.id));
           return [...prev, ...toRestore];
         });
         setBulkError(result.error);
@@ -614,310 +470,267 @@ export function IssueListClient({
     });
   }
 
-  // ── Single-row status change (from StatusQuickActions) ─────────────────
+  // ── Per-row status change ──────────────────────────────────────────────────
 
-  function handleStatusChange(
-    issueId: string,
-    nextStatus: QuickStatus | null,
-    previousStatus: QuickStatus,
-  ) {
-    setIssues((prev) =>
-      prev.map((iss) => {
-        if (iss.id !== issueId) return iss;
-        return { ...iss, status: nextStatus ?? previousStatus };
-      }),
-    );
+  function handleStatusChange(issueId: string, nextStatus: QuickStatus | null, previousStatus: QuickStatus) {
+    setIssues((prev) => prev.map((i) => i.id !== issueId ? i : { ...i, status: nextStatus ?? previousStatus }));
   }
 
-  // ── Inline badge edit: per-cell pending state ──────────────────────────
-  // Key format: `${issueId}:status` or `${issueId}:priority`
+  // ── Inline badge edits ─────────────────────────────────────────────────────
+
   const [pendingCells, setPendingCells] = useState<Set<string>>(new Set());
 
   function setCellPending(key: string, pending: boolean) {
     setPendingCells((prev) => {
       const next = new Set(prev);
-      if (pending) next.add(key); else next.delete(key);
+      pending ? next.add(key) : next.delete(key);
       return next;
     });
   }
 
   function handleInlineStatus(issueId: string, nextStatus: string) {
     const key = `${issueId}:status`;
-    const previousStatus = issues.find((i) => i.id === issueId)?.status;
-    if (!previousStatus || nextStatus === previousStatus) return;
-
-    // Optimistic update.
-    setIssues((prev) =>
-      prev.map((i) =>
-        i.id === issueId ? { ...i, status: nextStatus as QuickStatus } : i,
-      ),
-    );
+    const prev = issues.find((i) => i.id === issueId)?.status;
+    if (!prev || nextStatus === prev) return;
+    setIssues((p) => p.map((i) => i.id === issueId ? { ...i, status: nextStatus as QuickStatus } : i));
     setCellPending(key, true);
-
     startTransition(async () => {
       const result = await changeIssueStatusInline(issueId, nextStatus);
       setCellPending(key, false);
-      if (!result.ok) {
-        // Roll back.
-        setIssues((prev) =>
-          prev.map((i) =>
-            i.id === issueId ? { ...i, status: previousStatus } : i,
-          ),
-        );
-      }
+      if (!result.ok) setIssues((p) => p.map((i) => i.id === issueId ? { ...i, status: prev } : i));
     });
   }
 
   function handleInlinePriority(issueId: string, nextPriority: string) {
     const key = `${issueId}:priority`;
-    const previousPriority = issues.find((i) => i.id === issueId)?.priority;
-    if (!previousPriority || nextPriority === previousPriority) return;
-
-    // Optimistic update.
-    setIssues((prev) =>
-      prev.map((i) =>
-        i.id === issueId ? { ...i, priority: nextPriority } : i,
-      ),
-    );
+    const prev = issues.find((i) => i.id === issueId)?.priority;
+    if (!prev || nextPriority === prev) return;
+    setIssues((p) => p.map((i) => i.id === issueId ? { ...i, priority: nextPriority } : i));
     setCellPending(key, true);
-
     startTransition(async () => {
       const result = await changeIssuePriorityInline(issueId, nextPriority);
       setCellPending(key, false);
-      if (!result.ok) {
-        // Roll back.
-        setIssues((prev) =>
-          prev.map((i) =>
-            i.id === issueId ? { ...i, priority: previousPriority } : i,
-          ),
-        );
-      }
+      if (!result.ok) setIssues((p) => p.map((i) => i.id === issueId ? { ...i, priority: prev } : i));
     });
   }
 
-  // ── Column counts ──────────────────────────────────────────────────────
+  // ── Column visibility ──────────────────────────────────────────────────────
 
   const showCheckboxColumn = isAdmin;
-  const showActionsColumn =
-    canQuickStatus || issues.some((i) => canEditIssue && (isAdmin || i.status === "OPEN"));
-  const tableColumnCount =
+  const showActionsColumn  = canQuickStatus || issues.some((i) => canEditIssue && (isAdmin || i.status === "OPEN"));
+  const tableColumnCount   =
     (showCheckboxColumn ? 1 : 0) +
     5 +
     (showActionsColumn ? 1 : 0) +
     (showDetails ? 2 : 0) +
     (isAdmin && showDetails ? 2 : 0);
 
-  const cellPaddingClass = showDetails ? "py-2.5" : "py-1";
-  const headPaddingClass = "h-8 py-0.5";
-
-  const reporterById = new Map<string, UserMeta>(
-    reporters.map((u) => [u.id, u]),
-  );
+  const reporterById = new Map<string, UserMeta>(reporters.map((u) => [u.id, u]));
 
   function getUserLabel(userId: string, fallback: string): string {
-    const user = reporterById.get(userId);
-    return user ? (user.name ?? user.email) : fallback;
+    const u = reporterById.get(userId);
+    return u ? (u.name ?? u.email) : fallback;
   }
 
   function getRoleChip(userId: string) {
-    const user = reporterById.get(userId);
-    if (!user) return null;
-    const label =
-      user.role === "TESTER" ? "Tester" : user.role === "ADMIN" ? "Admin" : "User";
+    const u = reporterById.get(userId);
+    if (!u) return null;
+    const label = u.role === "TESTER" ? "Tester" : u.role === "ADMIN" ? "Admin" : "User";
     return (
-      <Badge
-        variant="outline"
-        className="ml-2 px-1.5 py-0 text-[10px] font-medium uppercase tracking-wide"
-      >
+      <Badge variant="outline" className="ml-1.5 px-1.5 py-0 text-[10px] font-medium uppercase tracking-wide">
         {label}
       </Badge>
     );
   }
 
-  // ── Render ──────────────────────────────────────────────────────────────
+  // ── Pagination helpers ─────────────────────────────────────────────────────
+
+  const pageSize        = filteredTotal > 0 ? Math.ceil(filteredTotal / Math.max(totalPages, 1)) : 0;
+  const showingFrom     = filteredTotal === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const showingTo       = Math.min(currentPage * pageSize, filteredTotal);
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <>
       {/* Bulk error banner */}
-      {bulkError ? (
-        <div
-          role="alert"
-          className="flex items-center justify-between rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300"
-        >
+      {bulkError && (
+        <div role="alert" className="flex items-center justify-between rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
           <span>{bulkError}</span>
-          <button
-            type="button"
-            onClick={() => setBulkError(null)}
-            className="ml-3 text-red-500 hover:text-red-700"
-            aria-label="Dismiss error"
-          >
+          <button type="button" onClick={() => setBulkError(null)} aria-label="Dismiss error" className="ml-3 opacity-70 hover:opacity-100">
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
-      ) : null}
+      )}
 
-      {/* Table */}
-      <Table className="bg-transparent">
-        <caption className="sr-only">
-          Page {currentPage} of {totalPages} — {filteredTotal} filtered issues
-          {selectedIds.size > 0 ? ` · ${selectedIds.size} selected` : ""}
-        </caption>
+      {/* ── Table container ─────────────────────────────────────────────── */}
+      <div className="overflow-hidden rounded-lg border border-border/80 bg-card shadow-sm">
+        <Table>
+          <caption className="sr-only">
+            Page {currentPage} of {totalPages} — {filteredTotal} filtered issues
+            {selectedIds.size > 0 ? ` · ${selectedIds.size} selected` : ""}
+          </caption>
 
-        <TableHeader>
-          <TableRow>
-            {/* Master checkbox */}
-            {showCheckboxColumn ? (
-              <TableHead scope="col" className={cn(headPaddingClass, "w-10")}>
-                <label className="sr-only">
-                  {allSelected ? "Deselect all" : "Select all"}
-                </label>
-                <button
-                  type="button"
-                  onClick={toggleAll}
-                  aria-label={allSelected ? "Deselect all issues" : "Select all visible issues"}
-                  className="flex items-center text-muted-foreground hover:text-foreground"
-                >
-                  {allSelected ? (
-                    <CheckSquare2 className="h-4 w-4 text-primary" aria-hidden="true" />
-                  ) : someSelected ? (
-                    // Indeterminate visual: partially filled square
-                    <span
-                      className="inline-flex h-4 w-4 items-center justify-center rounded-sm border-2 border-primary bg-primary/20"
-                      aria-hidden="true"
-                    >
-                      <span className="h-1.5 w-2.5 rounded-full bg-primary" />
-                    </span>
-                  ) : (
-                    <Square className="h-4 w-4" aria-hidden="true" />
-                  )}
-                </button>
-              </TableHead>
-            ) : null}
+          {/* ── Column headers ──────────────────────────────────────────── */}
+          <TableHeader>
+            <TableRow className="border-b border-border/60 hover:bg-transparent">
+              {/* Master checkbox */}
+              {showCheckboxColumn && (
+                <TableHead scope="col" className={cn(TH, "w-10 px-3")}>
+                  <button
+                    type="button"
+                    onClick={toggleAll}
+                    aria-label={allSelected ? "Deselect all issues" : "Select all visible issues"}
+                    className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {allSelected
+                      ? <CheckSquare2 className="h-4 w-4 text-primary" aria-hidden="true" />
+                      : someSelected
+                        ? <span className="inline-flex h-4 w-4 items-center justify-center rounded-sm border-2 border-primary bg-primary/20" aria-hidden="true">
+                            <span className="h-1.5 w-2.5 rounded-full bg-primary" />
+                          </span>
+                        : <Square className="h-4 w-4" aria-hidden="true" />}
+                  </button>
+                </TableHead>
+              )}
 
-            <TableHead scope="col" className={cn(headPaddingClass, "w-24")}>ID</TableHead>
-            <TableHead scope="col" className={headPaddingClass}>Title</TableHead>
-            <TableHead scope="col" className={cn(headPaddingClass, "hidden lg:table-cell")}>Type</TableHead>
-            <TableHead scope="col" className={headPaddingClass}>Priority</TableHead>
-            <TableHead scope="col" className={cn(headPaddingClass, "hidden xl:table-cell")}>Severity</TableHead>
-            <TableHead scope="col" className={headPaddingClass}>Status</TableHead>
+              <TableHead scope="col" className={cn(TH, "w-28")}>ID</TableHead>
+              <TableHead scope="col" className={TH}>Title</TableHead>
+              <TableHead scope="col" className={cn(TH, "hidden lg:table-cell w-28")}>Type</TableHead>
+              <TableHead scope="col" className={cn(TH, "w-28")}>Priority</TableHead>
+              <TableHead scope="col" className={cn(TH, "hidden xl:table-cell w-28")}>Severity</TableHead>
+              <TableHead scope="col" className={cn(TH, "w-32")}>Status</TableHead>
 
-            {showActionsColumn ? (
-              <TableHead scope="col" className={cn(headPaddingClass, "text-right")}>Action</TableHead>
-            ) : null}
-            {isAdmin && showDetails ? (
-              <TableHead scope="col" className={headPaddingClass}>Assignee</TableHead>
-            ) : null}
-            {isAdmin && showDetails ? (
-              <TableHead scope="col" className={headPaddingClass}>Reporter</TableHead>
-            ) : null}
-            {showDetails ? (
-              <TableHead scope="col" className={headPaddingClass}>Reported</TableHead>
-            ) : null}
-            {showDetails ? (
-              <TableHead scope="col" className={headPaddingClass}>Created</TableHead>
-            ) : null}
-          </TableRow>
-        </TableHeader>
+              {showActionsColumn && (
+                <TableHead scope="col" className={cn(TH, "w-12 text-right")}>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              )}
+              {isAdmin && showDetails && (
+                <TableHead scope="col" className={cn(TH, "hidden md:table-cell")}>Assignee</TableHead>
+              )}
+              {isAdmin && showDetails && (
+                <TableHead scope="col" className={cn(TH, "hidden md:table-cell")}>Reporter</TableHead>
+              )}
+              {showDetails && (
+                <TableHead scope="col" className={cn(TH, "hidden lg:table-cell w-36")}>Reported</TableHead>
+              )}
+              {showDetails && (
+                <TableHead scope="col" className={cn(TH, "hidden lg:table-cell w-36")}>Created</TableHead>
+              )}
+            </TableRow>
+          </TableHeader>
 
-        <TableBody>
-          {issues.length > 0 ? (
-            issues.map((issue) => {
-              const isSelected = selectedIds.has(issue.id);
-              const canEditThisIssue = canEditIssue && (isAdmin || issue.status === "OPEN");
-              const canShowActions   = canQuickStatus || canEditThisIssue;
+          {/* ── Rows ────────────────────────────────────────────────────── */}
+          <TableBody>
+            {issues.length > 0 ? (
+              issues.map((issue) => {
+                const isSelected       = selectedIds.has(issue.id);
+                const canEditThisIssue = canEditIssue && (isAdmin || issue.status === "OPEN");
+                const canShowActions   = canQuickStatus || canEditThisIssue;
 
-              return (
-                <TableRow
-                  key={issue.id}
-                  data-state={isSelected ? "selected" : undefined}
-                  className="table-row-base"
-                >
-                  {/* Row checkbox */}
-                  {showCheckboxColumn ? (
-                    <TableCell className="w-10 py-0.5">
-                      <button
-                        type="button"
-                        onClick={() => toggleOne(issue.id)}
-                        aria-label={isSelected ? `Deselect ${issue.title}` : `Select ${issue.title}`}
-                        aria-pressed={isSelected}
-                        className={cn(
-                          "flex h-5 w-5 items-center justify-center rounded-md border transition-all",
-                          isSelected
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border/40 bg-transparent hover:border-primary/50 hover:bg-primary/5"
-                        )}
+                return (
+                  <TableRow
+                    key={issue.id}
+                    data-state={isSelected ? "selected" : undefined}
+                    className={cn(
+                      "border-b border-border/50 transition-colors",
+                      "hover:bg-muted/30 cursor-pointer",
+                      isSelected && "bg-primary/5",
+                    )}
+                  >
+                    {/* Checkbox */}
+                    {showCheckboxColumn && (
+                      <TableCell className="w-10 px-3 py-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleOne(issue.id)}
+                          aria-label={isSelected ? `Deselect ${issue.title}` : `Select ${issue.title}`}
+                          aria-pressed={isSelected}
+                          className={cn(
+                            "flex h-4 w-4 items-center justify-center rounded border transition-all",
+                            isSelected
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border/60 bg-transparent hover:border-primary/60",
+                          )}
+                        >
+                          {isSelected && <CheckSquare2 className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />}
+                        </button>
+                      </TableCell>
+                    )}
+
+                    {/* ID — neutral mono, no aggressive colour */}
+                    <TableCell className="w-28 py-3 px-4">
+                      <Link
+                        href={`/tasks/${issue.id}`}
+                        className="font-mono text-xs text-muted-foreground tabular-nums transition-colors hover:text-foreground"
+                        title={issue.id}
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        {isSelected && <CheckSquare2 className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />}
-                      </button>
+                        {issue.id.slice(0, 8).toUpperCase()}
+                      </Link>
                     </TableCell>
-                  ) : null}
 
-                  {/* Ticket ID (monospace #FJ-XXXX) */}
-                  <TableCell className="py-0.5 w-24">
-                    <Link
-                      href={`/tasks/${issue.id}`}
-                      className="font-mono text-2xs font-semibold text-primary hover:underline transition-colors tabular-nums"
-                      title={`Issue ID: ${issue.id}`}
-                    >
-                      #FJ-{issue.id.slice(0, 6).toUpperCase()}
-                    </Link>
-                  </TableCell>
+                    {/* Title */}
+                    <TableCell className="py-3 px-4">
+                      <Link
+                        href={`/tasks/${issue.id}`}
+                        className="text-sm font-medium text-foreground transition-colors hover:text-primary line-clamp-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {issue.title}
+                      </Link>
+                      {/* Collapsed badges visible only below lg */}
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1 lg:hidden">
+                        <MinimalBadge kind="status"    value={issue.status}   title={detailHintByKind.status} />
+                        <MinimalBadge kind="priority"  value={issue.priority} title={detailHintByKind.priority} />
+                        <MinimalBadge kind="type"      value={issue.type} />
+                        <MinimalBadge kind="severity"  value={issue.severity} title={detailHintByKind.severity} />
+                      </div>
+                    </TableCell>
 
-                  {/* Title */}
-                  <TableCell className="py-0.5">
-                    <Link
-                      href={`/tasks/${issue.id}`}
-                      className="text-sm font-medium text-foreground hover:text-primary transition-colors line-clamp-1"
-                    >
-                      {issue.title}
-                    </Link>
-                    <div className="mt-1 flex flex-wrap items-center gap-1 lg:hidden">
-                      <MinimalBadge kind="status" value={issue.status} title={detailHintByKind.status} />
-                      <MinimalBadge kind="priority" value={issue.priority} title={detailHintByKind.priority} />
+                    {/* Type */}
+                    <TableCell className="hidden w-28 py-3 px-4 lg:table-cell">
                       <MinimalBadge kind="type" value={issue.type} />
+                    </TableCell>
+
+                    {/* Priority — inline-editable for admins */}
+                    <TableCell className="w-28 py-3 px-4">
+                      <InlineBadgeEdit
+                        kind="priority"
+                        value={issue.priority}
+                        disabled={!canQuickStatus}
+                        isPending={pendingCells.has(`${issue.id}:priority`)}
+                        onChange={(next) => handleInlinePriority(issue.id, next)}
+                        renderBadge={(val) => (
+                          <MinimalBadge kind="priority" value={val} title={detailHintByKind.priority} />
+                        )}
+                      />
+                    </TableCell>
+
+                    {/* Severity — read-only */}
+                    <TableCell className="hidden w-28 py-3 px-4 xl:table-cell">
                       <MinimalBadge kind="severity" value={issue.severity} title={detailHintByKind.severity} />
-                    </div>
-                  </TableCell>
+                    </TableCell>
 
-                  {/* Type — minimal dot + label */}
-                  <TableCell className={cn("py-0.5", "hidden lg:table-cell")}>
-                    <MinimalBadge kind="type" value={issue.type} />
-                  </TableCell>
+                    {/* Status — inline-editable for admins */}
+                    <TableCell className="w-32 py-3 px-4">
+                      <InlineBadgeEdit
+                        kind="status"
+                        value={issue.status}
+                        disabled={!canQuickStatus}
+                        isPending={pendingCells.has(`${issue.id}:status`)}
+                        onChange={(next) => handleInlineStatus(issue.id, next)}
+                        renderBadge={(val) => (
+                          <MinimalBadge kind="status" value={val} title={detailHintByKind.status} />
+                        )}
+                      />
+                    </TableCell>
 
-                  {/* Priority — inline edit with MinimalBadge */}
-                  <TableCell className="py-0.5">
-                    <InlineBadgeEdit
-                      kind="priority"
-                      value={issue.priority}
-                      disabled={!canQuickStatus}
-                      isPending={pendingCells.has(`${issue.id}:priority`)}
-                      onChange={(next) => handleInlinePriority(issue.id, next)}
-                      renderBadge={(val) => <MinimalBadge kind="priority" value={val} title={detailHintByKind.priority} />}
-                    />
-                  </TableCell>
-
-                  {/* Severity — always read-only */}
-                  <TableCell className={cn("py-0.5", "hidden xl:table-cell")}>
-                    <MinimalBadge kind="severity" value={issue.severity} title={detailHintByKind.severity} />
-                  </TableCell>
-
-                  {/* Status — inline edit with MinimalBadge */}
-                  <TableCell className="py-0.5">
-                    <InlineBadgeEdit
-                      kind="status"
-                      value={issue.status}
-                      disabled={!canQuickStatus}
-                      isPending={pendingCells.has(`${issue.id}:status`)}
-                      onChange={(next) => handleInlineStatus(issue.id, next)}
-                      renderBadge={(val) => <MinimalBadge kind="status" value={val} title={detailHintByKind.status} />}
-                    />
-                  </TableCell>
-
-                  {/* Per-row actions */}
-                  {showActionsColumn ? (
-                    <TableCell className="py-0.5 text-right">
-                      {canShowActions ? (
-                        <div className="flex justify-end">
+                    {/* Actions */}
+                    {showActionsColumn && (
+                      <TableCell className="w-12 py-3 px-2 text-right">
+                        {canShowActions && (
                           <StatusQuickActions
                             issueId={issue.id}
                             currentStatus={issue.status}
@@ -926,78 +739,147 @@ export function IssueListClient({
                             allowEdit={canEditThisIssue}
                             onStatusChange={handleStatusChange}
                           />
+                        )}
+                      </TableCell>
+                    )}
+
+                    {/* Assignee */}
+                    {isAdmin && showDetails && (
+                      <TableCell className="hidden py-3 px-4 md:table-cell">
+                        {issue.assigneeId ? (
+                          <div className="flex min-w-0 flex-wrap items-center">
+                            <span className="truncate text-sm">{getUserLabel(issue.assigneeId, "Unknown")}</span>
+                            {getRoleChip(issue.assigneeId)}
+                          </div>
+                        ) : (
+                          <span className="text-sm italic text-muted-foreground/60">Unassigned</span>
+                        )}
+                      </TableCell>
+                    )}
+
+                    {/* Reporter */}
+                    {isAdmin && showDetails && (
+                      <TableCell className="hidden py-3 px-4 md:table-cell">
+                        <div className="flex min-w-0 flex-wrap items-center">
+                          <span className="truncate text-sm">{getUserLabel(issue.createdBy, "Unknown")}</span>
+                          {getRoleChip(issue.createdBy)}
                         </div>
-                      ) : null}
-                    </TableCell>
-                  ) : null}
+                      </TableCell>
+                    )}
 
-                  {/* Assignee */}
-                  {isAdmin && showDetails ? (
-                    <TableCell className="py-0.5">
-                      {issue.assigneeId ? (
-                        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                          <span className="break-words text-sm">{getUserLabel(issue.assigneeId, "Unknown")}</span>
-                          {getRoleChip(issue.assigneeId)}
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">Unassigned</span>
-                      )}
-                    </TableCell>
-                  ) : null}
+                    {/* Reported date */}
+                    {showDetails && (
+                      <TableCell className="hidden w-36 py-3 px-4 lg:table-cell">
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {issue.reportedAt ? formatDate(issue.reportedAt) : "—"}
+                        </span>
+                      </TableCell>
+                    )}
 
-                  {/* Reporter */}
-                  {isAdmin && showDetails ? (
-                    <TableCell className="py-0.5">
-                      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                        <span className="break-words text-sm">{getUserLabel(issue.createdBy, "Unknown")}</span>
-                        {getRoleChip(issue.createdBy)}
-                      </div>
-                    </TableCell>
-                  ) : null}
+                    {/* Created date */}
+                    {showDetails && (
+                      <TableCell className="hidden w-36 py-3 px-4 lg:table-cell">
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {formatDate(issue.createdAt)}
+                        </span>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={tableColumnCount} className="py-16 text-center">
+                  <div className="mx-auto max-w-xs space-y-1">
+                    <p className="text-sm font-medium text-foreground">No issues match this view</p>
+                    <p className="text-xs text-muted-foreground">
+                      Clear the filters or create a new issue to get started.
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
 
-                  {showDetails ? (
-                    <TableCell className="py-0.5 text-sm text-muted-foreground">
-                      {issue.reportedAt ? formatDate(issue.reportedAt) : "—"}
-                    </TableCell>
-                  ) : null}
+        {/* ── Pagination footer ────────────────────────────────────────── */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 bg-muted/20 px-4 py-2.5">
+          {/* Left: count summary */}
+          <p className="text-xs text-muted-foreground">
+            {filteredTotal === 0 ? (
+              "No issues"
+            ) : (
+              <>
+                Showing{" "}
+                <span className="font-medium text-foreground tabular-nums">
+                  {showingFrom}–{showingTo}
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-foreground tabular-nums">
+                  {filteredTotal}
+                </span>{" "}
+                issue{filteredTotal !== 1 ? "s" : ""}
+                {filteredTotal < totalVisible && (
+                  <span className="ml-1 text-muted-foreground/70">
+                    (filtered from {totalVisible})
+                  </span>
+                )}
+                {selectedIds.size > 0 && (
+                  <span className="ml-2 font-medium text-primary">
+                    · {selectedIds.size} selected
+                  </span>
+                )}
+              </>
+            )}
+          </p>
 
-                  {showDetails ? (
-                    <TableCell className="py-0.5 text-sm text-muted-foreground">
-                      {formatDate(issue.createdAt)}
-                    </TableCell>
-                  ) : null}
-                </TableRow>
-              );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={tableColumnCount} className="py-10">
-                <div className="mx-auto max-w-md rounded-xl border border-dashed border-border/70 bg-background/80 px-4 py-5 text-center">
-                  <p className="text-sm font-medium text-foreground">No issues match this view</p>
-                  <p className="mt-1 text-sm text-muted-foreground">Clear filters or create a new issue to get started.</p>
-                </div>
-              </TableCell>
-            </TableRow>
+          {/* Right: pagination controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1 px-2 text-xs"
+                disabled={currentPage <= 1}
+              >
+                <Link
+                  href={currentPage > 1 ? `?page=${currentPage - 1}` : "#"}
+                  aria-disabled={currentPage <= 1}
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                  Prev
+                </Link>
+              </Button>
+
+              <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                {currentPage} / {totalPages}
+              </span>
+
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1 px-2 text-xs"
+                disabled={currentPage >= totalPages}
+              >
+                <Link
+                  href={currentPage < totalPages ? `?page=${currentPage + 1}` : "#"}
+                  aria-disabled={currentPage >= totalPages}
+                  aria-label="Next page"
+                >
+                  Next
+                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </Button>
+            </div>
           )}
-        </TableBody>
-
-        <tfoot>
-          <TableRow className="bg-muted/30 hover:bg-muted/30">
-            <TableCell colSpan={tableColumnCount} className="py-1.5 text-xs text-muted-foreground">
-              <div className="flex items-center justify-between px-[var(--table-cell-px)]">
-                <span className="text-[11px]">
-                  Total {totalVisible} &middot; Filtered {filteredTotal}
-                  {selectedIds.size > 0 ? ` · ${selectedIds.size} selected` : ""}
-                </span>
-                <span>Page {currentPage} / {totalPages}</span>
-              </div>
-            </TableCell>
-          </TableRow>
-        </tfoot>
-      </Table>
+        </div>
+      </div>
 
       {/* Floating bulk action bar */}
-      {selectedIds.size > 0 ? (
+      {selectedIds.size > 0 && (
         <BulkActionBar
           selectedCount={selectedIds.size}
           onClear={() => setSelectedIds(new Set())}
@@ -1006,7 +888,7 @@ export function IssueListClient({
           onBatchDelete={handleBatchDelete}
           isPending={isPending}
         />
-      ) : null}
+      )}
 
       {/* Quick-create slide-over drawer */}
       <QuickCreateDrawer

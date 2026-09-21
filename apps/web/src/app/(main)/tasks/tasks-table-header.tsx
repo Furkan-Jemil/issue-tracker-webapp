@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -56,12 +57,18 @@ export function IssuesToolbar({
   }
 
   return (
-    <div className="grid gap-2 border-b border-border/60 bg-muted/20 py-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-      <SearchInput
-        placeholder="Search issues (type at least 2 letters)"
-        className="w-full max-w-sm"
-      />
-      <div className="flex items-center gap-1.5 md:justify-self-end">
+    <div className="flex flex-wrap items-center gap-2">
+      {/* Search — grows to fill available space */}
+      <div className="flex-1 min-w-[160px] max-w-sm">
+        <SearchInput
+          placeholder="Filter by title, ID, or keyword…"
+          className="w-full"
+        />
+      </div>
+
+      {/* Right-side controls — baseline-aligned */}
+      <div className="flex items-center gap-1.5 ml-auto">
+        {/* Filter popover */}
         <IssuesFilterPopover
           view={view}
           isAdmin={isAdmin}
@@ -79,13 +86,25 @@ export function IssuesToolbar({
           onSubmitHref={onSubmitHref}
           onResetHref={onResetHref}
         />
+
+        {/* Create issue */}
         {onTasksPage ? (
-          <Button type="button" size="sm" onClick={handleCreateClick}>
+          <Button
+            type="button"
+            size="sm"
+            variant="default"
+            className="gap-1.5"
+            onClick={handleCreateClick}
+          >
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
             Create issue
           </Button>
         ) : (
-          <Button asChild size="sm">
-            <Link href="/tasks/new">Create issue</Link>
+          <Button asChild size="sm" variant="default" className="gap-1.5">
+            <Link href="/tasks/new">
+              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+              Create issue
+            </Link>
           </Button>
         )}
       </div>
