@@ -378,98 +378,110 @@ export default function DashboardCharts() {
     },
   }), [uiColors]);
 
+  // ── Trending % helper ────────────────────────────────────────────────────
+  // Compares the last two equal halves of the trend data to produce a simple
+  // "trending up/down X%" label shown at the bottom of each chart card.
+  const trendingPct = useMemo(() => {
+    if (timelinePoints.length < 2) return null;
+    const mid = Math.floor(timelinePoints.length / 2);
+    const prev = timelinePoints.slice(0, mid).reduce((s, p) => s + p.open + p.inProgress, 0);
+    const curr = timelinePoints.slice(mid).reduce((s, p) => s + p.open + p.inProgress, 0);
+    if (prev === 0) return curr > 0 ? 100 : null;
+    return Math.round(((curr - prev) / prev) * 100);
+  }, [timelinePoints]);
+
+  const trendLabel = useMemo(() => {
+    if (trendingPct === null) return null;
+    if (trendingPct === 0) return "No change this month";
+    const dir = trendingPct > 0 ? "up" : "down";
+    return `Trending ${dir} ${Math.abs(trendingPct)}% this month`;
+  }, [trendingPct]);
+
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <section className="space-y-3">
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-foreground/90">Analytics</h2>
-        <span className="text-xs text-muted-foreground">Chart.js · filtered</span>
-      </div>
+    <section className="space-y-4">
+      {/* ── Compact filter toolbar ─────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Search */}
+        <div className="relative w-full max-w-[260px]">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Filter issues…"
+            aria-label="Search dashboard issues"
+            className="h-8 rounded-md pl-8 pr-7 text-xs"
+          />
+          {searchInput ? (
+            <Button type="button" variant="ghost" size="icon"
+              onClick={() => { setSearchInput(""); setSearchQuery(""); }}
+              aria-label="Clear search"
+              className="absolute right-0.5 top-1/2 h-6 w-6 -translate-y-1/2 rounded-md">
+              <X className="h-3.5 w-3.5" aria-hidden="true" />
+            </Button>
+          ) : null}
+        </div>
 
-      {/* ── Filter toolbar ─────────────────────────────────────────────── */}
-      <div className="rounded-xl bg-muted/20 p-2">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Search */}
-          <div className="relative w-full max-w-[290px]">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <Input
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search issues (≥ 2 chars)"
-              aria-label="Search dashboard issues"
-              className="h-8 rounded-md pl-8 pr-7 text-xs"
-            />
-            {searchInput ? (
-              <Button type="button" variant="ghost" size="icon"
-                onClick={() => { setSearchInput(""); setSearchQuery(""); }}
-                aria-label="Clear search"
-                className="absolute right-0.5 top-1/2 h-6 w-6 -translate-y-1/2 rounded-md">
-                <X className="h-3.5 w-3.5" aria-hidden="true" />
-              </Button>
+        <div className="ml-auto flex items-center gap-1.5">
+          {/* Filters popover */}
+          <div ref={filtersPanelRef} className="relative">
+            <Button type="button" variant="outline" size="sm"
+              className="relative h-8 w-8 rounded-md p-0"
+              aria-label="Toggle analytics filters"
+              aria-expanded={filtersOpen}
+              onClick={() => filtersOpen ? setIsOpen(false) : (setField("status", statusFilter), setField("priority", priorityFilter), setField("severity", severityFilter), setIsOpen(true))}>
+              <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+              {hasActiveFilters ? (
+                <span aria-hidden="true"
+                  className="absolute -right-1 -top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                  {activeFilterCount}
+                </span>
+              ) : null}
+            </Button>
+
+            {filtersOpen ? (
+              <Card className="popover-surface absolute right-0 top-9 z-30 w-[min(88vw,220px)] bg-card shadow-lg">
+                <CardContent className="space-y-1.5 p-2">
+                  <Select value={drafts.status ?? ""} onValueChange={(v) => setField("status", v)} className="h-8 text-xs">
+                    <option value="">All statuses</option>
+                    <option value="OPEN">Open</option>
+                    <option value="IN_PROGRESS">In progress</option>
+                    <option value="RESOLVED">Resolved</option>
+                    <option value="CLOSED">Closed</option>
+                  </Select>
+                  <Select value={drafts.priority ?? ""} onValueChange={(v) => setField("priority", v)} className="h-8 text-xs">
+                    <option value="">All priorities</option>
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                  </Select>
+                  <Select value={drafts.severity ?? ""} onValueChange={(v) => setField("severity", v)} className="h-8 text-xs">
+                    <option value="">All severities</option>
+                    <option value="MINOR">Minor</option>
+                    <option value="MAJOR">Major</option>
+                    <option value="CRITICAL">Critical</option>
+                  </Select>
+                  <div className="flex items-center justify-end gap-1.5 pt-0.5">
+                    <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled={!hasDraftFilters} onClick={() => clear()}>Clear</Button>
+                    <Button type="button" size="dense" className="h-7 px-2 text-xs" disabled={!hasPendingChanges} onClick={() => apply()}>Apply</Button>
+                  </div>
+                </CardContent>
+              </Card>
             ) : null}
           </div>
 
-          <div className="ml-auto flex items-center gap-1.5">
-            {/* Filters popover */}
-            <div ref={filtersPanelRef} className="relative">
-              <Button type="button" variant="outline" size="sm"
-                className="relative h-8 w-8 rounded-md p-0"
-                aria-label="Toggle analytics filters"
-                aria-expanded={filtersOpen}
-                onClick={() => filtersOpen ? setIsOpen(false) : (setField("status", statusFilter), setField("priority", priorityFilter), setField("severity", severityFilter), setIsOpen(true))}>
-                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-                {hasActiveFilters ? (
-                  <span aria-hidden="true"
-                    className="absolute -right-1 -top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                    {activeFilterCount}
-                  </span>
-                ) : null}
-              </Button>
-
-              {filtersOpen ? (
-                <Card className="popover-surface absolute right-0 top-9 z-30 w-[min(88vw,220px)] bg-card shadow-lg">
-                  <CardContent className="space-y-1.5 p-2">
-                    <Select value={drafts.status ?? ""} onValueChange={(v) => setField("status", v)} className="h-8 text-xs">
-                      <option value="">All statuses</option>
-                      <option value="OPEN">Open</option>
-                      <option value="IN_PROGRESS">In progress</option>
-                      <option value="RESOLVED">Resolved</option>
-                      <option value="CLOSED">Closed</option>
-                    </Select>
-                    <Select value={drafts.priority ?? ""} onValueChange={(v) => setField("priority", v)} className="h-8 text-xs">
-                      <option value="">All priorities</option>
-                      <option value="LOW">Low</option>
-                      <option value="MEDIUM">Medium</option>
-                      <option value="HIGH">High</option>
-                    </Select>
-                    <Select value={drafts.severity ?? ""} onValueChange={(v) => setField("severity", v)} className="h-8 text-xs">
-                      <option value="">All severities</option>
-                      <option value="MINOR">Minor</option>
-                      <option value="MAJOR">Major</option>
-                      <option value="CRITICAL">Critical</option>
-                    </Select>
-                    <div className="flex items-center justify-end gap-1.5 pt-0.5">
-                      <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled={!hasDraftFilters} onClick={() => clear()}>Clear</Button>
-                      <Button type="button" size="dense" className="h-7 px-2 text-xs" disabled={!hasPendingChanges} onClick={() => apply()}>Apply</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : null}
-            </div>
-
-            {/* Time range */}
-            <Select value={timeRange} onValueChange={setTimeRange} className="h-8 w-[120px] text-xs">
-              <option value="7d">7 days</option>
-              <option value="30d">30 days</option>
-              <option value="90d">90 days</option>
-              <option value="365d">1 year</option>
-            </Select>
-          </div>
+          {/* Time range */}
+          <Select value={timeRange} onValueChange={setTimeRange} className="h-8 w-[120px] text-xs">
+            <option value="7d">7 days</option>
+            <option value="30d">30 days</option>
+            <option value="90d">90 days</option>
+            <option value="365d">1 year</option>
+          </Select>
         </div>
       </div>
 
-      {/* ── Error state ───────────────────────────────────────────────────── */}
+      {/* ── Error state ────────────────────────────────────────────────── */}
       {fetchError ? (
         <Card>
           <CardContent className="p-4 text-sm text-destructive" role="alert">
@@ -478,57 +490,171 @@ export default function DashboardCharts() {
         </Card>
       ) : null}
 
-      {/* ── Loading skeleton ─────────────────────────────────────────────── */}
+      {/* ── Loading skeleton ──────────────────────────────────────────── */}
       {loading ? (
-        <div className="space-y-2" aria-busy="true" aria-label="Loading charts">
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-            <Skeleton className="h-[280px] w-full rounded-xl" />
-            <Skeleton className="h-[280px] w-full rounded-xl" />
-            <Skeleton className="h-[280px] w-full rounded-xl" />
-          </div>
-          <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
-            <Skeleton className="h-[280px] w-full rounded-xl" />
-            <Skeleton className="h-[280px] w-full rounded-xl" />
+        <div className="space-y-3" aria-busy="true" aria-label="Loading charts">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <Skeleton className="h-[300px] w-full rounded-xl" />
+            <Skeleton className="h-[300px] w-full rounded-xl" />
           </div>
           <Skeleton className="h-[280px] w-full rounded-xl" />
         </div>
       ) : (
         <>
-          {/* ── Doughnut charts row (Status, Priority, Severity) ───────── */}
-          {(hasStatusData || hasPriorityData || hasSeverityData) ? (
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-              {hasStatusData ? (
-                <Card className="glass-card min-w-0">
-                  <CardHeader className="pb-2.5">
-                    <CardTitle className="text-base font-semibold">Status mix</CardTitle>
-                    <CardDescription className="text-xs">Issue distribution by workflow state.</CardDescription>
+          {/* ── No data at all ───────────────────────────────────────── */}
+          {!hasStatusData && !hasComparisonData && !hasTrendData ? null : (
+            <div className="space-y-3">
+
+              {/* ── Row 1: Status Mix (left) + Monthly Comparison (right) ── */}
+              {(hasStatusData || hasComparisonData) ? (
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+
+                  {/* Status Mix — doughnut */}
+                  {hasStatusData ? (
+                    <Card className="overflow-hidden border-border/70 bg-card shadow-sm">
+                      <CardHeader className="border-b border-border/50 px-5 py-4">
+                        <CardTitle className="text-sm font-semibold text-foreground">
+                          Status Mix
+                        </CardTitle>
+                        <CardDescription className="text-xs text-muted-foreground">
+                          Current issue distribution by workflow state.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex flex-col items-center px-5 py-4">
+                        <div className="h-[200px] w-full max-w-[220px]">
+                          <Doughnut
+                            key={`status-${themeMode}`}
+                            data={statusDataset}
+                            options={{
+                              responsive: true, maintainAspectRatio: false,
+                              animation: { duration: 220, easing: "easeOutCubic" },
+                              cutout: "70%",
+                              onClick: (_e, els) => {
+                                if (!els.length) return;
+                                const lbl = statusDataset.labels[els[0].index];
+                                const map: Record<string, string> = { Open: "OPEN", "In Progress": "IN_PROGRESS", Resolved: "RESOLVED", Closed: "CLOSED" };
+                                goToIssues({ status: map[lbl] });
+                              },
+                              plugins: {
+                                legend: {
+                                  position: "bottom" as const,
+                                  labels: { usePointStyle: true, pointStyle: "circle" as const, boxWidth: 8, boxHeight: 8, padding: 12, font: { size: 11 }, color: uiColors.legendText },
+                                },
+                                tooltip: tooltipBase,
+                              },
+                            }}
+                          />
+                        </div>
+                        {trendLabel && (
+                          <div className="mt-4 border-t border-border/40 pt-3 text-center w-full">
+                            <p className="text-xs font-medium text-foreground">
+                              {trendLabel}
+                            </p>
+                            <p className="mt-0.5 text-[11px] text-muted-foreground">
+                              Showing total status distribution for the selected range.
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ) : null}
+
+                  {/* Monthly Comparison — grouped bar */}
+                  {hasComparisonData ? (
+                    <Card className="overflow-hidden border-border/70 bg-card shadow-sm">
+                      <CardHeader className="border-b border-border/50 px-5 py-4">
+                        <CardTitle className="text-sm font-semibold text-foreground">
+                          Monthly Comparison
+                        </CardTitle>
+                        <CardDescription className="text-xs text-muted-foreground">
+                          Open versus closed issue volume by grouped date buckets.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="px-5 py-4">
+                        <div className="h-[200px] w-full">
+                          <Bar
+                            key={`comparison-${themeMode}`}
+                            data={comparisonDataset}
+                            options={{
+                              responsive: true, maintainAspectRatio: false,
+                              animation: { duration: 220, easing: "easeOutCubic" },
+                              onClick: (_e, els) => {
+                                if (!els.length) return;
+                                const { datasetIndex, index } = els[0];
+                                const b = buckets[index];
+                                if (!b) return;
+                                goToIssues({ status: datasetIndex === 0 ? "OPEN" : "CLOSED", createdFrom: b.startDate, createdTo: b.endDate });
+                              },
+                              plugins: {
+                                legend: {
+                                  position: "bottom" as const,
+                                  labels: { usePointStyle: true, pointStyle: "rectRounded" as const, boxWidth: 10, boxHeight: 10, padding: 12, font: { size: 11 }, color: uiColors.legendText },
+                                },
+                                tooltip: tooltipBase,
+                              },
+                              scales: {
+                                x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6, font: { size: 11 }, color: uiColors.axisText }, border: { display: false } },
+                                y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 }, color: uiColors.axisText }, grid: { color: uiColors.grid }, border: { display: false } },
+                              },
+                            }}
+                          />
+                        </div>
+                        {trendLabel && (
+                          <div className="mt-3 border-t border-border/40 pt-3">
+                            <p className="text-xs font-medium text-foreground">
+                              {trendLabel}
+                            </p>
+                            <p className="mt-0.5 text-[11px] text-muted-foreground">
+                              Showing grouped issue throughput for the last {buckets.length} intervals.
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {/* ── Row 2: Issue Trend — full width line chart ──────────── */}
+              {hasTrendData ? (
+                <Card className="overflow-hidden border-border/70 bg-card shadow-sm">
+                  <CardHeader className="border-b border-border/50 px-5 py-4">
+                    <CardTitle className="text-sm font-semibold text-foreground">
+                      Issue Trend
+                    </CardTitle>
+                    <CardDescription className="text-xs text-muted-foreground">
+                      Open and in-progress issues across the selected range.
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="p-2.5">
-                    <div className="mx-auto h-[190px] w-full max-w-[220px] lg:h-[210px] lg:max-w-[240px]">
-                      <Doughnut
-                        key={`status-${themeMode}`}
-                        data={statusDataset}
+                  <CardContent className="px-5 py-4">
+                    <div className="h-[220px] w-full">
+                      <Line
+                        key={`trend-${themeMode}`}
+                        data={trendDataset}
                         options={{
                           responsive: true, maintainAspectRatio: false,
                           animation: { duration: 220, easing: "easeOutCubic" },
-                          cutout: "72%", rotation: -90,
+                          interaction: { mode: "index", intersect: false },
                           onClick: (_e, els) => {
                             if (!els.length) return;
-                            const lbl = statusDataset.labels[els[0].index];
-                            const map: Record<string, string> = { Open: "OPEN", "In Progress": "IN_PROGRESS", Resolved: "RESOLVED", Closed: "CLOSED" };
-                            goToIssues({ status: map[lbl] });
+                            const { datasetIndex, index } = els[0];
+                            const ds = trendDataset.datasets[datasetIndex];
+                            const status = ds?.label === "Open" ? "OPEN" : ds?.label === "In Progress" ? "IN_PROGRESS" : undefined;
+                            const pt = timelinePoints[index];
+                            goToIssues({ status, createdFrom: pt?.date ?? null, createdTo: pt?.date ?? null });
                           },
-                          plugins: { 
+                          plugins: {
                             legend: {
-                              ...legendBase,
-                              labels: {
-                                ...legendBase.labels,
-                                pointStyle: "circle" as const,
-                                usePointStyle: true,
-                              },
+                              position: "bottom" as const,
+                              labels: { usePointStyle: true, pointStyle: "rectRounded" as const, boxWidth: 10, boxHeight: 10, padding: 14, font: { size: 11 }, color: uiColors.legendText },
                             },
-                            tooltip: tooltipBase 
+                            tooltip: { ...tooltipBase, displayColors: true },
                           },
+                          scales: {
+                            y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 }, color: uiColors.axisText }, grid: { color: uiColors.grid }, border: { display: false } },
+                            x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8, font: { size: 11 }, color: uiColors.axisText }, border: { display: false } },
+                          },
+                          elements: { line: { borderCapStyle: "round", borderJoinStyle: "round" }, point: { radius: 0, hoverRadius: 4 } },
                         }}
                       />
                     </div>
@@ -536,164 +662,8 @@ export default function DashboardCharts() {
                 </Card>
               ) : null}
 
-              {hasPriorityData ? (
-                <Card className="glass-card min-w-0">
-                  <CardHeader className="pb-2.5">
-                    <CardTitle className="text-base font-semibold">Priority distribution</CardTitle>
-                    <CardDescription className="text-xs">Issue breakdown by priority level.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-2.5">
-                    <div className="mx-auto h-[190px] w-full max-w-[220px] lg:h-[210px] lg:max-w-[240px]">
-                      <Doughnut
-                        key={`priority-${themeMode}`}
-                        data={priorityDataset}
-                        options={{
-                          responsive: true, maintainAspectRatio: false,
-                          animation: { duration: 220, easing: "easeOutCubic" },
-                          cutout: "72%", rotation: -90,
-                          onClick: (_e, els) => {
-                            if (!els.length) return;
-                            const lbl = priorityDataset.labels[els[0].index];
-                            const map: Record<string, string> = { Low: "LOW", Medium: "MEDIUM", High: "HIGH" };
-                            goToIssues({ priority: map[lbl] });
-                          },
-                          plugins: { 
-                            legend: {
-                              ...legendBase,
-                              labels: {
-                                ...legendBase.labels,
-                                pointStyle: "circle" as const,
-                                usePointStyle: true,
-                              },
-                            },
-                            tooltip: tooltipBase 
-                          },
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : null}
-
-              {hasSeverityData ? (
-                <Card className="glass-card min-w-0">
-                  <CardHeader className="pb-2.5">
-                    <CardTitle className="text-base font-semibold">Severity distribution</CardTitle>
-                    <CardDescription className="text-xs">Issue breakdown by severity level.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-2.5">
-                    <div className="mx-auto h-[190px] w-full max-w-[220px] lg:h-[210px] lg:max-w-[240px]">
-                      <Doughnut
-                        key={`severity-${themeMode}`}
-                        data={severityDataset}
-                        options={{
-                          responsive: true, maintainAspectRatio: false,
-                          animation: { duration: 220, easing: "easeOutCubic" },
-                          cutout: "72%", rotation: -90,
-                          onClick: (_e, els) => {
-                            if (!els.length) return;
-                            const lbl = severityDataset.labels[els[0].index];
-                            const map: Record<string, string> = { Minor: "MINOR", Major: "MAJOR", Critical: "CRITICAL" };
-                            goToIssues({ severity: map[lbl] });
-                          },
-                          plugins: { 
-                            legend: {
-                              ...legendBase,
-                              labels: {
-                                ...legendBase.labels,
-                                pointStyle: "circle" as const,
-                                usePointStyle: true,
-                              },
-                            },
-                            tooltip: tooltipBase 
-                          },
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : null}
             </div>
-          ) : null}
-
-          {/* ── Bar comparison row ──────────────────────────────────────── */}
-          {hasComparisonData ? (
-            <Card className="glass-card min-w-0">
-              <CardHeader className="pb-2.5">
-                <CardTitle className="text-base font-semibold">Open vs closed</CardTitle>
-                <CardDescription className="text-xs">Issue throughput by grouped date buckets.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-2.5">
-                <div className="h-[190px] w-full lg:h-[210px]">
-                  <Bar
-                    key={`comparison-${themeMode}`}
-                    data={comparisonDataset}
-                    options={{
-                      responsive: true, maintainAspectRatio: false,
-                      animation: { duration: 220, easing: "easeOutCubic" },
-                      onClick: (_e, els) => {
-                        if (!els.length) return;
-                        const { datasetIndex, index } = els[0];
-                        const b = buckets[index];
-                        if (!b) return;
-                        goToIssues({ status: datasetIndex === 0 ? "OPEN" : "CLOSED", createdFrom: b.startDate, createdTo: b.endDate });
-                      },
-                      plugins: { legend: legendBase, tooltip: tooltipBase },
-                      scales: {
-                        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6, font: { size: 11 }, color: uiColors.axisText }, border: { display: false } },
-                        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 }, color: uiColors.axisText }, grid: { color: uiColors.grid }, border: { display: false } },
-                      },
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {/* ── Trend line ────────────────────────────────────────────────── */}
-          {hasTrendData ? (
-            <Card className="glass-card min-w-0">
-              <CardHeader className="pb-2.5">
-                <CardTitle className="text-base font-semibold">Issue trend</CardTitle>
-                <CardDescription className="text-xs">Open and in-progress issues across the selected range.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-2.5">
-                <div className="h-[210px] w-full lg:h-[230px]">
-                  <Line
-                    key={`trend-${themeMode}`}
-                    data={trendDataset}
-                    options={{
-                      responsive: true, maintainAspectRatio: false,
-                      animation: { duration: 220, easing: "easeOutCubic" },
-                      interaction: { mode: "index", intersect: false },
-                      onClick: (_e, els) => {
-                        if (!els.length) return;
-                        const { datasetIndex, index } = els[0];
-                        const ds = trendDataset.datasets[datasetIndex];
-                        const status = ds?.label === "Open" ? "OPEN" : ds?.label === "In Progress" ? "IN_PROGRESS" : undefined;
-                        const pt = timelinePoints[index];
-                        goToIssues({ status, createdFrom: pt?.date ?? null, createdTo: pt?.date ?? null });
-                      },
-                      plugins: { legend: legendBase, tooltip: { ...tooltipBase, displayColors: true } },
-                      scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 }, color: uiColors.axisText }, grid: { color: uiColors.grid }, border: { display: false } },
-                        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8, font: { size: 11 }, color: uiColors.axisText }, border: { display: false } },
-                      },
-                      elements: { line: { borderCapStyle: "round", borderJoinStyle: "round" }, point: { radius: 0, hoverRadius: 4 } },
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {!hasStatusData && !hasPriorityData && !hasSeverityData && !hasComparisonData && !hasTrendData ? (
-            <Card>
-              <CardContent className="p-6 text-center text-sm text-muted-foreground">
-                No analytics data for the selected filters and time range.
-              </CardContent>
-            </Card>
-          ) : null}
+          )}
         </>
       )}
     </section>
