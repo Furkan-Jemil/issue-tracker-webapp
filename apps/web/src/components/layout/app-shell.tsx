@@ -230,8 +230,15 @@ function AppShellInner({
             href="/tasks"
             className="flex min-w-0 items-center gap-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary">
-              <Ticket className="h-5 w-5" strokeWidth={2} aria-hidden />
+            {/* FJ logo — drop logo.png into apps/web/public/ to activate */}
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg overflow-hidden">
+              <img
+                src="/logo.png"
+                alt="Furkan J. Tracker logo"
+                width={36}
+                height={36}
+                className="h-9 w-9 rounded-lg object-cover"
+              />
             </span>
             <span
               className={cn(
