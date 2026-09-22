@@ -34,9 +34,9 @@ export const metadata = {
   description: "High-velocity issue tracking and team collaboration platform by Furkan J. Systems",
   keywords: ["issue tracker", "bug tracking", "project management", "furkan j", "fj tracker"],
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
-    shortcut: "/logo.png",
+    icon: "/logo.svg",
+    apple: "/logo.svg",
+    shortcut: "/logo.svg",
   },
 };
 
