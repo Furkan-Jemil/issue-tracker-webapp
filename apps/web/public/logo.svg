@@ -1,33 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
   <!-- Navy rounded-square background -->
-  <rect width="100" height="100" rx="22" ry="22" fill="#1E3A5F"/>
+  <rect width="100" height="100" rx="21" ry="21" fill="#1A3560"/>
 
-  <!-- Blue circle ring (open at bottom-right for checkmark) -->
-  <!-- Full circle stroke, then a white arc to "break" it at 5 o'clock position -->
-  <circle cx="50" cy="47" r="32" fill="none" stroke="#4A90D9" stroke-width="4"
-    stroke-dasharray="170 31"
-    stroke-dashoffset="0"
-    stroke-linecap="round"
-    transform="rotate(-90 50 47)"/>
+  <!-- Circle ring with gap at bottom-right (~5 o'clock)
+       r=33, circumference≈207, arc=176, gap=31
+       rotate(-45) starts dasharray at bottom-right (45° from SVG 0°) -->
+  <circle cx="50" cy="50" r="33" fill="none" stroke="#5BA3F5"
+    stroke-width="4.5" stroke-linecap="round"
+    stroke-dasharray="176 31"
+    transform="rotate(-45 50 50)"/>
 
-  <!-- Checkmark at bottom-right of circle (5 o'clock) -->
-  <polyline
-    points="63,74 67,79 75,69"
-    fill="none"
-    stroke="#4A90D9"
-    stroke-width="4.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"/>
+  <!-- Double checkmark in the gap at bottom-right -->
+  <g stroke="#5BA3F5" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <polyline points="60,74 64,79 72,68"/>
+    <polyline points="66,74 70,79 78,68"/>
+  </g>
 
-  <!-- Bold white "FJ" text -->
-  <text
-    x="50"
-    y="58"
-    text-anchor="middle"
-    dominant-baseline="auto"
-    font-family="'Arial Black', 'Arial', sans-serif"
-    font-weight="900"
-    font-size="34"
-    letter-spacing="-1"
-    fill="white">FJ</text>
+  <!-- Bold white FJ -->
+  <text x="50" y="57" text-anchor="middle" dominant-baseline="auto"
+    font-family="Arial Black, Helvetica Neue, Arial, sans-serif"
+    font-weight="900" font-size="34" letter-spacing="-1" fill="white">FJ</text>
 </svg>
