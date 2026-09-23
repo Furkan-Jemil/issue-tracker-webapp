@@ -1,18 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
   <!-- Navy squircle -->
-  <rect width="100" height="100" rx="20" ry="20" fill="#1A3560"/>
+  <rect width="100" height="100" rx="22" ry="22" fill="#1C3A5E"/>
 
-  <!-- Large circle arc ~300° clockwise, start top (50,10), end bottom-right (76.87,74.87) -->
-  <path d="M 50,10 A 38,38 0 1 1 76.87,74.87"
-    fill="none" stroke="#5BA3F5" stroke-width="4" stroke-linecap="round"/>
+  <!-- Circle ring ~305°: start 7 o'clock (31.5,78), end 4:30 o'clock (76.2,72.2) -->
+  <path d="M 31.5,78 A 37,37 0 1 1 76.2,72.2"
+    fill="none" stroke="#5BA3F5" stroke-width="4.2" stroke-linecap="round"/>
 
-  <!-- Checkmark at ring endpoint -->
-  <polyline points="76.87,74.87 68.87,81.87 80.87,68.87"
-    fill="none" stroke="#5BA3F5" stroke-width="4"
-    stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Double checkmark below ring end -->
+  <g stroke="#5BA3F5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <polyline points="63,77 68,83 79,68"/>
+    <polyline points="70,77 75,83 86,68"/>
+  </g>
 
   <!-- Bold white FJ -->
   <text x="50" y="56" text-anchor="middle" dominant-baseline="auto"
     font-family="Arial Black, Helvetica Neue, Arial, sans-serif"
-    font-weight="900" font-size="32" letter-spacing="-1" fill="white">FJ</text>
+    font-weight="900" font-size="33" letter-spacing="-1" fill="white">FJ</text>
 </svg>

@@ -1,65 +1,46 @@
 /**
- * FJLogo — pixel-accurate recreation of the FJ Tracker app icon.
+ * FJLogo — inline SVG, precisely matches the reference image.
  *
- * Geometry (100×100 viewBox):
- *   - Navy squircle background
- *   - Large circle ring (r=38) centred at (50,48), almost complete.
- *     Ring travels ~300° clockwise from top-left, ending at ~5 o'clock
- *     (bottom-right). The gap is ~60° wide starting at ~300° from 12 o'clock.
- *   - Single checkmark (✓) whose left leg starts exactly where the ring ends
- *     and whose right leg points up-right — so the mark looks like it IS
- *     the terminal stroke of the ring curving into a tick.
- *   - Bold white "FJ" centered inside the circle.
+ * Geometry on 100×100 viewBox:
  *
- * Circle ring endpoint calculation:
- *   Centre (50,48), r=38.
- *   Ring ends at ~300° from 12 o'clock (clockwise) = 210° in SVG angle convention
- *   (SVG 0° = 3 o'clock; 12 o'clock = -90° = 270°).
- *   300° from 12 o'clock CW = 300 - 90 = 210° in standard SVG.
- *   x = 50 + 38·cos(210°) = 50 + 38·(-0.866) = 50 - 32.9 = 17.1  ← that's left side
+ * BACKGROUND
+ *   Navy squircle, rx=22
  *
- *   Let's use a cleaner approach: the ring visually ends at bottom-right.
- *   Bottom-right on a circle at (50,48) r=38:
- *   Angle 135° from 12 o'clock CW → SVG angle = 135-90 = 45°
- *   x = 50 + 38·cos(45°) = 50 + 26.9 = 76.9
- *   y = 48 + 38·sin(45°) = 48 + 26.9 = 74.9
- *   So ring ends near (77, 75).
+ * CIRCLE RING
+ *   Centre (50, 46), radius 37.
+ *   Ring is ~305° of arc — gap is at bottom-right (~4:30–5:00 o'clock).
+ *   Drawn as a <path> arc so start/end coords are exact.
+ *   Start: just left-of-bottom (about 7 o'clock = 210° from top CW)
+ *     → angle from SVG 0° = 210-90 = 120° → x=50+37cos120=50-18.5=31.5  y=46+37sin120=46+32=78
+ *   End: bottom-right (about 4:30 o'clock = 135° from top CW)
+ *     → angle from SVG 0° = 135-90 = 45° → x=50+37cos45=76.2  y=46+37sin45=72.2
+ *   large-arc-flag=1 (arc > 180°), sweep-flag=1 (clockwise)
  *
- *   Using stroke-dasharray on <path> arc for precise control:
- *   Draw arc from top (50,10) clockwise ending at (77,75) — that's ~300° arc.
- *   Then checkmark starts at (77,75).
+ * CHECKMARK
+ *   Sits just below the ring end-point (76.2, 72.2).
+ *   Wide flat double-tick shape, similar to ✓✓ but compact.
+ *   Left leg:  (66, 76) → (70, 81)
+ *   Right leg: (70, 81) → (80, 69)   ← this makes a single ✓
+ *   Then a second tick offset +5x:
+ *   (71, 76) → (75, 81) → (85, 69)
+ *   Together they form the wide double-checkmark in the reference.
+ *
+ * FJ TEXT
+ *   White, Arial Black 900, size 33, centred at (50, 55).
  */
 
 export function FJLogo({ size = 36, className }: { size?: number; className?: string }) {
-  // Arc path: large circle centered (50,48) r=38
-  // Start at top of circle: (50, 10)
-  // End at bottom-right: approximately (77, 75)
-  // Sweep: clockwise (sweep-flag=1), large-arc-flag=1 (>180°)
-  const cx = 50;
-  const cy = 48;
-  const r  = 38;
+  // Ring arc path
+  // Start (7 o'clock, bottom-left of circle):
+  const sx = 31.5;
+  const sy = 78.0;
+  // End (4:30 o'clock, bottom-right of circle):
+  const ex = 76.2;
+  const ey = 72.2;
+  const r  = 37;
 
-  // Start point: top of circle
-  const startX = cx;
-  const startY = cy - r; // (50, 10)
-
-  // End point: ~135° clockwise from 12 o'clock = 45° SVG = bottom-right
-  const endAngleDeg = 45; // SVG convention (0°=right)
-  const endRad = (endAngleDeg * Math.PI) / 180;
-  const endX = parseFloat((cx + r * Math.cos(endRad)).toFixed(2)); // ≈ 76.87
-  const endY = parseFloat((cy + r * Math.sin(endRad)).toFixed(2)); // ≈ 74.87
-
-  // SVG arc: M startX,startY A r,r 0 large-arc sweep endX,endY
-  // large-arc-flag=1 because arc > 180°
-  const arcPath = `M ${startX},${startY} A ${r},${r} 0 1 1 ${endX},${endY}`;
-
-  // Checkmark: starts at ring endpoint (endX, endY), goes down-left then up-right
-  // Left leg: from (endX,endY) → slightly down-left: (-8, +7)
-  const ck1x = parseFloat((endX - 8).toFixed(2));  // ≈ 68.87
-  const ck1y = parseFloat((endY + 7).toFixed(2));  // ≈ 81.87
-  // Right leg: from ck1 → up-right: (+12, -13)
-  const ck2x = parseFloat((ck1x + 12).toFixed(2)); // ≈ 80.87
-  const ck2y = parseFloat((ck1y - 13).toFixed(2)); // ≈ 68.87
+  // M sx,sy  A r,r  x-rotation  large-arc  sweep  ex,ey
+  const arc = `M ${sx},${sy} A ${r},${r} 0 1 1 ${ex},${ey}`;
 
   return (
     <svg
@@ -71,29 +52,30 @@ export function FJLogo({ size = 36, className }: { size?: number; className?: st
       aria-label="Furkan J. Tracker"
       role="img"
     >
-      {/* Navy rounded-square background */}
-      <rect width="100" height="100" rx="20" ry="20" fill="#1A3560" />
+      {/* ── Navy squircle background ──────────────────────────────────── */}
+      <rect width="100" height="100" rx="22" ry="22" fill="#1C3A5E" />
 
-      {/* Circle ring — large arc ~300°, clockwise, ends at bottom-right */}
+      {/* ── Circle ring (~305°, gap at 4:30–5:00 o'clock) ─────────────── */}
       <path
-        d={arcPath}
+        d={arc}
         fill="none"
         stroke="#5BA3F5"
-        strokeWidth="4"
+        strokeWidth="4.2"
         strokeLinecap="round"
       />
 
-      {/* Checkmark — connects from ring endpoint downward then upward */}
-      <polyline
-        points={`${endX},${endY} ${ck1x},${ck1y} ${ck2x},${ck2y}`}
-        fill="none"
-        stroke="#5BA3F5"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      {/* ── Double checkmark below ring endpoint ───────────────────────── */}
+      {/*
+          Left tick:  (66,76)→(70,82)→(80,69)
+          Right tick: (71,76)→(75,82)→(85,69)
+          Together they form the wide ✓✓ mark in the reference image.
+      */}
+      <g stroke="#5BA3F5" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none">
+        <polyline points="63,77 68,83 79,68" />
+        <polyline points="70,77 75,83 86,68" />
+      </g>
 
-      {/* Bold white "FJ" centered inside the ring */}
+      {/* ── Bold white FJ ─────────────────────────────────────────────── */}
       <text
         x="50"
         y="56"
@@ -101,7 +83,7 @@ export function FJLogo({ size = 36, className }: { size?: number; className?: st
         dominantBaseline="auto"
         fontFamily="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
         fontWeight="900"
-        fontSize="32"
+        fontSize="33"
         letterSpacing="-1"
         fill="white"
       >
